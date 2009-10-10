@@ -33,13 +33,21 @@ public class MaxMapper extends MapReduceBase implements
 		// double is invalid--might be a better way to handle the error case.
 
 		int maxPos = 0;
+		int minPos = 0;
 
 		for (int ct = 0; ct < value.length; ct++) {
+			// the first value should be the max and the min
+			// so we get this information for free
 			if (value[ct] > value[maxPos]) {
 				maxPos = ct;
+			}
+			
+			if (value[ct] < value[minPos]) {
+				minPos = ct;
 			}
 		}
 
 		output.collect(new Text("max"), new DoubleWritable(value[maxPos]));
+		output.collect(new Text("min"), new DoubleWritable(value[minPos]));
 	}
 }
