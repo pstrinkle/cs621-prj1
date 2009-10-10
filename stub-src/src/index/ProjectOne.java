@@ -37,12 +37,9 @@ public class ProjectOne extends Configured implements Tool {
 		FileInputFormat.addInputPath(conf, new Path(in));
 		FileOutputFormat.setOutputPath(conf, new Path(out));
 
-		if (type.equals("max")) {
+		if (type.equals("maxmin")) {
 			conf.setInputFormat(MultiLineTextInputFormat.class);
-			conf.setMapperClass(MaxMapper.class);
-			conf.setReducerClass(MaxMinReducer.class);
-		} else if (type.equals("min")) {
-			conf.setMapperClass(MinMapper.class);
+			conf.setMapperClass(MaxMinMapper.class);
 			conf.setReducerClass(MaxMinReducer.class);
 		} else if (type.equals("avg")) {
 			conf.setMapperClass(AvgMapper.class);
@@ -50,7 +47,7 @@ public class ProjectOne extends Configured implements Tool {
 		} else if (type.equals("test")) {
 			// it tests by running max
 			conf.setInputFormat(MultiLineTextInputFormat.class);
-			conf.setMapperClass(MaxMapper.class);
+			conf.setMapperClass(MaxMinMapper.class);
 			conf.setReducerClass(MaxMinReducer.class);
 		} else {
 			System.console().printf("Currently unsupported: %s\n", type);
@@ -73,8 +70,8 @@ public class ProjectOne extends Configured implements Tool {
   			return true;
   		}
   		
-  		if (args[0].equals("max") || args[0].equals("min")
-  				|| args[0].equals("avg") || args[0].equals("med")) {
+  		if (args[0].equals("maxmin") || args[0].equals("avg")
+  				|| args[0].equals("med")) {
   			return true;
   		}
   		

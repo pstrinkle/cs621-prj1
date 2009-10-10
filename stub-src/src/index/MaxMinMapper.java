@@ -18,10 +18,10 @@ import org.apache.hadoop.mapred.Reporter;
  *
  * @author(tri1, corbin2)
  */
-public class MaxMapper extends MapReduceBase implements
+public class MaxMinMapper extends MapReduceBase implements
 		Mapper<LongWritable, Double[], Text, DoubleWritable> {
 
-	public MaxMapper() {
+	public MaxMinMapper() {
 	}
 
 	public void map(LongWritable key, Double[] value,
