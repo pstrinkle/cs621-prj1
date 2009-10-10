@@ -41,21 +41,19 @@ public class ProjectOne extends Configured implements Tool {
 			conf.setInputFormat(MultiLineTextInputFormat.class);
 			conf.setMapperClass(MaxMinMapper.class);
 			conf.setReducerClass(MaxMinReducer.class);
+			conf.setOutputKeyClass(Text.class);
+			conf.setOutputValueClass(DoubleWritable.class);
 		} else if (type.equals("avg")) {
+			conf.setInputFormat(MultiLineTextInputFormat.class);
 			conf.setMapperClass(AvgMapper.class);
 			conf.setReducerClass(AvgReducer.class);
-		} else if (type.equals("test")) {
-			// it tests by running max
-			conf.setInputFormat(MultiLineTextInputFormat.class);
-			conf.setMapperClass(MaxMinMapper.class);
-			conf.setReducerClass(MaxMinReducer.class);
+			conf.setOutputKeyClass(Text.class);
+			conf.setOutputValueClass(Text.class);
 		} else {
 			System.console().printf("Currently unsupported: %s\n", type);
 			return;
 		}
 
-		conf.setOutputKeyClass(Text.class);
-		conf.setOutputValueClass(DoubleWritable.class);
 		conf.setJobName("Value Processing");
 		
 		JobClient.runJob(conf);
@@ -64,10 +62,6 @@ public class ProjectOne extends Configured implements Tool {
   	private boolean verifyArgs(String[] args) {
   		if (args.length != 1) {
   			return false;
-  		}
-  		
-  		if (args[0].equals("test")) {
-  			return true;
   		}
   		
   		if (args[0].equals("maxmin") || args[0].equals("avg")
@@ -85,7 +79,7 @@ public class ProjectOne extends Configured implements Tool {
 		if (verifyArgs(args)) {
 			runJob(args[0], INPUT_PATH, OUTPUT_PATH);
 		} else {
-			System.console().printf("usage: ... must provide max, min, avg\n");
+			System.console().printf("usage: ... must provide maxmin, avg, med\n");
 			System.exit(-1);
 		}
 

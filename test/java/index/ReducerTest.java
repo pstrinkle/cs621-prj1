@@ -29,8 +29,6 @@ public class ReducerTest extends TestCase {
 
   @Before
   public void setUp() {
-    reducer = new AvgReducer();
-    driver = new ReduceDriver<Text, DoubleWritable, Text, Text>(reducer);
   }
 
   @Test

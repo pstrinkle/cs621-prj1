@@ -1,8 +1,8 @@
-
 package index;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.StringTokenizer;
 
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.Text;
@@ -13,18 +13,19 @@ import org.apache.hadoop.mapred.Reporter;
 
 /**
  * AvgReducer
- *
+ * 
  * Takes a list of filename@offset entries for a single word and concatenates
  * them into a list.
- *
+ * 
  * @author(tri1, corbin2)
  */
 public class AvgReducer extends MapReduceBase implements
-		Reducer<Text, DoubleWritable, Text, Text> {
+		Reducer<Text, Text, Text, Text> {
 
-	public AvgReducer() { }
+	public AvgReducer() {
+	}
 
-	public void reduce(Text key, Iterator<DoubleWritable> values,
+	public void reduce(Text key, Iterator<Text> values,
 			OutputCollector<Text, Text> output, Reporter reporter)
 			throws IOException {
 
@@ -32,10 +33,24 @@ public class AvgReducer extends MapReduceBase implements
 		int cnt = 0;
 
 		while (values.hasNext()) {
-			sum += values.next().get();
-			cnt += 1;
+
+			StringTokenizer itr = new StringTokenizer(values.next().toString(), " ");
+
+			if (itr.countTokens() == 2) {
+
+				String newcnt = itr.nextToken();
+				cnt += Double.valueOf(newcnt);
+
+				String newsum = itr.nextToken();
+				sum += Double.valueOf(newsum);
+			} else {
+				// too many tokens!
+			}
 		}
 
-		output.collect(new Text("avg"), new Text(Double.toString(sum/cnt)));
+		output.collect(new Text("avg"), new Text(Double.toString(sum / cnt)));
 	}
 }
+
+// Before it took in a DoubleWritable and just added the
+// sum and the cnt stuff and then dumped out the value
