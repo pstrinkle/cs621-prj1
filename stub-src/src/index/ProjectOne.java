@@ -4,6 +4,7 @@ package index;
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.Text;
@@ -36,6 +37,9 @@ public class ProjectOne extends Configured implements Tool {
 
 		FileInputFormat.addInputPath(conf, new Path(in));
 		FileOutputFormat.setOutputPath(conf, new Path(out));
+		
+		// delete the output directory if it exists already
+		FileSystem.get(conf).delete(new Path(out), true);
 
 		if (type.equals("maxmin")) {
 			conf.setInputFormat(MultiLineTextInputFormat.class);
