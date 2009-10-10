@@ -33,7 +33,8 @@ public class ProjectOne extends Configured implements Tool {
 	/** Driver for the actual MapReduce process */
 	private void runJob(String type, String in, String out) throws IOException {
 		JobConf conf = new JobConf(getConf(), ProjectOne.class);
-
+		conf.setInputFormat(MultiLineTextInputFormat.class);
+		
 		FileInputFormat.addInputPath(conf, new Path(in));
 		FileOutputFormat.setOutputPath(conf, new Path(out));
 

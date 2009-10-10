@@ -19,17 +19,25 @@ import org.apache.hadoop.mapred.Reporter;
  * @author(tri1, corbin2)
  */
 public class MaxMapper extends MapReduceBase implements
-		Mapper<LongWritable, Text, Text, DoubleWritable> {
+		Mapper<Text, Double [], Text, DoubleWritable> {
 
 	public MaxMapper() { }
 
-	public void map(LongWritable key, Text value,
+	public void map(Text key, Double[] value,
 			OutputCollector<Text, DoubleWritable> output, Reporter reporter)
 			throws IOException, NumberFormatException {
 
 		// technically we could set the value equal to a local variable and try/catch it if the 
 		// double is invalid--might be a better way to handle the error case.
+
+		int maxPos = 0;
+		for (int ct=0;ct<value.length;ct++){ 
+		  if (value[ct] > value[maxPos]){
+			  maxPos = ct;
+		  }
+		}
 		
-		output.collect(new Text("max"), new DoubleWritable(Double.valueOf(value.toString()).doubleValue()));
+		output.collect(new Text("max"), new DoubleWritable(value[maxPos]));
+		//output.collect(new Text("max"), new DoubleWritable(Double.valueOf(value.toString()).doubleValue()));
 	}
 }
