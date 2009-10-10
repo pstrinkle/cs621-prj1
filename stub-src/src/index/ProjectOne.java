@@ -33,8 +33,7 @@ public class ProjectOne extends Configured implements Tool {
 	/** Driver for the actual MapReduce process */
 	private void runJob(String type, String in, String out) throws IOException {
 		JobConf conf = new JobConf(getConf(), ProjectOne.class);
-		conf.setInputFormat(MultiLineTextInputFormat.class);
-		
+
 		FileInputFormat.addInputPath(conf, new Path(in));
 		FileOutputFormat.setOutputPath(conf, new Path(out));
 
@@ -43,10 +42,15 @@ public class ProjectOne extends Configured implements Tool {
 			conf.setReducerClass(MaxReducer.class);
 		} else if (type.equals("min")) {
 			conf.setMapperClass(MinMapper.class);
-			conf.setReducerClass(MinReducer.class);
+			conf.setReducerClass(MaxReducer.class);
 		} else if (type.equals("avg")) {
 			conf.setMapperClass(AvgMapper.class);
 			conf.setReducerClass(AvgReducer.class);
+		} else if (type.equals("test")) {
+			// it tests by running max
+			conf.setInputFormat(MultiLineTextInputFormat.class);
+			conf.setMapperClass(MaxMapper.class);
+			conf.setReducerClass(MaxReducer.class);
 		} else {
 			System.console().printf("Currently unsupported: %s\n", type);
 			return;
@@ -54,7 +58,8 @@ public class ProjectOne extends Configured implements Tool {
 
 		conf.setOutputKeyClass(Text.class);
 		conf.setOutputValueClass(DoubleWritable.class);
-
+		conf.setJobName("Value Processing");
+		
 		JobClient.runJob(conf);
 	}
 
@@ -63,8 +68,12 @@ public class ProjectOne extends Configured implements Tool {
   			return false;
   		}
   		
+  		if (args[0].equals("test")) {
+  			return true;
+  		}
+  		
   		if (args[0].equals("max") || args[0].equals("min")
-  				|| args[0].equals("avg")) {
+  				|| args[0].equals("avg") || args[0].equals("med")) {
   			return true;
   		}
   		
@@ -90,4 +99,3 @@ public class ProjectOne extends Configured implements Tool {
 		System.exit(ret);
 	}
 }
-

@@ -1,4 +1,3 @@
-
 package index;
 
 import java.io.IOException;
@@ -13,41 +12,66 @@ import org.apache.hadoop.mapred.Reporter;
 
 /**
  * MaxReducer
- *
+ * 
  * Takes a list of filename@offset entries for a single word and concatenates
  * them into a list.
- *
+ * 
  * @author(tri1, corbin2)
  */
 public class MaxReducer extends MapReduceBase implements
 		Reducer<Text, DoubleWritable, Text, Text> {
 
-	public MaxReducer() { }
+	public MaxReducer() {
+	}
 
 	public void reduce(Text key, Iterator<DoubleWritable> values,
 			OutputCollector<Text, Text> output, Reporter reporter)
 			throws IOException {
 
 		double max = 0;
+		double min = 0;
+		double result = 0;
 		double current = 0;
 		boolean first = true;
 
-		while (values.hasNext()) {
+		// you could have the if statement in the while loop
+		// but then you'd have to check the key at each iteration
+		if (key.toString().equals("max")) {
+			while (values.hasNext()) {
 
-			current = values.next().get();
+				current = values.next().get();
 
-			if (first) {
-				max = current;
+				if (first) {
+					max = current;
+				}
+
+				if (current > max) {
+					max = current;
+				}
+
+				first = false;
 			}
+			
+			result = max;
+		} else if (key.toString().equals("min")) {
+			while (values.hasNext()) {
 
-			if (current > max) {
-				max = current;
+				current = values.next().get();
+
+				if (first) {
+					min = current;
+				}
+
+				if (current < min) {
+					min = current;
+				}
+
+				first = false;
 			}
-
-			first = false;
+			
+			result = min;
 		}
 
-		output.collect(new Text("max"), new Text(Double.toString(max)));
+		output.collect(new Text(key), new Text(Double.toString(result)));
 	}
 }
-

@@ -39,4 +39,3 @@ public class AvgReducer extends MapReduceBase implements
 		output.collect(new Text("avg"), new Text(Double.toString(sum/cnt)));
 	}
 }
-

@@ -34,8 +34,6 @@ public class MapperTest extends TestCase {
 
   @Before
   public void setUp() {
-    mapper = new MaxMapper();
-    driver = new MapDriver<LongWritable, Text, Text, DoubleWritable>(mapper);
   }
 
   @Test
