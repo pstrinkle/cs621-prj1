@@ -18,10 +18,10 @@ import org.apache.hadoop.mapred.Reporter;
  * 
  * @author(tri1, corbin2)
  */
-public class MaxReducer extends MapReduceBase implements
+public class MaxMinReducer extends MapReduceBase implements
 		Reducer<Text, DoubleWritable, Text, Text> {
 
-	public MaxReducer() {
+	public MaxMinReducer() {
 	}
 
 	public void reduce(Text key, Iterator<DoubleWritable> values,

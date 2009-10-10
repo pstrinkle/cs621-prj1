@@ -9,7 +9,7 @@ import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.LineRecordReader;
 import org.apache.hadoop.mapred.RecordReader;
 
-public class MultiLineRecordReader implements RecordReader<Text, Double[]> {
+public class MultiLineRecordReader implements RecordReader<LongWritable, Double[]> {
 
 	private LineRecordReader lineReader;
 	private LongWritable lineKey;
@@ -24,29 +24,33 @@ public class MultiLineRecordReader implements RecordReader<Text, Double[]> {
 		lineValue = lineReader.createValue();
 	}
 
-	public boolean next(Text key, Double[] value) throws IOException {
+	public boolean next(LongWritable key, Double[] value) throws IOException,
+			NumberFormatException {
 		// get the next line
 
 		for (int ct = 0; ct < size; ct++) {
-
+			
 			if (!lineReader.next(lineKey, lineValue)) {
-				if (ct == 0){
+				if (ct == 0) {
 					return false;
-				}
-				else{
+				} else {
 					return true;
-				}	
+				}
 			}
+			
 			value[ct] = Double.valueOf(lineValue.toString());
-
 		}
 
 		return true;
 	}
 
-	public Text createKey() {
-		return new Text("");
+	public LongWritable createKey() {
+		return new LongWritable();
 	}
+	
+	//public Text createKey() {
+	//	return new Text("");
+	//}
 
 	public Double[] createValue() {
 		return new Double[size];

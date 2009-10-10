@@ -38,11 +38,12 @@ public class ProjectOne extends Configured implements Tool {
 		FileOutputFormat.setOutputPath(conf, new Path(out));
 
 		if (type.equals("max")) {
+			conf.setInputFormat(MultiLineTextInputFormat.class);
 			conf.setMapperClass(MaxMapper.class);
-			conf.setReducerClass(MaxReducer.class);
+			conf.setReducerClass(MaxMinReducer.class);
 		} else if (type.equals("min")) {
 			conf.setMapperClass(MinMapper.class);
-			conf.setReducerClass(MaxReducer.class);
+			conf.setReducerClass(MaxMinReducer.class);
 		} else if (type.equals("avg")) {
 			conf.setMapperClass(AvgMapper.class);
 			conf.setReducerClass(AvgReducer.class);
@@ -50,7 +51,7 @@ public class ProjectOne extends Configured implements Tool {
 			// it tests by running max
 			conf.setInputFormat(MultiLineTextInputFormat.class);
 			conf.setMapperClass(MaxMapper.class);
-			conf.setReducerClass(MaxReducer.class);
+			conf.setReducerClass(MaxMinReducer.class);
 		} else {
 			System.console().printf("Currently unsupported: %s\n", type);
 			return;
