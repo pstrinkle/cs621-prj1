@@ -21,7 +21,7 @@ public class MultiLineRecordReader implements RecordReader<LongWritable, ArrayLi
 	public MultiLineRecordReader(JobConf job, FileSplit split)
 			throws IOException {
 		lineReader = new LineRecordReader(job, split);
-		size = 100;
+		size = 1;
 		lineKey = lineReader.createKey();
 		lineValue = lineReader.createValue();
 	}

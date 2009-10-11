@@ -36,14 +36,19 @@ public class MedianMapper extends MapReduceBase implements
 		double cnt = value.size();
 		double med = 0;
 		
-		if ((cnt % 2) == 0) {
-			double x = value.get((int)(cnt / 2));
-			double y = value.get((int)((cnt / 2) + 1));
-			med = (x + y) / 2;
-			// even
+		if (cnt > 1) {
+
+			if ((cnt % 2) == 0) {
+				double x = value.get((int) (cnt / 2));
+				double y = value.get((int) ((cnt / 2) + 1));
+				med = (x + y) / 2;
+				// even
+			} else {
+				med = value.get((int) Math.ceil(cnt / 2));
+				// odd
+			}
 		} else {
-			med = value.get((int)Math.ceil(cnt / 2));
-			// odd
+			med = value.get(0);
 		}
 
 		// make output

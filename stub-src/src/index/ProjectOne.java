@@ -42,23 +42,20 @@ public class ProjectOne extends Configured implements Tool {
 		FileSystem.get(conf).delete(new Path(out), true);
 		
 		//conf.setNumReduceTasks(0);
+		conf.setInputFormat(MultiLineTextInputFormat.class);
+		conf.setOutputKeyClass(Text.class);
 
 		if (type.equals("maxmin")) {
-			conf.setInputFormat(MultiLineTextInputFormat.class);
 			conf.setMapperClass(MaxMinMapper.class);
 			conf.setReducerClass(MaxMinReducer.class);
-			conf.setOutputKeyClass(Text.class);
 			conf.setOutputValueClass(DoubleWritable.class);
 		} else if (type.equals("avg")) {
-			conf.setInputFormat(MultiLineTextInputFormat.class);
 			conf.setMapperClass(AvgMapper.class);
 			conf.setReducerClass(AvgReducer.class);
-			conf.setOutputKeyClass(Text.class);
 			conf.setOutputValueClass(Text.class);
 		} else if (type.equals("med")) {
 			conf.setMapperClass(MedianMapper.class);
 			conf.setReducerClass(MedianReducer.class);
-			conf.setOutputKeyClass(Text.class);
 			conf.setOutputValueClass(DoubleWritable.class);
 		} else {
 			System.console().printf("Currently unsupported: %s\n", type);
