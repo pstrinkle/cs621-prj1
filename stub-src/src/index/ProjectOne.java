@@ -53,6 +53,11 @@ public class ProjectOne extends Configured implements Tool {
 			conf.setReducerClass(AvgReducer.class);
 			conf.setOutputKeyClass(Text.class);
 			conf.setOutputValueClass(Text.class);
+		} else if (type.equals("min")) {
+			conf.setMapperClass(MinMapper.class);
+			conf.setReducerClass(MinReducer.class);
+			conf.setOutputKeyClass(Text.class);
+			conf.setOutputValueClass(DoubleWritable.class);
 		} else {
 			System.console().printf("Currently unsupported: %s\n", type);
 			return;
@@ -69,7 +74,7 @@ public class ProjectOne extends Configured implements Tool {
   		}
   		
   		if (args[0].equals("maxmin") || args[0].equals("avg")
-  				|| args[0].equals("med")) {
+  				|| args[0].equals("med") || args[0].equals("min")) {
   			return true;
   		}
   		

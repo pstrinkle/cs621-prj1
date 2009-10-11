@@ -2,6 +2,7 @@
 package index;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
@@ -10,7 +11,7 @@ import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.LineRecordReader;
 import org.apache.hadoop.mapred.RecordReader;
 
-public class MultiLineRecordReader implements RecordReader<LongWritable, Double[]> {
+public class MultiLineRecordReader implements RecordReader<LongWritable, ArrayList<Double>> {
 
 	private LineRecordReader lineReader;
 	private LongWritable lineKey;
@@ -20,15 +21,15 @@ public class MultiLineRecordReader implements RecordReader<LongWritable, Double[
 	public MultiLineRecordReader(JobConf job, FileSplit split)
 			throws IOException {
 		lineReader = new LineRecordReader(job, split);
-		size = 100;
+		size = 1;
 		lineKey = lineReader.createKey();
 		lineValue = lineReader.createValue();
 	}
 
-	public boolean next(LongWritable key, Double[] value) throws IOException,
+	public boolean next(LongWritable key, ArrayList<Double> value) throws IOException,
 			NumberFormatException {
 		// get the next line
-
+		
 		for (int ct = 0; ct < size; ct++) {
 			
 			if (!lineReader.next(lineKey, lineValue)) {
@@ -39,7 +40,7 @@ public class MultiLineRecordReader implements RecordReader<LongWritable, Double[
 				}
 			}
 			
-			value[ct] = Double.valueOf(lineValue.toString());
+			value.add(Double.valueOf(lineValue.toString()));
 		}
 
 		return true;
@@ -48,13 +49,9 @@ public class MultiLineRecordReader implements RecordReader<LongWritable, Double[
 	public LongWritable createKey() {
 		return new LongWritable();
 	}
-	
-	//public Text createKey() {
-	//	return new Text("");
-	//}
 
-	public Double[] createValue() {
-		return new Double[size];
+	public ArrayList<Double> createValue() {
+		return new ArrayList<Double>();
 	}
 
 	public long getPos() throws IOException {

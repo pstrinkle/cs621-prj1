@@ -27,6 +27,7 @@ public class MinMapper extends MapReduceBase implements
 			OutputCollector<Text, DoubleWritable> output, Reporter reporter)
 			throws IOException, NumberFormatException {
 		
+		output.collect(new Text("cnt"), new DoubleWritable(1.0));
 		output.collect(new Text("min"), new DoubleWritable(Double.valueOf(value.toString()).doubleValue()));
 	}
 }

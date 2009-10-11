@@ -71,6 +71,12 @@ public class MaxMinReducer extends MapReduceBase implements
 			}
 			
 			result = min;
+		} else if (key.toString().equals("cnt")) {
+			result = 0; // redundant
+			
+			while (values.hasNext()) {				
+				result += values.next().get();
+			}
 		}
 
 		output.collect(new Text(key), new Text(Double.toString(result)));

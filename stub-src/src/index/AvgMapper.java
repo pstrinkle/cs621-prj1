@@ -1,8 +1,8 @@
 package index;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
-import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.MapReduceBase;
@@ -18,12 +18,12 @@ import org.apache.hadoop.mapred.Reporter;
  * @author(tri1, corbin2)
  */
 public class AvgMapper extends MapReduceBase implements
-		Mapper<LongWritable, Double[], Text, Text> {
+		Mapper<LongWritable, ArrayList<Double>, Text, Text> {
 
 	public AvgMapper() {
 	}
 
-	public void map(LongWritable key, Double[] value,
+	public void map(LongWritable key, ArrayList<Double> value,
 			OutputCollector<Text, Text> output, Reporter reporter)
 			throws IOException, NumberFormatException {
 
@@ -33,12 +33,12 @@ public class AvgMapper extends MapReduceBase implements
 
 		int cnt = 0;
 		double sum = 0;
-
-		for (int ct = 0; ct < value.length; ct++) {
-			sum += value[ct];
+		
+		for (Double d: value) {
+			sum += d;
 		}
 
-		cnt = value.length;
+		cnt = value.size();
 		
 		// make output
 		outputline.append(cnt);
@@ -46,5 +46,6 @@ public class AvgMapper extends MapReduceBase implements
 		outputline.append(sum);
 
 		output.collect(new Text("avg"), new Text(outputline.toString()));
+		output.collect(new Text("cnt"), new Text(Integer.toString(cnt)));
 	}
 }

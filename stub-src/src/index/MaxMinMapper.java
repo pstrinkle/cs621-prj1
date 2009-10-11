@@ -2,6 +2,7 @@
 package index;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.LongWritable;
@@ -19,12 +20,12 @@ import org.apache.hadoop.mapred.Reporter;
  * @author(tri1, corbin2)
  */
 public class MaxMinMapper extends MapReduceBase implements
-		Mapper<LongWritable, Double[], Text, DoubleWritable> {
+		Mapper<LongWritable, ArrayList<Double>, Text, DoubleWritable> {
 
 	public MaxMinMapper() {
 	}
 
-	public void map(LongWritable key, Double[] value,
+	public void map(LongWritable key, ArrayList<Double> value,
 			OutputCollector<Text, DoubleWritable> output, Reporter reporter)
 			throws IOException, NumberFormatException {
 
@@ -32,22 +33,28 @@ public class MaxMinMapper extends MapReduceBase implements
 		// try/catch it if the
 		// double is invalid--might be a better way to handle the error case.
 
-		int maxPos = 0;
-		int minPos = 0;
-
-		for (int ct = 0; ct < value.length; ct++) {
-			// the first value should be the max and the min
-			// so we get this information for free
-			if (value[ct] > value[maxPos]) {
-				maxPos = ct;
+		double max = 0, min = 0;
+		boolean first = true;
+		double count = 0;
+		
+		for (Double d : value) {
+			if (first) {
+				max = d;
+				min = d;
 			}
 			
-			if (value[ct] < value[minPos]) {
-				minPos = ct;
+			if (d > max) {
+				max = d;
+			} else if (d < min) {
+				min = d;
 			}
+			
+			first = false;
+			count += 1;
 		}
 
-		output.collect(new Text("max"), new DoubleWritable(value[maxPos]));
-		output.collect(new Text("min"), new DoubleWritable(value[minPos]));
+		output.collect(new Text("max"), new DoubleWritable(max));
+		output.collect(new Text("min"), new DoubleWritable(min));
+		output.collect(new Text("cnt"), new DoubleWritable(count));
 	}
 }

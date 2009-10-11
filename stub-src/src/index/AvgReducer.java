@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.StringTokenizer;
 
-import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.MapReduceBase;
 import org.apache.hadoop.mapred.OutputCollector;
@@ -29,26 +28,38 @@ public class AvgReducer extends MapReduceBase implements
 			OutputCollector<Text, Text> output, Reporter reporter)
 			throws IOException {
 
-		double sum = 0;
-		int cnt = 0;
+		if (key.toString().equals("avg")) {
 
-		while (values.hasNext()) {
+			double sum = 0;
+			int cnt = 0;
 
-			StringTokenizer itr = new StringTokenizer(values.next().toString(), " ");
+			while (values.hasNext()) {
 
-			if (itr.countTokens() == 2) {
+				StringTokenizer itr = new StringTokenizer(values.next().toString(), " ");
 
-				String newcnt = itr.nextToken();
-				cnt += Double.valueOf(newcnt);
+				if (itr.countTokens() == 2) {
 
-				String newsum = itr.nextToken();
-				sum += Double.valueOf(newsum);
-			} else {
-				// too many tokens!
+					String newcnt = itr.nextToken();
+					cnt += Double.valueOf(newcnt);
+
+					String newsum = itr.nextToken();
+					sum += Double.valueOf(newsum);
+				} else {
+					// too many tokens!
+				}
 			}
-		}
 
-		output.collect(new Text("avg"), new Text(Double.toString(sum / cnt)));
+			output.collect(new Text("avg"), new Text(Double.toString(sum / cnt)));
+		} else if (key.toString().equals("cnt")) {
+
+			int valuecnt = 0;
+
+			while (values.hasNext()) {
+				valuecnt += Integer.valueOf(values.next().toString());
+			}
+
+			output.collect(new Text("cnt"), new Text(Integer.toString(valuecnt)));
+		}
 	}
 }
 

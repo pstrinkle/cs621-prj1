@@ -27,27 +27,38 @@ public class MinReducer extends MapReduceBase implements
 	public void reduce(Text key, Iterator<DoubleWritable> values,
 			OutputCollector<Text, Text> output, Reporter reporter)
 			throws IOException {
+		
+		double result = 0;
+		
+		if (key.toString().equals("min")) {
 
-		double min = 0;
-		double current;
-		boolean first = true;
+			double min = 0;
+			double current;
+			boolean first = true;
 
-		while (values.hasNext()) {
+			while (values.hasNext()) {
 
-			current = values.next().get();
+				current = values.next().get();
 
-			if (first) {
-				min = current;
+				if (first) {
+					min = current;
+				}
+
+				if (current < min) {
+					min = current;
+				}
+
+				first = false;
 			}
 
-			if (current < min) {
-				min = current;
+			result = min;
+		} else if (key.toString().equals("cnt")) {
+			while (values.hasNext()) {
+				result += values.next().get();
 			}
-
-			first = false;
 		}
 
-		output.collect(new Text("min"), new Text(Double.toString(min)));
+		output.collect(new Text(key), new Text(Double.toString(result)));
 	}
 }
 
