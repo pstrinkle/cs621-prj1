@@ -76,7 +76,7 @@ public class ProjectOne extends Configured implements Tool {
   		}
   		
   		if (args[0].equals("maxmin") || args[0].equals("avg")
-  				|| args[0].equals("med") || args[0].equals("min")) {
+  				|| args[0].equals("med")) {
   			return true;
   		}
   		

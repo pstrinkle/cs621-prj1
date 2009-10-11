@@ -41,26 +41,23 @@ public class MedianReducer extends MapReduceBase implements
 		Collections.sort(sortedValues);
 		//Arrays.sort(sortedValues.toArray());
 
-		double cnt = values.size();
+		double cnt = sortedValues.size();
 		double med = 0;
 
 		if ((cnt % 2) == 0)
 		{
-			double x = value.get((int)(cnt / 2));
-			double y = value.get((int)((cnt / 2) + 1));
+			double x = sortedValues.get((int)(cnt / 2));
+			double y = sortedValues.get((int)((cnt / 2) + 1));
 			med = (x + y) / 2;
 			// even
 		}
 		else
 		{
-			med = value.get((int)Math.ceil(cnt / 2));
+			med = sortedValues.get((int)Math.ceil(cnt / 2));
 			// odd
 		}
 
 		// make output
-		
-		
-		
 		output.collect(new Text(key), new DoubleWritable(med));
 	}
 }
