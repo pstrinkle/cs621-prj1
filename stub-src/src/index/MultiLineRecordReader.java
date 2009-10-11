@@ -32,6 +32,8 @@ public class MultiLineRecordReader implements RecordReader<LongWritable, ArrayLi
 		value.clear();
 		// get the next line
 		
+		// if the first line is the length then the lineKey being set to 0 is something
+		// we'd just skip
 		for (int ct = 0; ct < size; ct++) {
 			
 			if (!lineReader.next(lineKey, lineValue)) {
@@ -45,13 +47,6 @@ public class MultiLineRecordReader implements RecordReader<LongWritable, ArrayLi
 			value.add(Double.valueOf(lineValue.toString()));
 		}
 
-//		if (lineReader.next(lineKey, lineValue)) {
-//			value.add(Double.valueOf(lineValue.toString()));
-//			return true;
-//		} else {
-//			return false;
-//		}
-		
 		return true;
 	}
 

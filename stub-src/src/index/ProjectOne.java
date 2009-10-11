@@ -55,9 +55,9 @@ public class ProjectOne extends Configured implements Tool {
 			conf.setReducerClass(AvgReducer.class);
 			conf.setOutputKeyClass(Text.class);
 			conf.setOutputValueClass(Text.class);
-		} else if (type.equals("min")) {
-			conf.setMapperClass(MinMapper.class);
-			conf.setReducerClass(MinReducer.class);
+		} else if (type.equals("med")) {
+			conf.setMapperClass(MedianMapper.class);
+			conf.setReducerClass(MedianReducer.class);
 			conf.setOutputKeyClass(Text.class);
 			conf.setOutputValueClass(DoubleWritable.class);
 		} else {
