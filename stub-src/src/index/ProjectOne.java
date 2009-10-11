@@ -62,7 +62,7 @@ public class ProjectOne extends Configured implements Tool {
 			return;
 		}
 
-		conf.setJobName("Value Processing");
+		conf.setJobName("Value Processing: " + type);
 		
 		JobClient.runJob(conf);
 	}
