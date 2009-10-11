@@ -21,13 +21,15 @@ public class MultiLineRecordReader implements RecordReader<LongWritable, ArrayLi
 	public MultiLineRecordReader(JobConf job, FileSplit split)
 			throws IOException {
 		lineReader = new LineRecordReader(job, split);
-		size = 1;
+		size = 100;
 		lineKey = lineReader.createKey();
 		lineValue = lineReader.createValue();
 	}
 
 	public boolean next(LongWritable key, ArrayList<Double> value) throws IOException,
 			NumberFormatException {
+		
+		value.clear();
 		// get the next line
 		
 		for (int ct = 0; ct < size; ct++) {
@@ -43,6 +45,13 @@ public class MultiLineRecordReader implements RecordReader<LongWritable, ArrayLi
 			value.add(Double.valueOf(lineValue.toString()));
 		}
 
+//		if (lineReader.next(lineKey, lineValue)) {
+//			value.add(Double.valueOf(lineValue.toString()));
+//			return true;
+//		} else {
+//			return false;
+//		}
+		
 		return true;
 	}
 

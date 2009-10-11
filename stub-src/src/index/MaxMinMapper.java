@@ -35,7 +35,6 @@ public class MaxMinMapper extends MapReduceBase implements
 
 		double max = 0, min = 0;
 		boolean first = true;
-		double count = 0;
 		
 		for (Double d : value) {
 			if (first) {
@@ -50,11 +49,10 @@ public class MaxMinMapper extends MapReduceBase implements
 			}
 			
 			first = false;
-			count += 1;
 		}
 
 		output.collect(new Text("max"), new DoubleWritable(max));
 		output.collect(new Text("min"), new DoubleWritable(min));
-		output.collect(new Text("cnt"), new DoubleWritable(count));
+		output.collect(new Text("cnt"), new DoubleWritable(value.size()));
 	}
 }

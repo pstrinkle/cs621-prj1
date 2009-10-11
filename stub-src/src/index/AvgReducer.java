@@ -28,6 +28,8 @@ public class AvgReducer extends MapReduceBase implements
 			OutputCollector<Text, Text> output, Reporter reporter)
 			throws IOException {
 
+		double result = 0;
+		
 		if (key.toString().equals("avg")) {
 
 			double sum = 0;
@@ -48,18 +50,16 @@ public class AvgReducer extends MapReduceBase implements
 					// too many tokens!
 				}
 			}
-
-			output.collect(new Text("avg"), new Text(Double.toString(sum / cnt)));
+			
+			result = sum / cnt;
 		} else if (key.toString().equals("cnt")) {
 
-			int valuecnt = 0;
-
 			while (values.hasNext()) {
-				valuecnt += Integer.valueOf(values.next().toString());
+				result += Integer.valueOf(values.next().toString());
 			}
-
-			output.collect(new Text("cnt"), new Text(Integer.toString(valuecnt)));
 		}
+		
+		output.collect(new Text(key), new Text(Double.toString(result)));
 	}
 }
 

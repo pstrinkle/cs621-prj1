@@ -40,6 +40,8 @@ public class ProjectOne extends Configured implements Tool {
 		
 		// delete the output directory if it exists already
 		FileSystem.get(conf).delete(new Path(out), true);
+		
+		//conf.setNumReduceTasks(0);
 
 		if (type.equals("maxmin")) {
 			conf.setInputFormat(MultiLineTextInputFormat.class);
