@@ -30,6 +30,10 @@ public class ProjectOne extends Configured implements Tool {
 
 	// where to read the data from.
 	private static final String INPUT_PATH = "workspace";
+	
+	private static final String AVG = "avg";
+	private static final String MAXMIN = "maxmin";
+	private static final String MED = "med";
 
 	/** Driver for the actual MapReduce process */
 	private void runJob(String type, String in, String out) throws IOException {
@@ -45,15 +49,15 @@ public class ProjectOne extends Configured implements Tool {
 		conf.setInputFormat(MultiLineTextInputFormat.class);
 		conf.setOutputKeyClass(Text.class);
 
-		if (type.equals("maxmin")) {
+		if (type.equals(MAXMIN)) {
 			conf.setMapperClass(MaxMinMapper.class);
 			conf.setReducerClass(MaxMinReducer.class);
 			conf.setOutputValueClass(DoubleWritable.class);
-		} else if (type.equals("avg")) {
+		} else if (type.equals(AVG)) {
 			conf.setMapperClass(AvgMapper.class);
 			conf.setReducerClass(AvgReducer.class);
 			conf.setOutputValueClass(Text.class);
-		} else if (type.equals("med")) {
+		} else if (type.equals(MED)) {
 			conf.setMapperClass(MedianMapper.class);
 			conf.setReducerClass(MedianReducer.class);
 			conf.setOutputValueClass(DoubleWritable.class);
@@ -72,13 +76,21 @@ public class ProjectOne extends Configured implements Tool {
   			return false;
   		}
   		
-  		if (args[0].equals("maxmin") || args[0].equals("avg")
-  				|| args[0].equals("med")) {
+  		if (args[0].equals(MAXMIN) || args[0].equals(AVG)
+  				|| args[0].equals(MED)) {
   			return true;
   		}
   		
   		return false;
   	}
+
+	private void runAllJobs(String input, String output) throws IOException {
+		runJob(MAXMIN, input, output);
+		runJob(AVG, input, output);
+		runJob(MED, input, output);
+
+		return;
+	}
 
 	public int run(String[] args) throws IOException {
 		System.console().printf("Input Path: %s\n", INPUT_PATH);
@@ -86,8 +98,10 @@ public class ProjectOne extends Configured implements Tool {
 
 		if (verifyArgs(args)) {
 			runJob(args[0], INPUT_PATH, OUTPUT_PATH);
+		} else if (args[0].equals("all")) {
+			runAllJobs(INPUT_PATH, OUTPUT_PATH);
 		} else {
-			System.console().printf("usage: ... must provide maxmin, avg, med\n");
+			System.console().printf("usage: ... must provide maxmin, avg, med, or all\n");
 			System.exit(-1);
 		}
 
