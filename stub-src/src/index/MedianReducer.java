@@ -46,16 +46,19 @@ public class MedianReducer extends MapReduceBase implements
 			double cnt = sortedValues.size();
 			double med = 0;
 
-			if ((cnt % 2) == 0) {
-				double x = sortedValues.get((int) (cnt / 2));
-				double y = sortedValues.get((int) ((cnt / 2) + 1));
-				med = (x + y) / 2;
-				// even
+			if (cnt > 1) {
+				if ((cnt % 2) == 0) {
+					double x = sortedValues.get((int) ((cnt / 2) - 1));
+					double y = sortedValues.get((int) (cnt / 2));
+					med = (x + y) / 2;
+					// even
+				} else {
+					med = sortedValues.get((int) Math.floor(cnt / 2));
+					// odd
+				}
 			} else {
-				med = sortedValues.get((int) Math.ceil(cnt / 2));
-				// odd
+				med = sortedValues.get(0);
 			}
-			
 			result = med;
 		} else if (key.toString().equals("cnt")) {
 			while (values.hasNext()) {
