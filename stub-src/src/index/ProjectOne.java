@@ -6,6 +6,7 @@ import java.io.IOException;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.RawLocalFileSystem;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.FileInputFormat;
@@ -24,12 +25,6 @@ import org.apache.hadoop.util.Tool;
  * @author(tri1, corbin2)
  */
 public class ProjectOne extends Configured implements Tool {
-
-	// where to put the data in hdfs when we're done
-	private static final String OUTPUT_PATH = "output";
-
-	// where to read the data from.
-	private static final String INPUT_PATH = "workspace";
 	
 	private static final String AVG = "avg";
 	private static final String MAXMIN = "maxmin";
@@ -37,13 +32,19 @@ public class ProjectOne extends Configured implements Tool {
 
 	/** Driver for the actual MapReduce process */
 	private void runJob(String type, String in, String out) throws IOException {
+
 		JobConf conf = new JobConf(getConf(), ProjectOne.class);
 
-		FileInputFormat.addInputPath(conf, new Path(in));
-		FileOutputFormat.setOutputPath(conf, new Path(out));
+		// repeatedly used paths
+		Path outfile = new Path(out + "/" + type + ".txt");
+		Path hdfstemp = new Path("temp/part-00000");
+		Path tempout = new Path("temp");
 		
-		// delete the output directory if it exists already
-		FileSystem.get(conf).delete(new Path(out), true);
+		FileInputFormat.addInputPath(conf, new Path(in));
+		FileOutputFormat.setOutputPath(conf, tempout);
+		
+		// delete the output file if it exists already
+		FileSystem.get(conf).delete(outfile, false);
 		
 		//conf.setNumReduceTasks(0);
 		conf.setInputFormat(MultiLineTextInputFormat.class);
@@ -67,48 +68,68 @@ public class ProjectOne extends Configured implements Tool {
 		}
 
 		conf.setJobName("Value Processing: " + type);
-		
+
 		JobClient.runJob(conf);
+
+		// all the nodes can access it;
+		// so i'm copying all the data to an output location in the HDFS for the project
+
+		// for us i copy the data down to the location filesystem
+		RawLocalFileSystem rlfs = new RawLocalFileSystem();
+		Path localout = new Path(rlfs.getHomeDirectory().toString() + "/" + type + ".txt");
+		
+		// copy it to local file system
+		FileSystem.get(conf).copyToLocalFile(hdfstemp, localout);
+		
+		// copy it to the output location in the HDFS
+		FileSystem.get(conf).mkdirs(new Path(out));
+		FileSystem.get(conf).rename(hdfstemp, outfile);
+		FileSystem.get(conf).delete(tempout, true);
 	}
 
   	private boolean verifyArgs(String[] args) {
-  		if (args.length != 1) {
+
+  		if (args.length != 3) {
   			return false;
   		}
-  		
+
   		if (args[0].equals(MAXMIN) || args[0].equals(AVG)
   				|| args[0].equals(MED)) {
   			return true;
   		}
-  		
+
   		return false;
   	}
 
-	private void runAllJobs(String input, String output) throws IOException {
-		runJob(MAXMIN, input, output);
-		runJob(AVG, input, output);
-		runJob(MED, input, output);
+	private void runAllJobs(String in, String out) throws IOException {
+
+		runJob(MAXMIN, in, out);
+		runJob(AVG, in, out);
+		runJob(MED, in, out);
 
 		return;
 	}
 
 	public int run(String[] args) throws IOException {
-		System.console().printf("Input Path: %s\n", INPUT_PATH);
-		System.console().printf("Output Path: %s\n", OUTPUT_PATH);
 
 		if (verifyArgs(args)) {
-			runJob(args[0], INPUT_PATH, OUTPUT_PATH);
-		} else if (args[0].equals("all")) {
-			runAllJobs(INPUT_PATH, OUTPUT_PATH);
+			runJob(args[0], args[1], args[2]);
+		} else if (args.length == 3 && args[0].equals("all")) {
+			runAllJobs(args[1], args[2]);
 		} else {
-			System.console().printf("usage: ... must provide maxmin, avg, med, or all\n");
+			System.console().printf("usage: hadoop jar indexer.jar ");
+			System.console().printf("index.ProjectOne option input output\n");
+			System.console().printf("options: maxmin, avg, med, or all\n");
 			System.exit(-1);
 		}
+
+		FileSystem.printStatistics();
 
 		return 0;
 	}
 
 	public static void main(String[] args) throws Exception {
+
 		int ret = ToolRunner.run(new ProjectOne(), args);
 		System.exit(ret);
 	}
