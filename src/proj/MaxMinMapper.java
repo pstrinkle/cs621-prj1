@@ -1,8 +1,8 @@
-package index;
+
+package proj;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.LongWritable;
@@ -13,46 +13,46 @@ import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reporter;
 
 /**
- * AvgMapper
- * 
+ * MaxMapper
+ *
  * Maps each observed word in a line to a (filename@offset) string.
- * 
+ *
  * @author(tri1, corbin2)
  */
-public class MedianMapper extends MapReduceBase implements
+public class MaxMinMapper extends MapReduceBase implements
 		Mapper<LongWritable, ArrayList<Double>, Text, DoubleWritable> {
 
-	public MedianMapper() {
+	public MaxMinMapper() {
 	}
 
 	public void map(LongWritable key, ArrayList<Double> value,
 			OutputCollector<Text, DoubleWritable> output, Reporter reporter)
 			throws IOException, NumberFormatException {
 
-		// in the old version this dumped (avg, value)
-		Collections.sort(value);
+		// technically we could set the value equal to a local variable and
+		// try/catch it if the
+		// double is invalid--might be a better way to handle the error case.
 
-		double cnt = value.size();
-		double med = 0;
+		double max = 0, min = 0;
+		boolean first = true;
 		
-		if (cnt > 1) {
-
-			if ((cnt % 2) == 0) {
-				double x = value.get((int) ((cnt / 2) -1));
-				double y = value.get((int) (cnt / 2));
-				med = (x + y) / 2;
-				// even
-			} else {
-				med = value.get((int) Math.floor(cnt / 2));
-				// odd
+		for (Double d : value) {
+			if (first) {
+				max = d;
+				min = d;
 			}
-		} else {
-			med = value.get(0);
+			
+			if (d > max) {
+				max = d;
+			} else if (d < min) {
+				min = d;
+			}
+			
+			first = false;
 		}
 
-		// make output
-		
-		output.collect(new Text("med"), new DoubleWritable(med));
-		output.collect(new Text("cnt"), new DoubleWritable(cnt));
+		output.collect(new Text("max"), new DoubleWritable(max));
+		output.collect(new Text("min"), new DoubleWritable(min));
+		output.collect(new Text("cnt"), new DoubleWritable(value.size()));
 	}
 }

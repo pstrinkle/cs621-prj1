@@ -10,7 +10,7 @@
 <project name="world" default="jar">
   <property name="bindir"      value="${basedir}/bin" />
   <property name="srcdir"      value="${basedir}/src" />
-  <property name="jarname"     value="${basedir}/project.jar" />
+  <property name="jarname"     value="${basedir}/projects.jar" />
   <property name="hadoop-home" value="/usr/lib/hadoop" />
   <property name="hadoop-libs" value="${hadoop-home}/lib" />
   <property name="hadoop-contrib" value="${hadoop-home}/contrib" />
