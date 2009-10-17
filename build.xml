@@ -9,8 +9,8 @@
 
 <project name="world" default="jar">
   <property name="bindir"      value="${basedir}/bin" />
-  <property name="srcdir"      value="${basedir}/stub-src/src" />
-  <property name="jarname"     value="${basedir}/indexer.jar" />
+  <property name="srcdir"      value="${basedir}/src" />
+  <property name="jarname"     value="${basedir}/project.jar" />
   <property name="hadoop-home" value="/usr/lib/hadoop" />
   <property name="hadoop-libs" value="${hadoop-home}/lib" />
   <property name="hadoop-contrib" value="${hadoop-home}/contrib" />
@@ -26,9 +26,6 @@
         </fileset>
         <fileset dir="${hadoop-home}">
           <include name="hadoop-*-core.jar" />
-        </fileset>
-        <fileset dir="${hadoop-contrib}/mrunit">
-          <include name="*.jar" />
         </fileset>
       </classpath>
     </javac>
