@@ -2,6 +2,7 @@ package proj;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 
@@ -25,48 +26,71 @@ public class MedianReducer extends MapReduceBase implements
 
 	public MedianReducer() {
 	}
-
+	
 	public void reduce(Text key, Iterator<DoubleWritable> values,
 			OutputCollector<Text, DoubleWritable> output, Reporter reporter)
 			throws IOException {
 
 		double result = 0;
-
+		//String txt = new String();
+		//txt = "start\n";
 		if (key.toString().equals("med")) {
-
+			// reduce init input
+			Double[] sortedFive = new Double[5];
 			ArrayList<Double> sortedValues = new ArrayList<Double>();
 
+			int fivePos = 0;
 			while (values.hasNext()) {
-				sortedValues.add(values.next().get());
-			}
-
-			Collections.sort(sortedValues);
-			// Arrays.sort(sortedValues.toArray());
-
-			double cnt = sortedValues.size();
-			double med = 0;
-
-			if (cnt > 1) {
-				if ((cnt % 2) == 0) {
-					double x = sortedValues.get((int) ((cnt / 2) - 1));
-					double y = sortedValues.get((int) (cnt / 2));
-					med = (x + y) / 2;
-					// even
-				} else {
-					med = sortedValues.get((int) Math.floor(cnt / 2));
-					// odd
+				sortedFive[fivePos] = values.next().get();
+				//txt += "has next: "+sortedFive[fivePos].toString()+"\n";
+				fivePos++;
+					
+				if (fivePos == 5) {
+					fivePos = 0;
+					Arrays.sort(sortedFive);
+					// save the median
+					sortedValues.add(sortedFive[2]);
+					// probably don't need to do this
+					// sortedFive = new Double[5];
 				}
-			} else {
-				med = sortedValues.get(0);
 			}
-			result = med;
+			// handle left overs, not sure if should find the median here or
+			// just add numbers to end of list
+			//txt += "fivePos:"+fivePos+"\n";
+			switch (fivePos) {
+			case 1:
+				sortedValues.add(sortedFive[0]);
+				break;
+			case 2:
+				sortedValues.add((sortedFive[0] + sortedFive[1]) / 2);
+				break;
+			case 3:
+				sortedValues.add(sortedFive[1]);
+				break;
+			case 4:
+				sortedValues.add((sortedFive[1] + sortedFive[2]) / 2);
+				break;
+			}
+
+			common aCommon = new common();
+			// reduce list down to last 5 numbers
+			while (sortedValues.size() > 5) {
+				//txt += "sortedValues:"+sortedValues.size()+"\n";
+				sortedValues = aCommon.reduceList(sortedValues);
+			}
+			//Collections.sort(sortedValues);
+			//txt += "switch:"+sortedValues.size()+"\n";
+			result = aCommon.getMedian(sortedValues);
+			
 		} else if (key.toString().equals("cnt")) {
 			while (values.hasNext()) {
 				result += values.next().get();
 			}
 		}
 
+		//txt += "result:"+Double.toString(result)+"\n";
 		// make output
+		//output.collect(new Text(key), new Text(Double.toString(result)));
 		output.collect(new Text(key), new DoubleWritable(result));
 	}
 }

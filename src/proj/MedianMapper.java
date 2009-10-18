@@ -2,6 +2,7 @@ package proj;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 
 import org.apache.hadoop.io.DoubleWritable;
@@ -24,35 +25,20 @@ public class MedianMapper extends MapReduceBase implements
 
 	public MedianMapper() {
 	}
-
+	
 	public void map(LongWritable key, ArrayList<Double> value,
 			OutputCollector<Text, DoubleWritable> output, Reporter reporter)
 			throws IOException, NumberFormatException {
 
-		// in the old version this dumped (avg, value)
-		Collections.sort(value);
-
-		double cnt = value.size();
-		double med = 0;
-		
-		if (cnt > 1) {
-
-			if ((cnt % 2) == 0) {
-				double x = value.get((int) ((cnt / 2) -1));
-				double y = value.get((int) (cnt / 2));
-				med = (x + y) / 2;
-				// even
-			} else {
-				med = value.get((int) Math.floor(cnt / 2));
-				// odd
-			}
-		} else {
-			med = value.get(0);
+		int cnt = value.size();
+		//double med = 0;
+		common aCommon = new common();
+		//reduces list down to 5 elements
+		while (value.size()>5){
+			value = aCommon.reduceList(value);
 		}
 
-		// make output
-		
-		output.collect(new Text("med"), new DoubleWritable(med));
+		output.collect(new Text("med"), new DoubleWritable(aCommon.getMedian(value)));
 		output.collect(new Text("cnt"), new DoubleWritable(cnt));
 	}
 }
