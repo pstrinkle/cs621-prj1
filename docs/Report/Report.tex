@@ -13,18 +13,20 @@ Baltimore, MD, 21250\\
 \maketitle
 
 \section{Introduction}
-The assignment was to build a distributed solution to the problem of calculating information about a file F.  We had to determine x, y, and z.
+The assignment was to build a distributed solution to the problem of calculating information about a large file F, comprised of double precision floating point values.  ProjectOne will quickly determine the maximum, minimum, average and median values.
 
 \section{Background}
-Distributed systems do a, b, and c.
+Distributed systems do a, b, and c.  
 
 \subsection{Hadoop}
 Our system was implemented using Hadoop.  The Hadoop Distributed File System (HDFS) automatically do cool things like spreading files, replication, etc.
 
 \subsection{MapReduce}
-We wrote mapreduce stuff to do this.
+Hadoop provides an abstraction/interface for building programs that utilize Hadoop's MapReduce.  Part of what is provided is file handling.  Hadoop will split a file and send it out across the available nodes during the mapping step automatically.  A developer can modify an interface to this file splitting to control how much is sent at a time.  The keys value pairs from the mapping step are automatically captured by the system and stored in an intermediate storage location; and sorted by key.  Each key is mapped to a reducer process that can be on any of the nodes.  If the map step returns many different keys the processing is spread out over equally many reducers.
 
 \section{Implementation}
-Our average and max, min and such are calculated as such.
+Our average and max, min and such are calculated as such.  Our ProjectOne calcaluates the minimum and maximum values, simultaneously walking through the data received.  The average is calculated separately strictly because of an implementation detail wherein the output collect for mappers can only take a set type from a mapper.  Therefore if the mapper returns a text key and a text value it must always return such.  To save on value conversions our maximum/minimum mapper return a text key with a double value.  The average mapper needs to return two pieces of information that must be kept together and as such the information is dumped as a text.  (Consider changing maxmin to return a text value and such and see if it's faster overall versus running maxmin, avg, then med (it'd just be maxminavg, med)).  If we could save sufficient time in processing it might outweigh the processing of value conversion.  Especially because for the x values we receive we only have to convert 1/100; assuming they get 100 lines each.  Might be worth examining.
+
+Our median calculator estimates the median by examining the median of the medians.  Insert some details here regarding the worst cases (30\%/70\%).  Also, might be worth involving details about our medians of medians in groups of five.
 
 \end{document}
