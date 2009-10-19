@@ -4,11 +4,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
-public class common {
+public class MedianCalculator {
+
 	// finds median of 5 elements
-	Double getMedian(ArrayList<Double> theValues) {
+	public static Double getMedian(ArrayList<Double> theValues) {
+
 		Double retVal = 0.0;
 		Collections.sort(theValues);
+
 		switch (theValues.size()) {
 		case 1:
 			retVal = theValues.get(0);
@@ -26,11 +29,13 @@ public class common {
 			retVal = theValues.get(2);
 			break;
 		}
+
 		return retVal;
 	}
 
 	// reduce list by finding median of each 5 elements
-	ArrayList<Double> reduceList(ArrayList<Double> theValues) {
+	public static ArrayList<Double> reduceList(ArrayList<Double> theValues) {
+
 		// return values
 		ArrayList<Double> aRetVal = new ArrayList<Double>();
 		// holds 5 doubles to find median
@@ -47,10 +52,10 @@ public class common {
 				fivePos = 0;
 				Arrays.sort(sortedFive);
 				aRetVal.add(sortedFive[2]);
-				// sortedFive = new Double[5];
 			}
 
 		}
+
 		// handles leftover elements
 		switch (fivePos) {
 		case 1:

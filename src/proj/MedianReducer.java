@@ -3,7 +3,6 @@ package proj;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 
 import org.apache.hadoop.io.DoubleWritable;
@@ -32,8 +31,7 @@ public class MedianReducer extends MapReduceBase implements
 			throws IOException {
 
 		double result = 0;
-		//String txt = new String();
-		//txt = "start\n";
+
 		if (key.toString().equals("med")) {
 			// reduce init input
 			Double[] sortedFive = new Double[5];
@@ -42,7 +40,7 @@ public class MedianReducer extends MapReduceBase implements
 			int fivePos = 0;
 			while (values.hasNext()) {
 				sortedFive[fivePos] = values.next().get();
-				//txt += "has next: "+sortedFive[fivePos].toString()+"\n";
+
 				fivePos++;
 					
 				if (fivePos == 5) {
@@ -50,13 +48,13 @@ public class MedianReducer extends MapReduceBase implements
 					Arrays.sort(sortedFive);
 					// save the median
 					sortedValues.add(sortedFive[2]);
-					// probably don't need to do this
-					// sortedFive = new Double[5];
 				}
 			}
 			// handle left overs, not sure if should find the median here or
 			// just add numbers to end of list
-			//txt += "fivePos:"+fivePos+"\n";
+
+			// if there's less than 5 medians left... we can just tack them on?
+
 			switch (fivePos) {
 			case 1:
 				sortedValues.add(sortedFive[0]);
@@ -72,15 +70,12 @@ public class MedianReducer extends MapReduceBase implements
 				break;
 			}
 
-			common aCommon = new common();
 			// reduce list down to last 5 numbers
 			while (sortedValues.size() > 5) {
-				//txt += "sortedValues:"+sortedValues.size()+"\n";
-				sortedValues = aCommon.reduceList(sortedValues);
+				sortedValues = MedianCalculator.reduceList(sortedValues);
 			}
-			//Collections.sort(sortedValues);
-			//txt += "switch:"+sortedValues.size()+"\n";
-			result = aCommon.getMedian(sortedValues);
+
+			result = MedianCalculator.getMedian(sortedValues);
 			
 		} else if (key.toString().equals("cnt")) {
 			while (values.hasNext()) {
@@ -88,9 +83,7 @@ public class MedianReducer extends MapReduceBase implements
 			}
 		}
 
-		//txt += "result:"+Double.toString(result)+"\n";
 		// make output
-		//output.collect(new Text(key), new Text(Double.toString(result)));
 		output.collect(new Text(key), new DoubleWritable(result));
 	}
 }

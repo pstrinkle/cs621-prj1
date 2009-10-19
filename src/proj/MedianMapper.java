@@ -2,8 +2,6 @@ package proj;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.LongWritable;
@@ -31,14 +29,13 @@ public class MedianMapper extends MapReduceBase implements
 			throws IOException, NumberFormatException {
 
 		int cnt = value.size();
-		//double med = 0;
-		common aCommon = new common();
+
 		//reduces list down to 5 elements
 		while (value.size()>5){
-			value = aCommon.reduceList(value);
+			value = MedianCalculator.reduceList(value);
 		}
 
-		output.collect(new Text("med"), new DoubleWritable(aCommon.getMedian(value)));
+		output.collect(new Text("med"), new DoubleWritable(MedianCalculator.getMedian(value)));
 		output.collect(new Text("cnt"), new DoubleWritable(cnt));
 	}
 }
