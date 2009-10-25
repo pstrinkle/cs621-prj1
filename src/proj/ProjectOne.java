@@ -117,8 +117,8 @@ public class ProjectOne extends Configured implements Tool {
 		} else if (args.length == 3 && args[0].equals("all")) {
 			runAllJobs(args[1], args[2]);
 		} else {
-			System.console().printf("usage: hadoop jar indexer.jar ");
-			System.console().printf("index.ProjectOne option input output\n");
+			System.console().printf("usage: hadoop jar projects.jar ");
+			System.console().printf("proj.ProjectOne option input output\n");
 			System.console().printf("options: maxmin, avg, med, or all\n");
 			System.exit(-1);
 		}
