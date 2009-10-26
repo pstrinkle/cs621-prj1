@@ -29,9 +29,12 @@ public class ProjectOne extends Configured implements Tool {
 	private static final String AVG = "avg";
 	private static final String MAXMIN = "maxmin";
 	private static final String MED = "med";
+	
+	private static final String HDFS = "hdfs";
+	private static final String LOCAL = "local";
 
 	/** Driver for the actual MapReduce process */
-	private void runJob(String type, String in, String out) throws IOException {
+	private void runJob(String type, String inType, String in, String out) throws IOException {
 
 		JobConf conf = new JobConf(getConf(), ProjectOne.class);
 
@@ -39,8 +42,16 @@ public class ProjectOne extends Configured implements Tool {
 		Path outfile = new Path(out + "/" + type + ".txt");
 		Path hdfstemp = new Path("temp/part-00000");
 		Path tempout = new Path("temp");
+		Path tempin = new Path("temp-in");
 		
-		FileInputFormat.addInputPath(conf, new Path(in));
+		if (inType.equals(LOCAL)) {
+			FileSystem.get(conf).copyFromLocalFile(new Path(in), tempin);
+			FileInputFormat.addInputPath(conf, tempin);
+		} else {
+			// already in hdfs
+			FileInputFormat.addInputPath(conf, new Path(in));
+		}
+		
 		FileOutputFormat.setOutputPath(conf, tempout);
 		
 		// delete the output file if it exists already
@@ -89,37 +100,52 @@ public class ProjectOne extends Configured implements Tool {
 
   	private boolean verifyArgs(String[] args) {
 
-  		if (args.length != 3) {
+  		if (args.length != 4) {
   			return false;
   		}
 
   		if (args[0].equals(MAXMIN) || args[0].equals(AVG)
   				|| args[0].equals(MED)) {
-  			return true;
+  			// do nothing
+  		} else {
+  			// do not bother with second check
+  			return false;
   		}
-
-  		return false;
+  		
+  		if (args[1].equals(HDFS) || args[1].equals(LOCAL)) {
+  			// do nothing
+  		} else {
+  			return false;
+  		}
+  		
+  		return true;
   	}
 
-	private void runAllJobs(String in, String out) throws IOException {
+	private void runAllJobs(String inType, String in, String out) throws IOException {
 
-		runJob(MAXMIN, in, out);
-		runJob(AVG, in, out);
-		runJob(MED, in, out);
+		runJob(MAXMIN, inType, in, out);
+		runJob(AVG, inType, in, out);
+		runJob(MED, inType, in, out);
 
 		return;
 	}
 
 	public int run(String[] args) throws IOException {
 
+		// args[0] is option
+		// args[1] is input-type
+		// args[2] is input path
+		// args[3] is output path
+		
 		if (verifyArgs(args)) {
-			runJob(args[0], args[1], args[2]);
+			runJob(args[0], args[1], args[2], args[3]);
 		} else if (args.length == 3 && args[0].equals("all")) {
-			runAllJobs(args[1], args[2]);
+			runAllJobs(args[1], args[2], args[3]);
 		} else {
 			System.console().printf("usage: hadoop jar projects.jar ");
-			System.console().printf("proj.ProjectOne option input output\n");
+			System.console().printf("proj.ProjectOne option input-type input output\n");
 			System.console().printf("options: maxmin, avg, med, or all\n");
+			System.console().printf("input-type: hdfs, local");
 			System.exit(-1);
 		}
 
