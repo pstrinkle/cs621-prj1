@@ -45,8 +45,8 @@ public class ProjectOne extends Configured implements Tool {
 		Path tempin = new Path("temp-in");
 		
 		if (inType.equals(LOCAL)) {
-			FileSystem.get(conf).copyFromLocalFile(new Path(in), tempin);
-			FileInputFormat.addInputPath(conf, tempin);
+			FileSystem.get(conf).copyFromLocalFile(new Path(in), new Path(in));
+			FileInputFormat.addInputPath(conf, new Path(in));
 		} else {
 			// already in hdfs
 			FileInputFormat.addInputPath(conf, new Path(in));
