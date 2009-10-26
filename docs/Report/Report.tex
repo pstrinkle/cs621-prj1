@@ -27,17 +27,16 @@ MapReduce is an algorithm by which a problem is broken up into two primary steps
 \section{Implementation}
 We first implemented our own import format class that can read in multiple lines at a time.  We did this because are input file contains one number on each line, and if we only read one line at a time the first mapping phase could do very little work.  By reading in multiple lines can do more work in the initial mapping phase which lets us find each answer in one map reduce cycle.
 
-We implemented three sets of map/reducers for this project.  The first set determines the max/min value of the file.  The mapper finds the max/min of the set of numbers it is give and returns each as a key/value pair.  The reduce then finds the max/min out of all these key value pairs.  Since we are able to send multiple rows to the mapper we can find the max/min in one map reduce step.  
+Initially we implemented three sets of map/reducers to solve maxmin, average, and median independently.  This allowed for less frequent type conversions; because the  average mapper needed to output Text--whereas the maximin mapper output DoubleWritables.  Because we get the maximum and the minimum values for free when calculating the average it was decided that this difference was significant enough to combine the mapper.
 
-The second set of map/reducers we implemented calculated the average of the file.  The mapper calculated the average and number of doubles that made up the average for the set of numbers it is given.  It return these values as a pair to the reduce which then calculated the average of the file from them.   
+We implemented two sets of map/reducers for this project.  The first set determines the maximum, minimum,  and average value of the file.  The mapper finds the max/min/avg of the set of numbers it is give and returns each as a key/value pair.  The reduce then finds the max/min/avg out of all these key value pairs.  Since we are able to send multiple rows to the mapper we can find the max/min/avg in one map reduce step.  The average is special in that the output is actually a sum and a count in a specified format for processing by the reducer.
 
 Out final set of map/reducers estimates the median by calculating the median of the medians.  Both our map and reduce functions do this continually reducing the set by finding the median of each 5 elements until there are 5 or less elements left.  It then returns the median of the remaining 5 elements.  This process can be done very fast using map reduce because the input can be broken into as small as 5 element pieces before being processed.  In the worst case this process splits the data by 30/70 percent.  In general it does much better than this because each estimate is less than 2 elements and greater than 2 others.  
-
-Our average and max, min and such are calculated as such.  Our ProjectOne calculates the minimum and maximum values, simultaneously walking through the data received.  The average is calculated separately strictly because of an implementation detail wherein the output collect for mappers can only take a set type from a mapper.  Therefore if the mapper returns a text key and a text value it must always return such.  To save on value conversions our maximum/minimum mapper return a text key with a double value.  The average mapper needs to return two pieces of information that must be kept together and as such the information is dumped as a text.
-  (Consider changing maxmin to return a text value and such and see if it's faster overall versus running maxmin, avg, then med (it'd just be maxminavg, med)).  If we could save sufficient time in processing it might outweigh the processing of value conversion.  Especially because for the x values we receive we only have to convert 1/100; assuming they get 100 lines each.  Might be worth examining.
 
 \section{Running}
 mIke, add your thing here.
 
+\section*{Notes}
+Consider changing maxmin to return a text value and such and see if it's faster overall versus running maxmin, avg, then med (it'd just be maxminavg, med).  If we could save sufficient time in processing it might outweigh the processing of value conversion.  Especially because for the x values we receive we only have to convert 1/100; assuming they get 100 lines each.  Might be worth examining.
 
 \end{document}
