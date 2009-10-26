@@ -42,16 +42,14 @@ public class ProjectOne extends Configured implements Tool {
 		Path outfile = new Path(out + "/" + type + ".txt");
 		Path hdfstemp = new Path("temp/part-00000");
 		Path tempout = new Path("temp");
-		Path tempin = new Path("temp-in");
 		
 		if (inType.equals(LOCAL)) {
 			FileSystem.get(conf).copyFromLocalFile(new Path(in), new Path(in));
-			FileInputFormat.addInputPath(conf, new Path(in));
 		} else {
 			// already in hdfs
-			FileInputFormat.addInputPath(conf, new Path(in));
 		}
 		
+		FileInputFormat.addInputPath(conf, new Path(in));
 		FileOutputFormat.setOutputPath(conf, tempout);
 		
 		// delete the output file if it exists already
