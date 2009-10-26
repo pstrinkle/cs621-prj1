@@ -119,15 +119,6 @@ public class ProjectOne extends Configured implements Tool {
   		return true;
   	}
 
-	private void runAllJobs(String inType, String in, String out) throws IOException {
-
-		runJob(MAXMIN, inType, in, out);
-		runJob(AVG, inType, in, out);
-		runJob(MED, inType, in, out);
-
-		return;
-	}
-
 	public int run(String[] args) throws IOException {
 
 		// args[0] is option
@@ -137,12 +128,10 @@ public class ProjectOne extends Configured implements Tool {
 		
 		if (verifyArgs(args)) {
 			runJob(args[0], args[1], args[2], args[3]);
-		} else if (args.length == 3 && args[0].equals("all")) {
-			runAllJobs(args[1], args[2], args[3]);
 		} else {
 			System.console().printf("usage: hadoop jar projects.jar ");
 			System.console().printf("proj.ProjectOne option input-type input output\n");
-			System.console().printf("options: maxmin, avg, med, or all\n");
+			System.console().printf("options: maxmin, avg, or med\n");
 			System.console().printf("input-type: hdfs, local");
 			System.exit(-1);
 		}
