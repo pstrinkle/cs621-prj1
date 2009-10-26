@@ -34,7 +34,17 @@ We implemented two sets of map/reducers for this project.  The first set determi
 Out final set of map/reducers estimates the median by calculating the median of the medians.  Both our map and reduce functions do this continually reducing the set by finding the median of each 5 elements until there are 5 or less elements left.  It then returns the median of the remaining 5 elements.  This process can be done very fast using map reduce because the input can be broken into as small as 5 element pieces before being processed.  In the worst case this process splits the data by 30/70 percent.  In general it does much better than this because each estimate is less than 2 elements and greater than 2 others.  
 
 \section{Running}
-mIke, add your thing here.
+Our jar files is named projects and it contains a proj package with class ProjectOne.  The main class takes in 4 paramaters which are listed below.\\\\
+Hadoop jar projects.jar proj.ProjectOne [type] [file location] [input file] [output folder]\\
+newline type: maxminavg, med\\
+ file location: local, hdfs\\
+ input file: path to input file\\
+ output folder: output folder path (on hadoop, output will be copied to home directory on local node)\\
+
+\subsection*{examples}
+Hadoop jar projects.jar proj.ProjectOne maxmin local numbers results\\
+ Hadoop jar projects.jar proj.ProjectOne med hdfs numbers results
+
 
 \section*{Notes}
 Consider changing maxmin to return a text value and such and see if it's faster overall versus running maxmin, avg, then med (it'd just be maxminavg, med).  If we could save sufficient time in processing it might outweigh the processing of value conversion.  Especially because for the x values we receive we only have to convert 1/100; assuming they get 100 lines each.  Might be worth examining.
