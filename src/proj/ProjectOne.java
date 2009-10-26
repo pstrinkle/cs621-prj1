@@ -26,8 +26,7 @@ import org.apache.hadoop.util.Tool;
  */
 public class ProjectOne extends Configured implements Tool {
 	
-	private static final String AVG = "avg";
-	private static final String MAXMIN = "maxmin";
+	private static final String MAXMINAVG = "maxminavg";
 	private static final String MED = "med";
 	
 	private static final String HDFS = "hdfs";
@@ -53,19 +52,16 @@ public class ProjectOne extends Configured implements Tool {
 		FileOutputFormat.setOutputPath(conf, tempout);
 		
 		// delete the output file if it exists already
-		FileSystem.get(conf).delete(outfile, false);
+		FileSystem.get(conf).delete(tempout, true);
+		FileSystem.get(conf).delete(outfile, true);
 		
 		//conf.setNumReduceTasks(0);
 		conf.setInputFormat(MultiLineTextInputFormat.class);
 		conf.setOutputKeyClass(Text.class);
 
-		if (type.equals(MAXMIN)) {
-			conf.setMapperClass(MaxMinMapper.class);
-			conf.setReducerClass(MaxMinReducer.class);
-			conf.setOutputValueClass(DoubleWritable.class);
-		} else if (type.equals(AVG)) {
-			conf.setMapperClass(AvgMapper.class);
-			conf.setReducerClass(AvgReducer.class);
+		if (type.equals(MAXMINAVG)) {
+			conf.setMapperClass(MaxMinAvgMapper.class);
+			conf.setReducerClass(MaxMinAvgReducer.class);
 			conf.setOutputValueClass(Text.class);
 		} else if (type.equals(MED)) {
 			conf.setMapperClass(MedianMapper.class);
@@ -102,8 +98,7 @@ public class ProjectOne extends Configured implements Tool {
   			return false;
   		}
 
-  		if (args[0].equals(MAXMIN) || args[0].equals(AVG)
-  				|| args[0].equals(MED)) {
+  		if (args[0].equals(MAXMINAVG) || args[0].equals(MED)) {
   			// do nothing
   		} else {
   			// do not bother with second check
@@ -131,7 +126,7 @@ public class ProjectOne extends Configured implements Tool {
 		} else {
 			System.console().printf("usage: hadoop jar projects.jar ");
 			System.console().printf("proj.ProjectOne option input-type input output\n");
-			System.console().printf("options: maxmin, avg, or med\n");
+			System.console().printf("options: maxminavg, or med\n");
 			System.console().printf("input-type: hdfs, local");
 			System.exit(-1);
 		}
