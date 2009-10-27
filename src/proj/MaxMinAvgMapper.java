@@ -19,14 +19,14 @@ import org.apache.hadoop.mapred.Reporter;
  *
  * @author(tri1, corbin2)
  */
-public class MaxMinMapper extends MapReduceBase implements
-		Mapper<LongWritable, ArrayList<Double>, Text, DoubleWritable> {
+public class MaxMinAvgMapper extends MapReduceBase implements
+		Mapper<LongWritable, ArrayList<Double>, Text, Text> {
 
-	public MaxMinMapper() {
+	public MaxMinAvgMapper() {
 	}
 
 	public void map(LongWritable key, ArrayList<Double> value,
-			OutputCollector<Text, DoubleWritable> output, Reporter reporter)
+			OutputCollector<Text, Text> output, Reporter reporter)
 			throws IOException, NumberFormatException {
 
 		// technically we could set the value equal to a local variable and
@@ -35,6 +35,8 @@ public class MaxMinMapper extends MapReduceBase implements
 
 		double max = 0, min = 0;
 		boolean first = true;
+		int cnt = 0;
+		double sum = 0;
 		
 		for (Double d : value) {
 			if (first) {
@@ -49,10 +51,23 @@ public class MaxMinMapper extends MapReduceBase implements
 			}
 			
 			first = false;
+			
+			sum += d;
 		}
+		
+		StringBuilder outputline = new StringBuilder();
 
-		output.collect(new Text("max"), new DoubleWritable(max));
-		output.collect(new Text("min"), new DoubleWritable(min));
-		output.collect(new Text("cnt"), new DoubleWritable(value.size()));
+		cnt = value.size();
+		
+		// make output
+		outputline.append(cnt);
+		outputline.append(' ');
+		outputline.append(sum);
+
+		output.collect(new Text("avg"), new Text(outputline.toString()));
+		output.collect(new Text("cnt"), new Text(Integer.toString(cnt)));
+
+		output.collect(new Text("max"), new Double.toString(max));
+		output.collect(new Text("min"), new Double.toString(min));
 	}
 }

@@ -19,13 +19,13 @@ import org.apache.hadoop.mapred.Reporter;
  * 
  * @author(tri1, corbin2)
  */
-public class MaxMinReducer extends MapReduceBase implements
-		Reducer<Text, DoubleWritable, Text, Text> {
+public class MaxMinAvgReducer extends MapReduceBase implements
+		Reducer<Text, Text, Text, Text> {
 
-	public MaxMinReducer() {
+	public MaxMinAvgReducer() {
 	}
 
-	public void reduce(Text key, Iterator<DoubleWritable> values,
+	public void reduce(Text key, Iterator<Text> values,
 			OutputCollector<Text, Text> output, Reporter reporter)
 			throws IOException {
 
@@ -40,7 +40,7 @@ public class MaxMinReducer extends MapReduceBase implements
 		if (key.toString().equals("max")) {
 			while (values.hasNext()) {
 
-				current = values.next().get();
+				current = Double.valueOf(values.next());
 
 				if (first) {
 					max = current;
@@ -57,7 +57,7 @@ public class MaxMinReducer extends MapReduceBase implements
 		} else if (key.toString().equals("min")) {
 			while (values.hasNext()) {
 
-				current = values.next().get();
+				current = Double.valueOf(values.next());
 
 				if (first) {
 					min = current;
@@ -75,10 +75,31 @@ public class MaxMinReducer extends MapReduceBase implements
 			result = 0; // redundant
 			
 			while (values.hasNext()) {				
-				result += values.next().get();
+				result += Double.valueOf(values.next());
 			}
-		}
+		} else if (key.toString().equals("avg")) {
+		
+      double sum = 0;
+			int cnt = 0;
 
+			while (values.hasNext()) {
+
+				StringTokenizer itr = new StringTokenizer(values.next().toString(), " ");
+
+				if (itr.countTokens() == 2) {
+
+					String newcnt = itr.nextToken();
+					cnt += Double.valueOf(newcnt);
+
+					String newsum = itr.nextToken();
+					sum += Double.valueOf(newsum);
+				} else {
+					// too many tokens!
+				}
+			}
+			
+			result = sum / cnt;
+    }
 		output.collect(new Text(key), new Text(Double.toString(result)));
 	}
 }
