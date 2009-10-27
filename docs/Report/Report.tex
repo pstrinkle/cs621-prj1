@@ -34,6 +34,7 @@ We implemented two sets of mapppers/reducers for this project.  The first set de
 Out final set of mappers/reducers estimates the median by calculating the median of the medians.  Both our map and reduce functions do this continually reducing the set by finding the median of each 5 elements until there are 5 or less elements left.  It then returns the median of the remaining 5 elements.  This process can be done very fast using map reduce because the input can be broken into as small as 5 element pieces before being processed.  In the worst case this process splits the data by 30/70 percent.  In general it does much better than this because each estimate is less than 2 elements and greater than 2 others.  After many tests on large randomized data sets the estimated median was a good representation of the split between the higher and lower values in the file.
 
 \section{Running}
+
 Our jar file is named projects.jar and it contains a proj package with class ProjectOne.  The main class takes in 4 paramaters which are listed below.\\\\
 Hadoop jar projects.jar proj.ProjectOne [type] [file location] [input file] [output folder]\\
 newline type: maxminavg, med\\
@@ -43,7 +44,7 @@ output folder: output folder path (on hadoop, output will be copied to home dire
 
 On the first run of the process the input file is copied into the HDFS (if necessary).  Because the HDFS allows access to the results data from every node with abstracted costs, it is sufficient to place the results in the HDFS.  One of the primary features of using Hadoop as a distributed processing system is that it abstracts away most of the core functionality so that a programmer/user can build a simpler project interfacing with the Hadoop API.
 
-\subsection*{examples}
+\subsection*{Examples}
 Hadoop jar projects.jar proj.ProjectOne maxminavg local numbers results\\
 Hadoop jar projects.jar proj.ProjectOne med hdfs numbers results
 
