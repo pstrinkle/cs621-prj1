@@ -1,3 +1,9 @@
+
+%%% to compile: c(prj).
+%%% to start: prj:start(N,N).
+%%% to query: prj:status(N).
+%%% to close: prj:close(N).
+
 -module(prj).
 
 -export([node_tell/3,node_rec/3,start/2,close/1,status/1]).
@@ -14,9 +20,9 @@ getRand(MYNUM,NUMNODES) ->
 node_tell(MYNUM,STATUS,NUMNODES) ->
     if
       STATUS == "KnowAndTell" ->
-          %%%if know pick random node and tell it the msg
+          %%% if know pick random node and tell it the msg
           MSGNODE = getRand(MYNUM,NUMNODES),
-          io:format("~p Telling ~p~n", [self(),MSGNODE]),
+          io:format("~p Tells ~p~n", [self(),MSGNODE]),
           list_to_atom(MSGNODE) ! self(),
           node_rec(MYNUM,STATUS,NUMNODES) ;
       true ->
@@ -32,9 +38,10 @@ node_rec(MYNUM,STATUS,NUMNODES) ->
            node_rec(MYNUM,STATUS,NUMNODES);
         knew ->
           RANDNUM = random:uniform(),
-          io:format("Knew ~p ~p~n", [RANDNUM,self()]),
+          io:format("I, ~p, Told someone who knew ~p~n", [self(),RANDNUM]),
           if
             RANDNUM < 0.05 ->
+              io:format("I, (~p), quit.~n", [self()]),
               node_rec(MYNUM,"KnowDontTell",NUMNODES);
             true ->
               node_rec(MYNUM,STATUS,NUMNODES)
@@ -51,15 +58,18 @@ node_rec(MYNUM,STATUS,NUMNODES) ->
                 NODE_ID ! knew,
                 node_rec(MYNUM,STATUS,NUMNODES)
             end
-       after 100 ->
-          %%%io:format("Try Again ~p~n", [self()]),
-          node_tell(MYNUM,STATUS,NUMNODES)
+    %%% if no matching message has arrived within ExprT milliseconds
+    after 100 ->
+        %%%io:format("Try Again ~p~n", [self()]),
+        node_tell(MYNUM,STATUS,NUMNODES)
     end.
 
 start(1,TOTAL) ->
     register(node1, spawn(prj, node_tell, [1,"KnowAndTell",TOTAL]));
 start(N,TOTAL) ->
-    register(list_to_atom("node" ++ integer_to_list(N)), spawn(prj, node_tell, [N,"DontKnow",TOTAL])),
+    PID = spawn(prj, node_tell, [N,"DontKnow",TOTAL]),
+    io:format("~p is node~p~n", [PID, N]),
+    register(list_to_atom("node" ++ integer_to_list(N)), PID),
     start(N-1,TOTAL).
 
 close(0) ->
