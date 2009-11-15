@@ -6,17 +6,19 @@
 
 -module(prj).
 
--export([node_tell/3,node_rec/3,start/2,close/1,status/1]).
+-export([node_tell/3,node_rec/3,start/2,close/1,status/1,identify/0]).
 
+%%% Get Random Number
 getRand(MYNUM,NUMNODES) ->
-  RANDNUM = random:uniform(NUMNODES),
-  if
-    RANDNUM == MYNUM ->
-      getRand(MYNUM,NUMNODES);
-    true ->
-      "node" ++ integer_to_list(RANDNUM)
-  end.
+    RANDNUM = random:uniform(NUMNODES),
+    if
+      RANDNUM == MYNUM ->
+        getRand(MYNUM,NUMNODES);
+      true ->
+        "node" ++ integer_to_list(RANDNUM)
+    end.
 
+%%% Tell Other Nodes
 node_tell(MYNUM,STATUS,NUMNODES) ->
     if
       STATUS == "KnowAndTell" ->
@@ -29,6 +31,7 @@ node_tell(MYNUM,STATUS,NUMNODES) ->
           node_rec(MYNUM,STATUS,NUMNODES)
     end.
 
+%%% Receive Messages
 node_rec(MYNUM,STATUS,NUMNODES) ->
     receive
         close ->
@@ -64,6 +67,7 @@ node_rec(MYNUM,STATUS,NUMNODES) ->
         node_tell(MYNUM,STATUS,NUMNODES)
     end.
 
+%%% Startup the System
 start(1,TOTAL) ->
     register(node1, spawn(prj, node_tell, [1,"KnowAndTell",TOTAL]));
 start(N,TOTAL) ->
@@ -72,14 +76,20 @@ start(N,TOTAL) ->
     register(list_to_atom("node" ++ integer_to_list(N)), PID),
     start(N-1,TOTAL).
 
+%%% Shutdown the System
 close(0) ->
   io:format("Done~n", []);
 close(N) ->
   list_to_atom("node" ++ integer_to_list(N)) ! close,
   close(N-1).
 
+%%% Status of the System
 status(0) ->
   io:format("Done Status~n", []);
 status(N) ->
   list_to_atom("node" ++ integer_to_list(N)) ! status,
   status(N-1).
+
+%%% This lists all registered nodes by name
+identify() ->
+  io:format("nodes: ~p~n", [registered()]).
