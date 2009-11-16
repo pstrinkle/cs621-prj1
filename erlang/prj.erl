@@ -10,6 +10,7 @@
 
 %%% Get Random Number
 getRand(MYNUM,NUMNODES) ->
+    random:seed(now()),
     RANDNUM = random:uniform(NUMNODES),
     if
       RANDNUM == MYNUM ->
