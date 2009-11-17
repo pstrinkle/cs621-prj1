@@ -29,7 +29,7 @@ find_child(MYNUM,STATUS,NUMNODES) ->
           %%% therefore i might message my child and then stop
           %%% trying to find dudes--maybe that's ok?
           MSGNODE = getRand(MYNUM, NUMNODES),
-          io:format("~p Asks ~p~n", [self(), MSGNODE]),
+          %%%io:format("~p Asks ~p~n", [self(), MSGNODE]),
           list_to_atom(MSGNODE) ! self(),
           node_rec(MYNUM, STATUS, NUMNODES) ;
       true ->
@@ -46,15 +46,16 @@ node_rec(MYNUM,STATUS,NUMNODES) ->
            node_rec(MYNUM, STATUS, NUMNODES);
         nojoy ->
           RANDNUM = random:uniform(),
-          io:format("I, ~p, Attempted to attach ~p~n", [self(), RANDNUM]),
+          %%%io:format("I, ~p, Attempted to attach ~p~n", [self(), RANDNUM]),
           if
             RANDNUM < 0.05 ->
-              io:format("I, (~p), quit.~n", [self()]);
+              io:format("I, (~p), quit.~n", [self()]),
+              node_rec(MYNUM, "Quit", NUMNODES);
             true ->
               node_rec(MYNUM, STATUS, NUMNODES)
           end;
         child ->
-            io:format("~p Attached a new child.~n", [self()]),
+            %%%io:format("~p Attached a new child.~n", [self()]),
             node_rec(MYNUM, STATUS, NUMNODES);
         NODE_ID ->
             if
