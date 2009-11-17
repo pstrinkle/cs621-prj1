@@ -3,6 +3,7 @@
 %%% to start: prj:start(N,N).
 %%% to query: prj:status(N).
 %%% to close: prj:close(N).
+%%% to get a list of nodes: prj:identify().
 
 -module(prj).
 
@@ -55,7 +56,7 @@ node_rec(MYNUM,STATUS,NUMNODES) ->
         NODE_ID ->
             if
               STATUS == "DontKnow" ->
-                io:format("~p Learned From ~p~n", [self(),NODE_ID]),
+                %%%io:format("~p Learned From ~p~n", [self(),NODE_ID]),
                 NODE_ID ! learned,
                 node_rec(MYNUM,"KnowAndTell",NUMNODES);
               true ->
