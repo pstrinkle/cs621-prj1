@@ -5,7 +5,7 @@
 %%% to close: prj:close(N).
 %%% to get a list of nodes: prj:identify().
 
--module(span).
+-module(span_parent).
 
 -export([find_child/4,node_rec/4,start/2,close/1,status/1,identify/0]).
 
