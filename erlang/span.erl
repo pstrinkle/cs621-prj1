@@ -7,10 +7,10 @@
 
 -module(span).
 
--export([find_child/3,node_rec/3,start/2,close/1,status/1,identify/0]).
+-export([find_child/4,node_rec/4,start/2,close/1,status/1,identify/0]).
 
 %%% Get Random Number
-getRand(MYNUM,NUMNODES) ->
+getRand(MYNUM, NUMNODES) ->
     random:seed(now()),
     RANDNUM = random:uniform(NUMNODES),
     if
@@ -20,71 +20,71 @@ getRand(MYNUM,NUMNODES) ->
         "node" ++ integer_to_list(RANDNUM)
     end.
 
-%%% Find Nodes to be children
-find_child(MYNUM,STATUS,NUMNODES) ->
+%%% Find Nodes to be PARENT
+find_child(MYNUM, STATUS, NUMNODES, PARENT) ->
     if
       STATUS == "Member" ->
           %%% if know pick random node and tell it the msg
-          %%% downside is I currently don't track my children
+          %%% downside is I currently don't track my PARENT
           %%% therefore i might message my child and then stop
           %%% trying to find dudes--maybe that's ok?
           MSGNODE = getRand(MYNUM, NUMNODES),
           %%%io:format("~p Asks ~p~n", [self(), MSGNODE]),
           list_to_atom(MSGNODE) ! self(),
-          node_rec(MYNUM, STATUS, NUMNODES) ;
+          node_rec(MYNUM, STATUS, NUMNODES, PARENT);
       true ->
-          node_rec(MYNUM, STATUS, NUMNODES)
+          node_rec(MYNUM, STATUS, NUMNODES, PARENT)
     end.
 
 %%% Receive Messages
-node_rec(MYNUM,STATUS,NUMNODES) ->
+node_rec(MYNUM, STATUS, NUMNODES, PARENT) ->
     receive
         close ->
            io:format("Stoping ~p~n", [self()]);
         status ->
-           io:format("Status ~p:~p~n", [self(), STATUS]),
-           node_rec(MYNUM, STATUS, NUMNODES);
+           io:format("Status ~p:~p Child Of: ~p~n", [self(), STATUS, PARENT]),
+           node_rec(MYNUM, STATUS, NUMNODES, PARENT);
         nojoy ->
           RANDNUM = random:uniform(),
           %%%io:format("I, ~p, Attempted to attach ~p~n", [self(), RANDNUM]),
           if
             RANDNUM < 0.05 ->
               io:format("I, (~p), quit.~n", [self()]),
-              node_rec(MYNUM, "Quit", NUMNODES);
+              node_rec(MYNUM, "Quit", NUMNODES, PARENT);
             true ->
-              node_rec(MYNUM, STATUS, NUMNODES)
+              node_rec(MYNUM, STATUS, NUMNODES, PARENT)
           end;
         child ->
             %%%io:format("~p Attached a new child.~n", [self()]),
-            node_rec(MYNUM, STATUS, NUMNODES);
+            node_rec(MYNUM, STATUS, NUMNODES, PARENT);
         NODE_ID ->
             if
               STATUS == "Alone" ->
                 io:format("~p now Child of ~p~n", [self(), NODE_ID]),
                 NODE_ID ! child,
-                node_rec(MYNUM, "Member", NUMNODES);
+                node_rec(MYNUM, "Member", NUMNODES, NODE_ID);
               true ->
                 NODE_ID ! nojoy,
-                node_rec(MYNUM, STATUS, NUMNODES)
+                node_rec(MYNUM, STATUS, NUMNODES, PARENT)
             end
     %%% if no matching message has arrived within ExprT milliseconds
     after 100 ->
         if
           STATUS == "Member" ->
-            find_child(MYNUM, STATUS, NUMNODES);
+            find_child(MYNUM, STATUS, NUMNODES, PARENT);
           true ->
-            node_rec(MYNUM, STATUS, NUMNODES)
+            node_rec(MYNUM, STATUS, NUMNODES, PARENT)
         end
     end.
 
 %%% Startup the System
-start(1,TOTAL) ->
-    register(node1, spawn(span, find_child, [1,"Member",TOTAL]));
-start(N,TOTAL) ->
-    PID = spawn(span, find_child, [N,"Alone",TOTAL]),
+start(1, TOTAL) ->
+    register(node1, spawn(span, find_child, [1, "Member", TOTAL, 0]));
+start(N, TOTAL) ->
+    PID = spawn(span, find_child, [N, "Alone", TOTAL, 0]),
     io:format("~p is node~p~n", [PID, N]),
     register(list_to_atom("node" ++ integer_to_list(N)), PID),
-    start(N-1,TOTAL).
+    start(N-1, TOTAL).
 
 %%% Shutdown the System
 close(0) ->
