@@ -79,9 +79,9 @@ node_rec(MYNUM, STATUS, NUMNODES, PARENT) ->
 
 %%% Startup the System
 start(1, TOTAL) ->
-    register(node1, spawn(span, find_child, [1, "Member", TOTAL, 0]));
+    register(node1, spawn(span_parent, find_child, [1, "Member", TOTAL, 0]));
 start(N, TOTAL) ->
-    PID = spawn(span, find_child, [N, "Alone", TOTAL, 0]),
+    PID = spawn(span_parent, find_child, [N, "Alone", TOTAL, 0]),
     io:format("~p is node~p~n", [PID, N]),
     register(list_to_atom("node" ++ integer_to_list(N)), PID),
     start(N-1, TOTAL).
