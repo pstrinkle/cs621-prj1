@@ -23,11 +23,7 @@ getRand(MYNUM, NUMNODES) ->
 %%% Find Nodes to be PARENT
 find_child(MYNUM, STATUS, NUMNODES, CHILDREN) ->
     if
-      STATUS == "Member" ->
-          %%% if know pick random node and tell it the msg
-          %%% downside is I currently don't track my PARENT
-          %%% therefore i might message my child and then stop
-          %%% trying to find dudes--maybe that's ok?
+      STATUS == "Member" ->          
           MSGNODE = getRand(MYNUM, NUMNODES),
           %%%io:format("~p Asks ~p~n", [self(), MSGNODE]),
           list_to_atom(MSGNODE) ! self(),
@@ -42,11 +38,10 @@ node_rec(MYNUM, STATUS, NUMNODES, CHILDREN, MSGNODE) ->
         close ->
            io:format("Stoping ~p~n", [self()]);
         status ->
-           io:format("Status ~p:~p~n", [self(), STATUS]),
+           io:format("Status ~p:~p Children:~p~n", [self(), STATUS, CHILDREN]),
            node_rec(MYNUM, STATUS, NUMNODES, CHILDREN, 0);
         nojoy ->
           RANDNUM = random:uniform(),
-          %%%io:format("I, ~p, Attempted to attach ~p~n", [self(), RANDNUM]),
           if
             RANDNUM < 0.05 ->
               io:format("I, (~p), quit.~n", [self()]),
@@ -56,7 +51,7 @@ node_rec(MYNUM, STATUS, NUMNODES, CHILDREN, MSGNODE) ->
           end;
         child ->
             io:format("~p Attached a new child:~p~n", [self(), MSGNODE]),
-            node_rec(MYNUM, STATUS, NUMNODES, CHILDREN, MSGNODE);
+            node_rec(MYNUM, STATUS, NUMNODES, CHILDREN++MSGNODE, MSGNODE);
         NODE_ID ->
             if
               STATUS == "Alone" ->
