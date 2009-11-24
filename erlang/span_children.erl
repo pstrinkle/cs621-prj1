@@ -25,11 +25,11 @@ find_child(MYNUM, STATUS, NUMNODES, CHILDREN) ->
     if
       STATUS == "Member" ->          
           MSGNODE = getRand(MYNUM, NUMNODES),
-          %%%io:format("~p Asks ~p~n", [self(), MSGNODE]),
+          io:format("~p Asks ~p~n", [self(), MSGNODE]),
           list_to_atom(MSGNODE) ! self(),
           node_rec(MYNUM, STATUS, NUMNODES, CHILDREN, MSGNODE);
       true ->
-          node_rec(MYNUM, STATUS, NUMNODES, CHILDREN, 0)
+          node_rec(MYNUM, STATUS, NUMNODES, CHILDREN, "")
     end.
 
 %%% Receive Messages
@@ -39,15 +39,15 @@ node_rec(MYNUM, STATUS, NUMNODES, CHILDREN, MSGNODE) ->
            io:format("Stoping ~p~n", [self()]);
         status ->
            io:format("Status ~p:~p Children:~p~n", [self(), STATUS, CHILDREN]),
-           node_rec(MYNUM, STATUS, NUMNODES, CHILDREN, 0);
+           node_rec(MYNUM, STATUS, NUMNODES, CHILDREN, "");
         nojoy ->
           RANDNUM = random:uniform(),
           if
             RANDNUM < 0.05 ->
               io:format("I, (~p), quit.~n", [self()]),
-              node_rec(MYNUM, "Quit", NUMNODES, CHILDREN, 0);
+              node_rec(MYNUM, "Quit", NUMNODES, CHILDREN, "");
             true ->
-              node_rec(MYNUM, STATUS, NUMNODES, CHILDREN, 0)
+              node_rec(MYNUM, STATUS, NUMNODES, CHILDREN, "")
           end;
         child ->
             io:format("~p Attached a new child:~p~n", [self(), MSGNODE]),
@@ -57,10 +57,10 @@ node_rec(MYNUM, STATUS, NUMNODES, CHILDREN, MSGNODE) ->
               STATUS == "Alone" ->
                 io:format("~p now Child of ~p~n", [self(), NODE_ID]),
                 NODE_ID ! child,
-                node_rec(MYNUM, "Member", NUMNODES, CHILDREN, 0);
+                node_rec(MYNUM, "Member", NUMNODES, CHILDREN, "");
               true ->
                 NODE_ID ! nojoy,
-                node_rec(MYNUM, STATUS, NUMNODES, CHILDREN, 0)
+                node_rec(MYNUM, STATUS, NUMNODES, CHILDREN, "")
             end
     %%% if no matching message has arrived within ExprT milliseconds
     after 100 ->
@@ -68,7 +68,7 @@ node_rec(MYNUM, STATUS, NUMNODES, CHILDREN, MSGNODE) ->
           STATUS == "Member" ->
             find_child(MYNUM, STATUS, NUMNODES, CHILDREN);
           true ->
-            node_rec(MYNUM, STATUS, NUMNODES, CHILDREN, 0)
+            node_rec(MYNUM, STATUS, NUMNODES, CHILDREN, "")
         end
     end.
 
