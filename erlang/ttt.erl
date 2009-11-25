@@ -1,6 +1,6 @@
--module(ttt).
+-module(prjT).
 
--export([cs/0,ctrand/5,node_tell/5,node_rec/5,start/2,close/1,status/1,stats/1,print/1,move/3,checkgame/1,play/4,mergeMoves/2,checkExists/2,set_random_seed/5,mutate/2]).
+-export([cs/0,ctrand/5,node_tell/5,node_rec/5,start/2,close/1,status/2,stats/1,print/1,move/3,checkgame/1,play/4,mergeMoves/2,checkExists/2,set_random_seed/5,mutate/2]).
 
 cs()->
   spawn(prjT, ctrand, [0,0,0,0,0]),
@@ -51,13 +51,14 @@ node_rec(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL}) ->
      receive
         close ->
            io:format("Stoping ~p~n", [self()]);
-        status ->
-            if STATUS /= "DontTell" -> 
-              io:format("~p | ~p | ~p~n", [MYNUM,STATUS,{WIN,DRAW,LOSS,ALL}]);
-            true ->
-              %%%io:format("            ~p | ~p | ~p~n", [MYNUM,STATUS,{WIN,DRAW,LOSS,ALL}])
-              io:format("", [])
-            end,
+        {status,NODE_ID} ->
+            %%%if STATUS /= "DontTell" -> 
+             %%% io:format("~p | ~p | ~p~n", [MYNUM,STATUS,{WIN,DRAW,LOSS,ALL}]),
+            %%%  node_rec(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL});
+            %%%true ->
+            %%%  node_rec(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL})
+            %%%end;
+            NODE_ID ! {MYNUM,STATUS,WIN,DRAW,LOSS,ALL},
             node_rec(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL});
         stats ->
             %%%io:format("~n~p~n~p~n~p~n~p~n~p", [MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL}]),
@@ -70,7 +71,7 @@ node_rec(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL}) ->
         {{NEWWIN,NEWDRAW,NEWLOSS,NEWALL},MYNEWMOVES} ->
           if 
             NEWLOSS > 0 ->
-              node_rec(MYNUM,STATUS,NUMNODES,MYNEWMOVES,{0,0,0,NEWALL});
+              node_rec(MYNUM,"DontTell",NUMNODES,MYNEWMOVES,{0,0,0,NEWALL});
             NEWWIN + NEWDRAW > 1000 ->
               io:format("DRAWS! ~p | ~p | ~p~n", [MYNUM,STATUS,{NEWWIN,NEWDRAW,NEWLOSS,NEWALL}]),
               node_rec(MYNUM,"KnowDontTell",NUMNODES,MYNEWMOVES,{NEWWIN,NEWDRAW,NEWLOSS,NEWALL});
@@ -82,17 +83,17 @@ node_rec(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL}) ->
             if 
               WINNER == x ->
                 NODE_ID ! {{THEIRWIN+1,THEIRDRAW,THEIRLOSS,THEIRALL+1},THEIRNEWMOVES},
-                node_rec(MYNUM,STATUS,NUMNODES,mergeMoves(THEIRNEWMOVES,MYNEWMOVES),{WIN,DRAW,LOSS+1,ALL+1});
+                node_rec(MYNUM,"DontTell",NUMNODES,mergeMoves(lists:ukeysort(1,THEIRNEWMOVES ++ MYNEWMOVES),[]),{WIN,DRAW,LOSS+1,ALL+1});
               WINNER == o ->
-                NODE_ID ! {{0,0,0,THEIRALL+1},mergeMoves(MYNEWMOVES,THEIRNEWMOVES)},
+                NODE_ID ! {{0,0,0,THEIRALL+1},mergeMoves(lists:ukeysort(1,MYNEWMOVES ++ THEIRNEWMOVES),[])},
                 %%%if 
                 %%%  WIN > 0 ->
-                    node_rec(MYNUM,STATUS,NUMNODES,MYNEWMOVES,{WIN+1,DRAW,LOSS,ALL+1});
+                node_rec(MYNUM,"KnowAndTell",NUMNODES,MYNEWMOVES,{WIN+1,DRAW,LOSS,ALL+1});
                 %%%  true ->
                 %%%   node_rec(MYNUM,STATUS,NUMNODES,MYNEWMOVES,{WIN+1,DRAW,LOSS,ALL+1})
                 %%% end;
               true ->
-                NODE_ID ! NODE_ID ! {{THEIRWIN,THEIRDRAW+1,THEIRLOSS,THEIRALL+1},THEIRNEWMOVES},
+                NODE_ID !  {{THEIRWIN,THEIRDRAW+1,THEIRLOSS,THEIRALL+1},THEIRNEWMOVES},
                 node_rec(MYNUM,STATUS,NUMNODES,MYNEWMOVES,{WIN,DRAW+1,LOSS,ALL+1})
             end           
        after 1000 ->
@@ -107,15 +108,19 @@ set_random_seed(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL}) ->
     random:seed(A, A, A),
     node_tell(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL}).
     
-start(0,_) ->
-    done;
+start(5,ALL) ->
+    register(node5, spawn(prjT, set_random_seed, [5,"KnowAndTell",ALL,[],{0,0,0,0}])),
+    register(node4, spawn(prjT, set_random_seed, [4,"KnowAndTell",ALL,[],{0,0,0,0}])),
+    register(node3, spawn(prjT, set_random_seed, [3,"KnowAndTell",ALL,[],{0,0,0,0}])),
+    register(node2, spawn(prjT, set_random_seed, [2,"KnowAndTell",ALL,[],{0,0,0,0}])),
+    register(node1, spawn(prjT, set_random_seed, [1,"KnowAndTell",ALL,[],{0,0,0,0}]));
 start(N,ALL) -> 
-    if 
-      N > 200 ->  
-        register(list_to_atom("node" ++ integer_to_list(N)), spawn(prjT, set_random_seed, [N,"DontTell",ALL,[],{0,0,0,0}]));
-      true ->  
-        register(list_to_atom("node" ++ integer_to_list(N)), spawn(prjT, set_random_seed, [N,"KnowAndTell",ALL,[],{0,0,0,0}]))
-    end,
+    %%%if 
+    %%%  N > 200 ->  
+    register(list_to_atom("node" ++ integer_to_list(N)), spawn(prjT, set_random_seed, [N,"DontTell",ALL,[],{0,0,0,0}])),
+    %%%  true ->  
+    %%%    register(list_to_atom("node" ++ integer_to_list(N)), spawn(prjT, set_random_seed, [N,"KnowAndTell",ALL,[],{0,0,0,0}]))
+    %%%end,
     start(N-1,ALL).
 
 
@@ -125,11 +130,35 @@ close(N) ->
   list_to_atom("node" ++ integer_to_list(N)) ! close,
   close(N-1).
   
-status(0) ->
-  io:format("Done Status~n", []);
-status(N) ->
-  list_to_atom("node" ++ integer_to_list(N)) ! status,
-  status(N-1).
+status(0,{T,K,D,ID,WD,A}) ->
+  receive
+    {MYNUM,STATUS,WIN,DRAW,LOSS,ALL} ->
+      if
+        STATUS == "KnowAndTell" ->
+          {NEWT,NEWK,NEWD} = {T+1,K,D};
+        STATUS == "KnowDontTell" ->  
+          {NEWT,NEWK,NEWD} = {T,K+1,D};
+        STATUS == "DontTell" ->
+          {NEWT,NEWK,NEWD} = {T,K,D+1};
+        true->
+          {NEWT,NEWK,NEWD}  = {T,K,D},
+          io:format("????? Status:~p ~n", [STATUS])
+      end,
+      
+      if 
+        WIN + DRAW > WD ->
+          status(0,{NEWT,NEWK,NEWD,MYNUM,WIN+DRAW,ALL});
+        true ->
+          status(0,{NEWT,NEWK,NEWD,ID,WD,A})
+      end
+    after 1000 ->
+      io:format("Done Status~nTell:~p~nKnow:~p~nDont:~p~nID:~p ~p/~p~n", [T,K,D,ID,WD,A])
+  end;
+status(N,_) ->
+  list_to_atom("node" ++ integer_to_list(N)) ! {status,self()},
+  status(N-1,{0,0,0,0,0,0}).
+  
+  
   
 stats(N) ->
   list_to_atom("node" ++ integer_to_list(N)) ! stats.
@@ -140,8 +169,25 @@ print([A,B,C,D,E,F,G,H,I]) ->
   io:format(" ~p | ~p | ~p ~n", [D,E,F]),
   io:format("-----------~n", []),
   io:format(" ~p | ~p | ~p ~n~n", [G,H,I]).
+
   
-mergeMoves(MOVES1,MOVES2) ->
+mergeMoves([],NEWMOVES)->
+  NEWMOVES;
+mergeMoves([{MOVEBOARD,MOVE}|REST],NEWMOVES)->
+  RAND = random:uniform(),
+  if 
+    RAND < 0.10 ->
+      %%%doesn't matter what player I send, not using the new board
+      {_,NEWMOVE} = move(MOVEBOARD,x,[]),
+      mergeMoves(REST,NEWMOVES ++ [{MOVEBOARD,NEWMOVE}]);
+    true->
+      mergeMoves(REST,NEWMOVES ++ [{MOVEBOARD,MOVE}])
+  end.
+  
+  
+  
+    
+t(MOVES1,MOVES2)->
   if
     length(MOVES1) < 3 ->
       MOVES2;
