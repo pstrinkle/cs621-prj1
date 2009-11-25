@@ -1,0 +1,6 @@
+%%% Print Children List
+printList([HEAD|[]]) ->
+    io:format("~p~n", [HEAD]);
+printList([HEAD|REST]) ->
+    io:format("~p ", [HEAD]),
+    printList(REST).
