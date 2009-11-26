@@ -7,7 +7,7 @@
 
 -module(prj_avg).
 
--export([node_tell/4,node_rec/4,start/2,close/1,status/1,identify/0]).
+-export([node_tell/5,node_rec/5,start/2,close/1,status/1,identify/0]).
 
 %%% Get Random Number
 getRand(MYNUM, NUMNODES) ->
@@ -21,51 +21,51 @@ getRand(MYNUM, NUMNODES) ->
     end.
 
 %%% Tell Other Nodes
-node_tell(MYNUM, STATUS, NUMNODES, VALUE) ->
+node_tell(MYNUM, STATUS, NUMNODES, VALUE, TRIES) ->
     if
-      STATUS == "KnowAndTell" ->
-        %%% if know pick random node and tell it the msg
-        MSGNODE = getRand(MYNUM, NUMNODES),
-        io:format("~p Tells ~p~n", [self(), MSGNODE]),
-        list_to_atom(MSGNODE) ! {self(), VALUE},
-        node_rec(MYNUM, STATUS, NUMNODES, VALUE);
+      TRIES == 2 * NUMNODES ->
+        node_rec(MYNUM, "KnowDontTell", NUMNODES, VALUE, TRIES);
       true ->
-        node_rec(MYNUM, STATUS, NUMNODES, VALUE)
+        if
+          STATUS == "KnowAndTell" ->
+            MSGNODE = getRand(MYNUM, NUMNODES),
+            io:format("~p Tells ~p~n", [self(), MSGNODE]),
+            list_to_atom(MSGNODE) ! {self(), VALUE},
+            node_rec(MYNUM, STATUS, NUMNODES, VALUE, TRIES);
+          true ->
+            node_rec(MYNUM, STATUS, NUMNODES, VALUE, TRIES)
+        end
     end.
 
 %%% Receive Messages
-node_rec(MYNUM, STATUS, NUMNODES, VALUE) ->
+node_rec(MYNUM, STATUS, NUMNODES, VALUE, TRIES) ->
     receive
         close ->
            io:format("Stoping ~p~n", [self()]);
         status ->
-           io:format("Status ~p:~p~n", [self(), STATUS]),
-           node_rec(MYNUM, STATUS, NUMNODES, VALUE);
+           io:format("Status ~p:~p Value:~p~n", [self(), STATUS, VALUE]),
+           node_rec(MYNUM, STATUS, NUMNODES, VALUE, TRIES);
         {NODE_ID, THEIR_VALUE} ->
-            io:format("I, ~p: received: ~p:~p~n", [self(), NODE_ID, THEIR_VALUE]),
-            NODE_ID ! {self(), VALUE},
+            io:format("I, ~p(~p): received: ~p:~p~n", [self(), STATUS, NODE_ID, THEIR_VALUE]),
             if
               STATUS == "KnowAndTell" ->
                 if
                   THEIR_VALUE == VALUE ->
-                    RANDNUM = random:uniform(),
-                    if
-                      RANDNUM < 0.05 ->
-                        io:format("I, (~p), quit.~n", [self()]),
-                        node_rec(MYNUM, "KnowDontTell", NUMNODES, VALUE);
-                      true ->
-                        node_rec(MYNUM, STATUS, NUMNODES, VALUE)
-                    end;
+                    io:format("Values Match! (~p, ~p)~n", [self(), NODE_ID]),
+                    io:format("I, (~p), quit.~n", [self()]),
+                    node_rec(MYNUM, "KnowDontTell", NUMNODES, VALUE, TRIES);
                   true ->
-                    node_rec(MYNUM, "KnowAndTell", NUMNODES, (VALUE + THEIR_VALUE) / 2)
+                    node_rec(MYNUM, STATUS, NUMNODES, (VALUE + THEIR_VALUE) / 2, TRIES)
                 end;
+              STATUS == "DontKnow" ->
+                node_rec(MYNUM, "KnowAndTell", NUMNODES, (VALUE + THEIR_VALUE) / 2, TRIES);
               true ->
-                node_rec(MYNUM, STATUS, NUMNODES, VALUE)
+                node_rec(MYNUM, STATUS, NUMNODES, VALUE, TRIES)
             end
     %%% if no matching message has arrived within ExprT milliseconds
     after 100 ->
         %%%io:format("Try Again ~p~n", [self()]),
-        node_tell(MYNUM, STATUS, NUMNODES, VALUE)
+        node_tell(MYNUM, STATUS, NUMNODES, VALUE, TRIES + 1)
     end.
 
 %%% Startup the System
@@ -73,11 +73,11 @@ start(1, TOTAL) ->
     random:seed(now()),
     STARTVALUE = random:uniform(TOTAL * 2),
     io:format("node1 has ~p~n", [STARTVALUE]),
-    register(node1, spawn(prj_avg, node_tell, [1, "KnowAndTell", TOTAL, STARTVALUE]));
+    register(node1, spawn(prj_avg, node_tell, [1, "KnowAndTell", TOTAL, STARTVALUE, 0]));
 start(N, TOTAL) ->
     random:seed(now()),
     STARTVALUE = random:uniform(TOTAL * 2),
-    PID = spawn(prj_avg, node_tell, [N, "DontKnow", TOTAL, STARTVALUE]),
+    PID = spawn(prj_avg, node_tell, [N, "DontKnow", TOTAL, STARTVALUE, 0]),
     io:format("~p is node~p~n", [PID, N]),
     io:format("node~p has ~p~n", [N, STARTVALUE]),
     register(list_to_atom("node" ++ integer_to_list(N)), PID),
