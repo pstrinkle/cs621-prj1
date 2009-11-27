@@ -51,8 +51,14 @@ node_rec(MYNUM, STATUS, NUMNODES, VALUE, TRIES) ->
             if
               THEIR_VALUE == VALUE ->
                 io:format("Values Match! (~p, ~p)~n", [self(), NODE_ID]),
-                io:format("I, (~p), quit.~n", [self()]),
-                node_rec(MYNUM, "KnowDontTell", NUMNODES, VALUE, TRIES);
+                RANDNUM = random:uniform(),
+                if
+                  RANDNUM < 0.05 ->
+                    io:format("I, (~p), quit.~n", [self()]),
+                    node_rec(MYNUM, "KnowDontTell", NUMNODES, VALUE, TRIES);
+                  true ->
+                    node_rec(MYNUM, STATUS, NUMNODES, (VALUE + THEIR_VALUE) / 2, TRIES)
+                end;
               true ->
                 node_rec(MYNUM, STATUS, NUMNODES, (VALUE + THEIR_VALUE) / 2, TRIES)
               end;
@@ -65,8 +71,14 @@ node_rec(MYNUM, STATUS, NUMNODES, VALUE, TRIES) ->
                 if
                   THEIR_VALUE == VALUE ->
                     io:format("Values Match! (~p, ~p)~n", [self(), NODE_ID]),
-                    io:format("I, (~p), quit.~n", [self()]),
-                    node_rec(MYNUM, "KnowDontTell", NUMNODES, VALUE, TRIES);
+                    RANDNUM = random:uniform(),
+                    if
+                      RANDNUM < 0.05 ->
+                        io:format("I, (~p), quit.~n", [self()]),
+                         node_rec(MYNUM, "KnowDontTell", NUMNODES, VALUE, TRIES);
+                      true ->
+                        node_rec(MYNUM, STATUS, NUMNODES, (VALUE + THEIR_VALUE) / 2, TRIES)
+                    end;
                   true ->
                     node_rec(MYNUM, STATUS, NUMNODES, (VALUE + THEIR_VALUE) / 2, TRIES)
                 end;
