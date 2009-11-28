@@ -1,0 +1,76 @@
+\documentclass[11pt,twocolumn]{article}
+\usepackage{amssymb,amsmath}
+\usepackage{dsfont}
+\usepackage{times}
+\usepackage[left=1in, right=1in, top=1in, bottom=0.5in, includefoot]{geometry}
+\setlength\parindent{0.25in}
+\setlength\parskip{1mm}
+
+\title{Gossip Protocol Addresses Jesus in Tights}
+\author{Patrick Trinkle \& Mike Corbin\\
+Dept. of Computer Science and Electrical Engineering,\\
+University of Maryland Baltimore County,\\
+Baltimore, MD, 21250\\
+\texttt{\{tri1|corbin2\}@umbc.edu}}
+\date{December 1st, 2009}
+
+\begin{document}
+\twocolumn[
+  \begin{@twocolumnfalse}
+    \maketitle
+    \begin{abstract}
+      Seriously awesome stuff about gossip; but we also address it's limitations.  and we use its awesomeness to solve problem X.  Might also, want to address its rhobustness.
+    \end{abstract}
+  \end{@twocolumnfalse}
+  ]
+
+\section{Motivation}
+
+Why are we doing this in gossip and erlang.
+
+Also, we can use the paper I found when we talk about the weaknesses of gossip.
+
+\section{Background}
+
+This will include kind of the fundamentals and requirements of gossip protocols.
+
+\subsection{Erlang as a Distributed System}
+
+We'll talk about Erlang.
+
+\section{Early Experiments}
+
+Here we can talk about early code that we wrote and how the variables changed 
+and had varying effects.
+
+\subsection{Epidemic Rumor Spreading}
+
+Mike, you wrote this part.  Can you talk about how changing variables effected
+it?
+
+\subsection{Spanning Tree Building}
+
+I can write about how I had a version that tracked parents, and version that 
+tracked children and how they differed in efficieny.  With one you had to
+send a message to the root only, but the nodes had to carry more information
+with them regarding their children.  But, with the other the nodes would have
+to ping their parent node for information.
+
+\subsection{Calculating the Average}
+
+I can talk about this problem.  We did it in class, so I have some notes.  Also,
+if you do it with one-way communication then one guy at the end has to time out;
+if you do it with pair-wise communication.  Also, if someone messages you with
+ a different value you should start spreading again.  I'm fairly certain my 
+code doens't do that yet.  But, I can try that out.
+
+\subsection{Tic-Tac-Toe}
+
+Your code was long and transmitted a lot of data around.  That's about all I can
+ really say about it.
+
+\section{X}
+
+What problem did we solve and such.
+
+\end{document}
