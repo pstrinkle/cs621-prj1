@@ -1,6 +1,15 @@
 -module(ttt).
 
--export([node_tell/5,node_rec/5,start/2,close/1,status/2,stats/1,print/1,move/3,checkgame/1,play/6,set_random_seed/5,replaceM/2,mergeMoves/3,boardMatch/2,checkAll/2,mutateMoves/2]).
+%%%ttt:start(NUMNODES,NUMNODES). to start with NUMNODES process
+%%%ttt:status(NUMNODES,_). to print the current status ( _ can be anything)
+%%%ttt:close(NUMNODES) to close all running process
+%%% when a process win/draws 1000 games without losing it writes its moves to
+%%% test.erl and closes all process
+%%%
+%%% beware it eats cpu/memory like candy
+
+
+-export([node_tell/5,node_rec/5,start/2,close/1,status/2,stats/1,print/1,move/3,checkgame/1,play/6,set_random_seed/5,mergeMoves/3,eraseAll/2,mergeAll/2]).
 
 
 getRand(MYNUM,NUMNODES) ->
@@ -36,7 +45,7 @@ node_rec(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL}) ->
             %%%true ->
             %%%  node_rec(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL})
             %%%end;
-            NODE_ID ! {MYNUM,STATUS,WIN,DRAW,LOSS,ALL,length(MYMOVES),NUMNODES},
+            NODE_ID ! {MYNUM,STATUS,WIN,DRAW,LOSS,ALL,length(dict:to_list(MYMOVES)),NUMNODES},
             node_tell(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL});
         stats ->
             %%%io:format("~n~p~n~p~n~p~n~p~n~p", [MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL}]),
@@ -50,12 +59,13 @@ node_rec(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL}) ->
           if 
             NEWLOSS > 0 ->
               node_tell(MYNUM,"DontTell",NUMNODES,MYNEWMOVES,{NEWWIN,NEWDRAW,NEWLOSS,NEWALL});
-            NEWWIN + NEWDRAW > 1000 ->
+            NEWWIN + NEWDRAW > 10000 ->
+              status(NUMNODES,NUMNODES),
               io:format("DRAWS! ~p | ~p | ~p~n", [MYNUM,STATUS,{NEWWIN,NEWDRAW,NEWLOSS,NEWALL}]),
               {ok, WriteDescr} = file:open(test.erl, [append]),
               io:fwrite(WriteDescr, "~n~p).~n%%%~p ~p ~p ~p", [MYMOVES,MYNUM,STATUS,NUMNODES,{WIN,DRAW,LOSS,ALL}]),
               file:close(WriteDescr),
-              close(NUMNODES),
+              %%%close(NUMNODES),
               node_rec(MYNUM,"KnowDontTell",NUMNODES,MYNEWMOVES,{NEWWIN,NEWDRAW,NEWLOSS,NEWALL});
             true ->
               node_tell(MYNUM,STATUS,NUMNODES,MYNEWMOVES,{NEWWIN,NEWDRAW,NEWLOSS,NEWALL})
@@ -64,18 +74,13 @@ node_rec(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL}) ->
             {WINNER,THEIRNEWMOVES,MYNEWMOVES} = play([s,s,s,s,s,s,s,s,s],x,THEIRMOVES,[],MYMOVES,[]),
             if 
               WINNER == x ->
-                NODE_ID ! {{THEIRWIN+1,THEIRDRAW,THEIRLOSS,THEIRALL+1},mergeMoves(THEIRMOVES,THEIRNEWMOVES,[])},
-                node_rec(MYNUM,"DontTell",NUMNODES,mergeMoves(THEIRNEWMOVES,MYMOVES,[]),{WIN,DRAW,LOSS+1,ALL+1});
+                NODE_ID ! {{THEIRWIN+1,THEIRDRAW,THEIRLOSS,THEIRALL+1},mergeMoves(THEIRMOVES,THEIRNEWMOVES,MYNEWMOVES)},
+                node_rec(MYNUM,"DontTell",NUMNODES,mergeMoves(MYMOVES,[],MYNEWMOVES),{WIN,DRAW,LOSS+1,ALL+1});
               WINNER == o ->
-                NODE_ID ! {{0,0,0,THEIRALL+1},mergeMoves(MYNEWMOVES,THEIRMOVES,[])},
-                %%%if 
-                %%%  WIN > 0 ->
-                    node_rec(MYNUM,"KnowAndTell",NUMNODES,mergeMoves(MYMOVES,MYNEWMOVES,[]),{WIN+1,DRAW,LOSS,ALL+1});
-                %%%  true ->
-                %%%    node_rec(MYNUM,STATUS,NUMNODES,MYNEWMOVES,{WIN+1,DRAW,LOSS,ALL+1})
-                %%%end;
+                NODE_ID ! {{0,0,0,THEIRALL+1},mergeMoves(THEIRMOVES,[],THEIRNEWMOVES)},
+                node_rec(MYNUM,"KnowAndTell",NUMNODES,mergeMoves(MYMOVES,MYNEWMOVES,THEIRNEWMOVES),{WIN+1,DRAW,LOSS,ALL+1});
               true ->
-                NODE_ID !  {{THEIRWIN,THEIRDRAW+1,THEIRLOSS,THEIRALL+1},mutateMoves(mergeMoves(THEIRMOVES,MYNEWMOVES,[]),[])},
+                NODE_ID !  {{THEIRWIN,THEIRDRAW+1,THEIRLOSS,THEIRALL+1},mergeMoves(THEIRMOVES,THEIRNEWMOVES,[])},
                 node_rec(MYNUM,STATUS,NUMNODES,mergeMoves(MYMOVES,MYNEWMOVES,[]),{WIN,DRAW+1,LOSS,ALL+1})
             end           
        after 1000 ->
@@ -91,15 +96,15 @@ set_random_seed(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL}) ->
     node_tell(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL}).
     
 start(5,ALL) ->
-    register(node5, spawn(ttt, set_random_seed, [5,"KnowAndTell",ALL,[],{0,0,0,0}])),
-    register(node4, spawn(ttt, set_random_seed, [4,"KnowAndTell",ALL,[],{0,0,0,0}])),
-    register(node3, spawn(ttt, set_random_seed, [3,"KnowAndTell",ALL,[],{0,0,0,0}])),
-    register(node2, spawn(ttt, set_random_seed, [2,"KnowAndTell",ALL,[],{0,0,0,0}])),
-    register(node1, spawn(ttt, set_random_seed, [1,"KnowAndTell",ALL,[],{0,0,0,0}]));
+    register(node5, spawn(ttt, set_random_seed, [5,"KnowAndTell",ALL,dict:new(),{0,0,0,0}])),
+    register(node4, spawn(ttt, set_random_seed, [4,"KnowAndTell",ALL,dict:new(),{0,0,0,0}])),
+    register(node3, spawn(ttt, set_random_seed, [3,"KnowAndTell",ALL,dict:new(),{0,0,0,0}])),
+    register(node2, spawn(ttt, set_random_seed, [2,"KnowAndTell",ALL,dict:new(),{0,0,0,0}])),
+    register(node1, spawn(ttt, set_random_seed, [1,"KnowAndTell",ALL,dict:new(),{0,0,0,0}]));
 start(N,ALL) -> 
    %%% if 
    %%%   N > 100 ->  
-        register(list_to_atom("node" ++ integer_to_list(N)), spawn(ttt, set_random_seed, [N,"DontTell",ALL,[],{0,0,0,0}])),
+        register(list_to_atom("node" ++ integer_to_list(N)), spawn(ttt, set_random_seed, [N,"DontTell",ALL,dict:new(),{0,0,0,0}])),
     %%%  true ->  
     %%%    register(list_to_atom("node" ++ integer_to_list(N)), spawn(ttt, set_random_seed, [N,"KnowAndTell",ALL,[],{0,0,0,0}]))
    %%% end,
@@ -140,8 +145,6 @@ status(N,_) ->
   list_to_atom("node" ++ integer_to_list(N)) ! {status,self()},
   status(N-1,{0,0,0,0,0,0,0,0}).
   
-  
-  
 stats(N) ->
   list_to_atom("node" ++ integer_to_list(N)) ! stats.
   
@@ -153,126 +156,127 @@ print([A,B,C,D,E,F,G,H,I]) ->
   io:format(" ~p | ~p | ~p ~n~n", [G,H,I]).
   
   
+  
+%%%mergeMoves(MOVES,KEEP,[]) ->
+%%%  dict:merge(
+%%%    fun (KEY,VAL1,VAL2) ->
+%%%      VAL1 
+%%%    end,
+%%%    MOVES,KEEP);
+    
+mergeMoves(MOVES,KEEP,REMOVE) ->
+  mergeAll(eraseAll(MOVES,REMOVE),KEEP).
+  
+%%%removes all rotations and reflections of the move
+eraseAll(MOVES,[]) ->
+  MOVES;
+eraseAll(MOVES,[{REMOVEKEY,_}|REST]) ->
+  eraseAll(dict:erase(REMOVEKEY,dict:erase(rotate1(REMOVEKEY),dict:erase(rotate2(REMOVEKEY),dict:erase(rotate3(REMOVEKEY),dict:erase(reflect(REMOVEKEY),dict:erase(reflect1(REMOVEKEY),dict:erase(reflect2(REMOVEKEY),dict:erase(reflect3(REMOVEKEY),MOVES)))))))),REST).
+
+%%%can't use the built in dict:merge because need to check for all rotations/reflections
+mergeAll(MOVES,[]) ->
+  MOVES;
+mergeAll(MOVES,[{BOARD,MOVE}|REST]) ->
+  ROTATE0 = dict:is_key({BOARD,MOVE},MOVES),
+  ROTATE1 = dict:is_key(rotate1(BOARD),MOVES),
+  ROTATE2 = dict:is_key(rotate2(BOARD),MOVES),
+  ROTATE3 = dict:is_key(rotate3(BOARD),MOVES),
+  REFLECT0 = dict:is_key(reflect(BOARD),MOVES),
+  REFLECT1 = dict:is_key(reflect1(BOARD),MOVES),
+  REFLECT2 = dict:is_key(reflect2(BOARD),MOVES),
+  REFLECT3 = dict:is_key(reflect3(BOARD),MOVES),
+  if 
+    ROTATE0 ->
+      mergeAll(MOVES,REST);
+    ROTATE1 ->
+      mergeAll(MOVES,REST);
+    ROTATE2 ->
+      mergeAll(MOVES,REST);
+    ROTATE3 ->
+      mergeAll(MOVES,REST);
+    REFLECT0 ->
+      mergeAll(MOVES,REST);
+    REFLECT1 ->
+      mergeAll(MOVES,REST);
+    REFLECT2 ->
+      mergeAll(MOVES,REST);
+    REFLECT3 ->
+      mergeAll(MOVES,REST);
+    true ->
+      mergeAll(dict:store(BOARD,MOVE,MOVES),REST)
+  end.
+
 
 %%%move
 %%%checks the moves and moves there if one matches
 %%%if no positions match finds a space and makes a random move
-move(BOARD,PLAYER,[]) ->
-  %%%random:seed(now()),
+move(BOARD,PLAYER,MOVES) ->
+  ROTATE0 = dict:is_key(BOARD,MOVES),
+  ROTATE1 = dict:is_key(rotate1(BOARD),MOVES),
+  ROTATE2 = dict:is_key(rotate2(BOARD),MOVES),
+  ROTATE3 = dict:is_key(rotate3(BOARD),MOVES),
+  REFLECT0 = dict:is_key(reflect(BOARD),MOVES),
+  REFLECT1 = dict:is_key(reflect1(BOARD),MOVES),
+  REFLECT2 = dict:is_key(reflect2(BOARD),MOVES),
+  REFLECT3 = dict:is_key(reflect3(BOARD),MOVES),
+  if 
+    ROTATE0 ->
+      dict:fetch(BOARD,MOVES);
+    ROTATE1 ->
+      rotate3(dict:fetch(rotate1(BOARD),MOVES));
+    ROTATE2 ->
+      rotate2(dict:fetch(rotate2(BOARD),MOVES));
+    ROTATE3 ->
+      rotate1(dict:fetch(rotate3(BOARD),MOVES));
+    REFLECT0 ->
+      reflect(dict:fetch(reflect(BOARD),MOVES));
+    REFLECT1 ->
+      reflect3(dict:fetch(reflect1(BOARD),MOVES));
+    REFLECT2 ->
+      reflect2(dict:fetch(reflect2(BOARD),MOVES));
+    REFLECT3 ->
+      reflect1(dict:fetch(reflect3(BOARD),MOVES));
+    true ->
+      makeRandMove(BOARD,PLAYER)
+  end.
+
+  %%%CK = dict:is_key(BOARD,MOVES),
+  %%%if
+  %%%  CK ->
+  %%%    dict:fetch(BOARD,MOVES);
+  %%%  true ->  
+  %%%    makeRandMove(BOARD,PLAYER)
+  %%%end.
+  
+rotate1([P0,P1,P2,P3,P4,P5,P6,P7,P8]) ->
+    [P6,P3,P0,P7,P4,P1,P8,P5,P2].
+rotate2([P0,P1,P2,P3,P4,P5,P6,P7,P8]) ->
+    [P8,P7,P6,P5,P4,P3,P2,P1,P0]. 
+rotate3([P0,P1,P2,P3,P4,P5,P6,P7,P8]) ->
+    [P2,P5,P8,P1,P4,P7,P0,P3,P6]. 
+reflect([P0,P1,P2,P3,P4,P5,P6,P7,P8]) ->
+    [P6,P7,P8,P3,P4,P5,P0,P1,P2].    
+reflect1([P0,P1,P2,P3,P4,P5,P6,P7,P8]) ->
+    [P0,P3,P6,P1,P4,P7,P2,P5,P8].      
+reflect2([P0,P1,P2,P3,P4,P5,P6,P7,P8]) ->
+    [P2,P1,P0,P5,P4,P3,P8,P7,P6].   
+reflect3([P0,P1,P2,P3,P4,P5,P6,P7,P8]) ->
+    [P8,P5,P2,P7,P4,P1,P6,P3,P0]. 
+    
+makeRandMove(BOARD,PLAYER) ->
   RAND = random:uniform(9),
   CURR = lists:nth(RAND,BOARD),
-  if CURR == s ->
-    {BOARDHEAD,BOARDTAIL} = lists:split(RAND-1,BOARD),
-     %%%New board = old board with plays move inserted
-     %%%No new stragegy added
-    {BOARDHEAD ++ [PLAYER] ++ lists:nthtail(1,BOARDTAIL),
-     BOARDHEAD ++ [m] ++ lists:nthtail(1,BOARDTAIL)};
-  true ->
-    move(BOARD,PLAYER,[])
-  end;
-%%%checks all rotations
-%%%New board = old board with plays move inserted
-%%%No new stragegy added
-move(BOARD,PLAYER,[MOVEBOARD|REST]) ->
-  MATCHBOARD = boardMatch(BOARD,MOVEBOARD),
-  if
-    MATCHBOARD /= [] ->
-      {replaceM(MATCHBOARD,PLAYER),MOVEBOARD};
-    true ->
-      move(BOARD,PLAYER,REST)
-  end.
-
-checkAll([],_) ->
-  false;
-checkAll([WINHEAD|WINREST],LOSEMOVE) ->
-  CK = boardMatch(replaceM(WINHEAD,s),LOSEMOVE),
   if 
-    CK /= [] ->
-      true;
+    CURR == s ->
+      {BOARDHEAD,BOARDTAIL} = lists:split(RAND-1,BOARD),
+      %%%New board = old board with plays move inserted
+      %%%No new stragegy added
+      BOARDHEAD ++ [PLAYER] ++ lists:nthtail(1,BOARDTAIL);
     true ->
-      checkAll(WINREST,LOSEMOVE)
+      makeRandMove(BOARD,PLAYER)
   end.
-
-mergeMoves(WINMOVES,[],ADDMOVES) ->
-  %%%io:format("~p - ~p~n",[length(WINMOVES),length(ADDMOVES)]),
-  WINMOVES ++ ADDMOVES;
-mergeMoves(WINMOVES,[LOSEHEAD|LOSEREST],ADDMOVES) ->
-  CK = checkAll(WINMOVES,LOSEHEAD),
-  if 
-    CK ->
-      mergeMoves(WINMOVES,LOSEREST,ADDMOVES);
-    true ->
-      mergeMoves(WINMOVES,LOSEREST,ADDMOVES ++ [LOSEHEAD])
-      %%%should pick one or the other && mutate
-      %%%RAND = random:uniform(),
-      %%%if 
-      %%% RAND < 0.10 ->
-      %%%    %%%doesn't matter what player I send, not using the new board
-      %%%    MOVEBOARD = replaceM(LOSEHEAD,s),
-      %%%    {_,NEWMOVE} = move(MOVEBOARD,x,[]),
-      %%%    mergeMoves(WINMOVES,LOSEREST,ADDMOVES ++ [NEWMOVE]);
-      %%%  true ->
-      %%%    mergeMoves(WINMOVES,LOSEREST,ADDMOVES ++ [LOSEHEAD])
-      %%%end
-  end.
-  
-mutateMoves([],NEWMOVES) ->
-  NEWMOVES;
-mutateMoves([HEAD|REST],NEWMOVES) ->
-  RAND = random:uniform(),
-  if 
-    RAND < 0.50 ->
-      %%%doesn't matter what player I send, not using the new board
-      MOVEBOARD = replaceM(HEAD,s),
-      {_,NEWMOVE} = move(MOVEBOARD,x,[]),
-      mutateMoves(REST,NEWMOVES ++ [NEWMOVE]);
-    true ->
-      mutateMoves(REST,NEWMOVES ++ [HEAD])
-   end.
-
-replaceM([m,P1,P2,P3,P4,P5,P6,P7,P8],PLAYER) ->
-  [PLAYER,P1,P2,P3,P4,P5,P6,P7,P8];
-replaceM([P0,m,P2,P3,P4,P5,P6,P7,P8],PLAYER) ->
-  [P0,PLAYER,P2,P3,P4,P5,P6,P7,P8];
-replaceM([P0,P1,m,P3,P4,P5,P6,P7,P8],PLAYER) ->
-  [P0,P1,PLAYER,P3,P4,P5,P6,P7,P8];
-replaceM([P0,P1,P2,m,P4,P5,P6,P7,P8],PLAYER) ->
-  [P0,P1,P2,PLAYER,P4,P5,P6,P7,P8];
-replaceM([P0,P1,P2,P3,m,P5,P6,P7,P8],PLAYER) ->
-  [P0,P1,P2,P3,PLAYER,P5,P6,P7,P8];
-replaceM([P0,P1,P2,P3,P4,m,P6,P7,P8],PLAYER) ->
-  [P0,P1,P2,P3,P4,PLAYER,P6,P7,P8];
-replaceM([P0,P1,P2,P3,P4,P5,m,P7,P8],PLAYER) ->
-  [P0,P1,P2,P3,P4,P5,PLAYER,P7,P8];
-replaceM([P0,P1,P2,P3,P4,P5,P6,m,P8],PLAYER) ->
-  [P0,P1,P2,P3,P4,P5,P6,PLAYER,P8];
-replaceM([P0,P1,P2,P3,P4,P5,P6,P7,m],PLAYER) ->
-  [P0,P1,P2,P3,P4,P5,P6,P7,PLAYER].
-  
-    
-boardMatch(BOARD,[P0,P1,P2,P3,P4,P5,P6,P7,P8]) ->
-  [R0,R1,R2,R3,R4,R5,R6,R7,R8] = replaceM([P0,P1,P2,P3,P4,P5,P6,P7,P8],s),
-  if
-    BOARD == [R0,R1,R2,R3,R4,R5,R6,R7,R8] ->
-      [P0,P1,P2,P3,P4,P5,P6,P7,P8];
-    BOARD == [R6,R3,R0,R7,R4,R1,R8,R5,R2] ->
-      [P6,P3,P0,P7,P4,P1,P8,P5,P2];
-    BOARD == [R8,R7,R6,R5,R4,R3,R2,R1,R0] ->
-      [P8,P7,P6,P5,P4,P3,P2,P1,P0];
-    BOARD == [R2,R5,R8,R1,R4,R7,R0,R3,R6] ->
-      [P2,P5,P8,P1,P4,P7,P0,P3,P6];
-    BOARD == [R6,R7,R8,R3,R4,R5,R0,R1,R2] ->
-      [P6,P7,P8,P3,P4,P5,P0,P1,P2];
-    BOARD == [R0,R3,R6,R1,R4,R7,R2,R5,R8] ->
-      [P0,P3,P6,P1,P4,P7,P2,P5,P8];   
-    BOARD == [R2,R1,R0,R5,R4,R3,R8,R7,R6] ->
-      [P2,P1,P0,P5,P4,P3,P8,P7,P6];
-    BOARD == [R8,R5,R2,R7,R4,R1,R6,R3,R0] ->
-      [P8,P5,P2,P7,P4,P1,P6,P3,P0];
-    true ->
-      []
-  end.
-  
+      
+ 
 
 checkgame([P1,P2,P3,P4,P5,P6,P7,P8,P9]) ->
   %%%print([P1,P2,P3,P4,P5,P6,P7,P8,P9]),
@@ -321,9 +325,9 @@ play(BOARD,TURN,MOVES1,NEWMOVES1,MOVES2,NEWMOVES2) ->
     WINNER /= n ->
       {WINNER,NEWMOVES1,NEWMOVES2};
     TURN == x ->
-      {NEWBOARD,NEWMOVEBOARD} = move(BOARD,x,MOVES1),
-      play(NEWBOARD,o,MOVES1,NEWMOVES1 ++ [NEWMOVEBOARD],MOVES2,NEWMOVES2);
+      NEWBOARD = move(BOARD,x,MOVES1),
+      play(NEWBOARD,o,MOVES1,NEWMOVES1 ++ [{BOARD,NEWBOARD}],MOVES2,NEWMOVES2);
     TURN == o ->
-      {NEWBOARD,NEWMOVEBOARD} = move(BOARD,o,MOVES2),
-      play(NEWBOARD,x,MOVES1,NEWMOVES1,MOVES2,NEWMOVES2 ++ [NEWMOVEBOARD])
+      NEWBOARD = move(BOARD,o,MOVES2),
+      play(NEWBOARD,x,MOVES1,NEWMOVES1,MOVES2,NEWMOVES2 ++ [{BOARD,NEWBOARD}])
   end.
