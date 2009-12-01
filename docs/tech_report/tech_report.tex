@@ -19,33 +19,76 @@ Baltimore, MD, 21250\\
   \begin{@twocolumnfalse}
     \maketitle
     \begin{abstract}
-      Seriously awesome stuff about gossip; but we also address it's limitations.  and we use its awesomeness to solve problem X.  Might also, want to address its rhobustness.
+      Seriously awesome stuff about gossip; but we also address it's limitations.  and we use its awesomeness to solve problem X.  Might also, want
+ to address its rhobustness.
     \end{abstract}
   \end{@twocolumnfalse}
   ]
 
 \section{Motivation}
 
-Why are we doing this in gossip and erlang.
+The gossip protocol dictates that nodes on the network uniformly
+ randomly select other nodes in the network to share information.
+  The information shared is small and the sharing doesn't have to
+ go both ways.  A node may have information it wishes to send
+ off to other nodes in the network; a rumor.  As each node in the
+ network learns the rumor it then finds other nodes to tell.  At each
+ step in the rumor spreading the state of one or both of the nodes
+ changes.  Within $O(\lg N)$ steps all nodes should know the rumor.
+  There are many variations in the system which can determine the
+ effectiveness of the gossip system.  These variables include: what
+ a node does if it pings a node that already knows the rumor; what
+ a node does if it has been waiting around--should it ask if there is
+ a rumor \cite{Birm2007}.
 
-Also, we can use the paper I found when we talk about the weaknesses of gossip.
+Erlang provides a stable distributed system and development
+ environment.  Therefore it is a good choice for developing applications
+ that utilize the gossip protocol \cite{Erlang}.
 
 \section{Background}
 
-This will include kind of the fundamentals and requirements of gossip protocols.
+Gossip protocol systems try to solve problems as aggregates.  They
+ win with small communication requirements and do not assume reliable
+ communication \cite{Birm2007}.
 
 \subsection{Erlang as a Distributed System}
 
-We'll talk about Erlang.
+Erlang was developed to run real-time code \cite{Erlang}.
 
 \section{Early Experiments}
 
-Here we can talk about early code that we wrote and how the variables changed 
-and had varying effects.
+Before determining which problem to address with the gossip protocol, we
+ built several relatively small-scale applications in Erlang.  These applications
+ allowed us to further understand the variables involved in a distributed system,
+ such as one using the gossip protocol.  An initial application was built
+ which simply shared a rumor.  To stop the rumor spreading the nodes would quit
+ with certain probability upon contacting a node, which already knew
+ the rumor.  From this two applications where quickly developed.  They both
+ built a spanning tree with gossip: in the first application the nodes tracked
+ their parent; in the second the parents tracked their children.  Nodes discontinued
+ the hunt for available children based on a certain probability after
+ finding a node that was already in the tree.  A Tic-Tac-Toe learning
+ application was also developed wherein the nodes would play tic-tac-toe
+ games with other nodes until they learned not to lose.  This doesn't fit the
+ traditional gossip model becasue it can take many steps; however, the node
+ partners are chosen randomly and it does come to a conclusion.  The nodes
+ themselves do transmit a lot of information.  Two variations of the average
+ aggregate were programmed.
 
 \subsection{Variables}
 
-These are the things you tweak.  How quickly they quit; whether ones that don't 
+Developing a distributed system involves tweaking certain system parameters.  If
+ nodes seek rumors during run-time this can change the time required for
+ complete knowledge.  Simultaneously, this may not be required.  When a
+ node interacts with another node that already knows the rumor the node can quit
+ spreading the rumor or initiating interactions.  However, if too many nodes
+ quit too quickly then the rumor can die out before all the nodes know.  Therefore,
+ there is tweaking in whether or not a node should quit at this point; not just
+ the binary notion but there can be a range using random numbers.  If a node
+ contacts another node that knows the rumor (assuming they're spreading
+ rumors) it can roll a die to determine whether it should quit.  
+
+How quickly they quit; whether ones that don't 
 know yet can try to bug their peers for information...
 
 \subsection{Epidemic Rumor Spreading}
@@ -77,5 +120,10 @@ Your code was long and transmitted a lot of data around.  That's about all I can
 \section{X}
 
 What problem did we solve and such.
+
+\begin{thebibliography}{10}
+\bibitem[Birm2007]{Birm2007}K. Birman, ``The promise, and limitations, of gossip protocols," \emph{ACM SIGOPS Oper. Syst. Rev.}, pp 8-13, 2007
+\bibitem[Erlang]{Erlang}http://ftp.sunet.se/pub/lang/erlang/
+\end{thebibliography}
 
 \end{document}
