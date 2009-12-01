@@ -1,15 +1,32 @@
--module(ttt).
-
-%%%ttt:start(NUMNODES,NUMNODES). to start with NUMNODES process
-%%%ttt:status(NUMNODES,_). to print the current status ( _ can be anything)
-%%%ttt:close(NUMNODES) to close all running process
-%%% when a process win/draws 1000 games without losing it writes its moves to
-%%% test.erl and closes all process
-%%%
-%%% beware it eats cpu/memory like candy
-
+-module(test).
 
 -export([s/0,node_play/5,node_rec_game/5,start/2,close/1,status/2,stats/1,print/1,move/3,checkgame/1,play/6,set_random_seed/5,mergeMoves/3,eraseAll/2,mergeAll/2]).
+
+twait() ->
+  receive 
+    go ->
+      io:format("go!~n",[]),
+      trec()
+  end.
+
+trec() ->
+  receive
+    msg1 ->
+      io:format("msg1!~n",[]);
+    msg2 ->
+      io:format("msg2!~n",[])
+  end,
+  trec2().
+
+
+trec2() ->
+  receive
+    msg1 ->
+      io:format("msg11!~n",[]);
+    msg2 ->
+      io:format("msg12!~n",[])
+  end.
+
 
 
 getRand(MYNUM,NUMNODES) ->
@@ -29,16 +46,46 @@ node_play(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL}) ->
           MSGNODE = getRand(MYNUM,NUMNODES),
           %%%io:format("~p Telling ~p~n", [self(),MSGNODE]),
           list_to_atom(MSGNODE) ! {self(),MYMOVES,{WIN,DRAW,LOSS,ALL}},
-          node_rec_game(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL}) ;
+          node_rec_results(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL}) ;
       true ->
           node_rec_game(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL}) 
     end.
-
+    
+node_rec_results(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL}) ->
+  receive
+    close ->
+           io:format("Stoping ~p~n", [self()]);
+    {status,NODE_ID} ->
+            %%%if STATUS /= "DontTell" -> 
+             io:format("~p | ~p | ~p~n", [MYNUM,STATUS,{WIN,DRAW,LOSS,ALL}]),
+            %%%  node_rec_game(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL});
+            %%%true ->
+            %%%  node_rec_game(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL})
+            %%%end;
+            NODE_ID ! {MYNUM,STATUS,WIN,DRAW,LOSS,ALL,length(dict:to_list(MYMOVES)),NUMNODES},
+            node_rec_game(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL});
+    {{NEWWIN,NEWDRAW,NEWLOSS,NEWALL},MYNEWMOVES} ->
+          if 
+            %%%NEWLOSS > 0 ->
+            %%%  node_rec_game(MYNUM,"DontTell",NUMNODES,MYNEWMOVES,{NEWWIN,NEWDRAW,NEWLOSS,NEWALL});
+            NEWWIN + NEWDRAW > 100000 ->
+              status(NUMNODES,NUMNODES),
+              io:format("DRAWS! ~p | ~p | ~p~n", [MYNUM,STATUS,{NEWWIN,NEWDRAW,NEWLOSS,NEWALL}]),
+              {ok, WriteDescr} = file:open(test.erl, [append]),
+              io:fwrite(WriteDescr, "~n~p).~n%%%~p ~p ~p ~p", [MYMOVES,MYNUM,STATUS,NUMNODES,{WIN,DRAW,LOSS,ALL}]),
+              file:close(WriteDescr),
+              %%%close(NUMNODES),
+              node_play(MYNUM,"KnowDontTell",NUMNODES,MYNEWMOVES,{NEWWIN,NEWDRAW,NEWLOSS,NEWALL});
+            true ->
+              %%%io:format("~p - ~p - ~p ~p ~n",[NEWWIN,NEWDRAW,NEWLOSS,NEWALL]),
+              node_play(MYNUM,STATUS,NUMNODES,MYNEWMOVES,{NEWWIN,NEWDRAW,NEWLOSS,NEWALL})
+          end
+   end.
   
 node_rec_game(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL}) ->
      receive
         close ->
-           io:format("Stoping ~p~n", [self()]);  
+           io:format("Stoping ~p~n", [self()]);
         {status,NODE_ID} ->
             %%%if STATUS /= "DontTell" -> 
              io:format("~p | ~p | ~p~n", [MYNUM,STATUS,{WIN,DRAW,LOSS,ALL}]),
@@ -56,38 +103,24 @@ node_rec_game(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL}) ->
             file:close(WriteDescr),
 		
             node_rec_game(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL});
-        {{NEWWIN,NEWDRAW,NEWLOSS,NEWALL},MYNEWMOVES} ->
-          if 
-            %%%NEWLOSS > 0 ->
-            %%%  node_rec_game(MYNUM,"DontTell",NUMNODES,MYNEWMOVES,{NEWWIN,NEWDRAW,NEWLOSS,NEWALL});
-            NEWWIN + NEWDRAW > 10000 ->
-              status(NUMNODES,NUMNODES),
-              io:format("DRAWS! ~p | ~p | ~p~n", [MYNUM,STATUS,{NEWWIN,NEWDRAW,NEWLOSS,NEWALL}]),
-              {ok, WriteDescr} = file:open(test.erl, [append]),
-              io:fwrite(WriteDescr, "~n~p).~n%%%~p ~p ~p ~p", [MYMOVES,MYNUM,STATUS,NUMNODES,{WIN,DRAW,LOSS,ALL}]),
-              file:close(WriteDescr),
-              close(NUMNODES),
-              node_play(MYNUM,"KnowDontTell",NUMNODES,MYNEWMOVES,{NEWWIN,NEWDRAW,NEWLOSS,NEWALL});
-            true ->
-              %%%io:format("~p - ~p - ~p ~p ~n",[NEWWIN,NEWDRAW,NEWLOSS,NEWALL]),
-              node_play(MYNUM,STATUS,NUMNODES,MYNEWMOVES,{NEWWIN,NEWDRAW,NEWLOSS,NEWALL})
-          end;
         {NODE_ID,THEIRMOVES,{THEIRWIN,THEIRDRAW,THEIRLOSS,THEIRALL}} ->
             {WINNER,MYNEWMOVES,THEIRNEWMOVES} = play([s,s,s,s,s,s,s,s,s],x,dict:new(),[],THEIRMOVES,[]),
             if 
               WINNER == x ->
                 NODE_ID ! {{0,0,0,THEIRALL+1},mergeMoves(THEIRMOVES,MYNEWMOVES,THEIRNEWMOVES)},
-                node_rec_game(MYNUM,"KnowAndTell",NUMNODES,mergeMoves(MYMOVES,MYNEWMOVES,THEIRNEWMOVES),{WIN+1,DRAW,LOSS,ALL+1});
+                %%%node_rec_game(MYNUM,"KnowAndTell",NUMNODES,mergeMoves(MYMOVES,MYNEWMOVES,THEIRNEWMOVES),{WIN+1,DRAW,LOSS,ALL+1});
+                node_rec_game(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN+1,DRAW,LOSS,ALL+1});
               WINNER == o ->
                 NODE_ID ! {{THEIRWIN+1,THEIRDRAW,THEIRLOSS,THEIRALL+1},mergeMoves(THEIRMOVES,THEIRNEWMOVES,MYNEWMOVES)},
-                node_rec_game(MYNUM,"DontTell",NUMNODES,mergeMoves(MYMOVES,THEIRNEWMOVES,MYNEWMOVES),{WIN,DRAW,LOSS+1,ALL+1});
+                %%%node_rec_game(MYNUM,"DontTell",NUMNODES,mergeMoves(MYMOVES,THEIRNEWMOVES,MYNEWMOVES),{WIN,DRAW,LOSS+1,ALL+1});
+                node_rec_game(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS+1,ALL+1});
               true ->
                 NODE_ID !  {{THEIRWIN,THEIRDRAW+1,THEIRLOSS,THEIRALL+1},mergeMoves(THEIRMOVES,THEIRNEWMOVES,[])},
-                node_rec_game(MYNUM,STATUS,NUMNODES,mergeMoves(MYMOVES,MYNEWMOVES,[]),{WIN,DRAW+1,LOSS,ALL+1})
+                node_rec_game(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW+1,LOSS,ALL+1})
             end           
-       %%%after 10 ->
+       after 10 ->
           %%%io:format("Try Again ~p~n", [self()]),
-         %%% node_play(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL})
+          node_play(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL})
     end.
 
 %%%http://www.erlang.org/cgi-bin/ezmlm-cgi/3/457
@@ -97,18 +130,18 @@ set_random_seed(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL}) ->
     random:seed(A, A, A),
     node_play(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL}).
     
-start(5,ALL) ->
-    register(node5, spawn(ttt, set_random_seed, [5,"KnowAndTell",ALL,dict:new(),{0,0,0,0}])),
-    register(node4, spawn(ttt, set_random_seed, [4,"KnowAndTell",ALL,dict:new(),{0,0,0,0}])),
-    register(node3, spawn(ttt, set_random_seed, [3,"KnowAndTell",ALL,dict:new(),{0,0,0,0}])),
-    register(node2, spawn(ttt, set_random_seed, [2,"KnowAndTell",ALL,dict:new(),{0,0,0,0}])),
-    register(node1, spawn(ttt, set_random_seed, [1,"KnowAndTell",ALL,dict:new(),{0,0,0,0}]));
+start(1,ALL) ->
+    %%%register(node5, spawn(test, set_random_seed, [5,"KnowAndTell",ALL,dict:new(),{0,0,0,0}])),
+    %%%register(node4, spawn(test, set_random_seed, [4,"KnowAndTell",ALL,dict:new(),{0,0,0,0}])),
+    %%%register(node3, spawn(test, set_random_seed, [3,"KnowAndTell",ALL,dict:new(),{0,0,0,0}])),
+    %%%register(node2, spawn(test, set_random_seed, [2,"KnowAndTell",ALL,dict:new(),{0,0,0,0}])),
+    register(node1, spawn(test, set_random_seed, [1,"KnowAndTell",ALL,dict:new(),{0,0,0,0}]));
 start(N,ALL) -> 
    %%% if 
    %%%   N > 100 ->  
-        register(list_to_atom("node" ++ integer_to_list(N)), spawn(ttt, set_random_seed, [N,"DontTell",ALL,dict:new(),{0,0,0,0}])),
+        register(list_to_atom("node" ++ integer_to_list(N)), spawn(test, set_random_seed, [N,"DontTell",ALL,dict:new(),{0,0,0,0}])),
     %%%  true ->  
-    %%%    register(list_to_atom("node" ++ integer_to_list(N)), spawn(ttt, set_random_seed, [N,"KnowAndTell",ALL,[],{0,0,0,0}]))
+    %%%    register(list_to_atom("node" ++ integer_to_list(N)), spawn(test, set_random_seed, [N,"KnowAndTell",ALL,[],{0,0,0,0}]))
    %%% end,
     start(N-1,ALL).
 
@@ -334,26 +367,18 @@ play(BOARD,TURN,MOVES1,NEWMOVES1,MOVES2,NEWMOVES2) ->
       play(NEWBOARD,x,MOVES1,NEWMOVES1,MOVES2,NEWMOVES2 ++ [{BOARD,NEWBOARD}])
   end.
 
-t(0,MOVES,W,L,D) ->
-	
-{ok, WriteDescr} = file:open(test.erl, [append]),
-              io:fwrite(WriteDescr, "~n~p).", [MOVES]),
-              file:close(WriteDescr),
-              io:format("~p / ~p / ~p~n",[W,L,D]);
-              
-t(N,MOVES,W,L,D) ->
-	{R,_,OM} = play([s,s,s,s,s,s,s,s,s],x,dict:new(),[],MOVES,[]),
-	%%%io:format("~p ~p ~p ~p ~n",[W,L,D,length(dict:to_list(MOVES))]),
+
+t(0,MOVES) ->
+	true;
+t(N,MOVES) ->
+	{W,XM,_} = play([s,s,s,s,s,s,s,s,s],x,dict:new(),[],MOVES,[]),
 	if
-		R == x ->
-      t(N,mergeMoves(MOVES,[],OM),W,L+1,D);
-    R == o ->
-			t(N-1,mergeMoves(MOVES,OM,[]),W+1,L,D);
-    true ->
-      t(N-1,mergeMoves(MOVES,OM,[]),W,L,D+1)
+		W == x ->
+      io:format("~p~n~p~n",[XM,N]);
+		true ->
+			t(N-1,MOVES)
 	end.
 
 
 s()->
-	t(1000000,dict:new(),0,0,0).
-
+	t(1000000,
