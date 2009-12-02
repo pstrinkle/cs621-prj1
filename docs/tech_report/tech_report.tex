@@ -6,7 +6,7 @@
 \setlength\parindent{0.25in}
 \setlength\parskip{1mm}
 
-\title{Gossip Protocol Addresses Jesus in Tights}
+\title{Learning the Perfect Strategy for Tic-Tac-Toe with Gossip}
 \author{Patrick Trinkle \& Mike Corbin\\
 Dept. of Computer Science and Electrical Engineering,\\
 University of Maryland Baltimore County,\\
@@ -19,103 +19,54 @@ Baltimore, MD, 21250\\
   \begin{@twocolumnfalse}
     \maketitle
     \begin{abstract}
-      Seriously awesome stuff about gossip; but we also address it's limitations.  and we use its awesomeness to solve problem X.  Might also, want
- to address its rhobustness.
+      Seriously awesome stuff about gossip; but we also address it's limitations.  and we use its awesomeness to solve problem X.  Might also, want to address its rhobustness.
     \end{abstract}
   \end{@twocolumnfalse}
   ]
 
 \section{Motivation}
 
-The gossip protocol dictates that nodes on the network uniformly
- randomly select other nodes in the network to share information.
-  The information shared is small and the sharing doesn't have to
- go both ways.  A node may have information it wishes to send
- off to other nodes in the network; a rumor.  As each node in the
- network learns the rumor it then finds other nodes to tell.  At each
- step in the rumor spreading the state of one or both of the nodes
- changes.  Within $O(\lg N)$ steps all nodes should know the rumor.
-  There are many variations in the system which can determine the
- effectiveness of the gossip system.  These variables include: what
- a node does if it pings a node that already knows the rumor; what
- a node does if it has been waiting around--should it ask if there is
- a rumor \cite{Birm2007}.
+The gossip protocol dictates that nodes on the network uniformly randomly select other nodes in the network to share information.  The information shared is small and the sharing doesn't have to go both ways.  A node may have information it wishes to send off to other nodes in the network; a rumor.  As each node in the network learns the rumor it then finds other nodes to tell.  At each step in the rumor spreading the state of one or both of the nodes changes.  Within $O(\lg N)$ steps all nodes should know the rumor.  There are many variations in the system which can determine the effectiveness of the gossip system.  These variables include: what a node does if it pings a node that already knows the rumor; what a node does if it has been waiting around--should it ask if there is a rumor \cite{Birm2007}.
 
-Erlang provides a stable distributed system and development
- environment.  Therefore it is a good choice for developing applications
- that utilize the gossip protocol \cite{Erlang}.
+Erlang provides a stable distributed system and development environment.  Therefore it is a good choice for developing applications that utilize the gossip protocol \cite{Erlang}.
 
 \section{Background}
 
-Gossip protocol systems try to solve problems as aggregates.  They
- win with small communication requirements and do not assume reliable
- communication \cite{Birm2007}.
+Gossip protocol systems try to solve problems as aggregates.  They win with small communication requirements and do not assume reliable communication \cite{Birm2007}.
 
 \subsection{Erlang as a Distributed System}
 
 Erlang was developed to run real-time code \cite{Erlang}.
 
+Erlang!  Erlang!  Erlang!
+
 \section{Early Experiments}
 
-Before determining which problem to address with the gossip protocol, we
- built several relatively small-scale applications in Erlang.  These applications
- allowed us to further understand the variables involved in a distributed system,
- such as one using the gossip protocol.  An initial application was built
- which simply shared a rumor.  To stop the rumor spreading the nodes would quit
- with certain probability upon contacting a node, which already knew
- the rumor.  From this two applications where quickly developed.  They both
- built a spanning tree with gossip: in the first application the nodes tracked
- their parent; in the second the parents tracked their children.  Nodes discontinued
- the hunt for available children based on a certain probability after
- finding a node that was already in the tree.  A Tic-Tac-Toe learning
- application was also developed wherein the nodes would play tic-tac-toe
- games with other nodes until they learned not to lose.  This doesn't fit the
- traditional gossip model becasue it can take many steps; however, the node
- partners are chosen randomly and it does come to a conclusion.  The nodes
- themselves do transmit a lot of information.  Two variations of the average
- aggregate were programmed.
+Before determining which problem to address with the gossip protocol, we built several relatively small-scale applications in Erlang.  These applications allowed us to further understand the variables involved in a distributed system, such as one using the gossip protocol.  An initial application was built which simply shared a rumor.  To stop the rumor spreading the nodes would quit with certain probability upon contacting a node, which already knew the rumor.  From this two applications where quickly developed.  They both built a spanning tree with gossip: in the first application the nodes tracked their parent; in the second the parents tracked their children.  Nodes discontinued the hunt for available children based on a certain probability after finding a node that was already in the tree.  A Tic-Tac-Toe learning application was also developed wherein the nodes would play tic-tac-toe games with other nodes until they learned not to lose.  This doesn't fit the traditional gossip model becasue it can take many steps; however, the node partners are chosen randomly and it does come to a conclusion.  The nodes themselves do transmit a lot of information.  Two variations of the average aggregate were programmed.
 
 \subsection{Variables}
 
-Developing a distributed system involves tweaking certain system parameters.  If
- nodes seek rumors during run-time this can change the time required for
- complete knowledge.  Simultaneously, this may not be required.  When a
- node interacts with another node that already knows the rumor the node can quit
- spreading the rumor or initiating interactions.  However, if too many nodes
- quit too quickly then the rumor can die out before all the nodes know.  Therefore,
- there is tweaking in whether or not a node should quit at this point; not just
- the binary notion but there can be a range using random numbers.  If a node
- contacts another node that knows the rumor (assuming they're spreading
- rumors) it can roll a die to determine whether it should quit.  
+Developing a distributed system involves tweaking certain system parameters.  If nodes seek rumors during run-time this can change the time required for complete knowledge.  Simultaneously, this may not be required.  When a node interacts with another node that already knows the rumor the node can quit spreading the rumor or initiating interactions.  However, if too many nodes quit too quickly then the rumor can die out before all the nodes know.  Therefore, there is tweaking in whether or not a node should quit at this point; not just the binary notion but there can be a range using random numbers.  If a node contacts another node that knows the rumor (assuming they're spreading rumors) it can roll a die to determine whether it should quit.  
 
-How quickly they quit; whether ones that don't 
-know yet can try to bug their peers for information...
+How quickly they quit; whether ones that don't know yet can try to bug their peers for information...
 
 \subsection{Epidemic Rumor Spreading}
 
-Mike, you wrote this part.  Can you talk about how changing variables effected
-it?
+This application spreads one rumor though the network starting at a node, node1.  As nodes are informed of the rumor they change state from DontKnow to KnowAndTell.  Each node, whose state is KnowAndTell uniformly randomly chooses another node in the network.  If this randomly chosen node knows the rumor, then the node who tried spreading the rumor will roll a die to determine whether or not to quit spreading the rumor.  Varying how likely you are to quit can impact how many nodes in the end of the rumor iterations are in the state DontKnow.
+
+Insert chart with varying values for this variable.
 
 \subsection{Spanning Tree Building}
 
-I can write about how I had a version that tracked parents, and version that 
-tracked children and how they differed in efficieny.  With one you had to
-send a message to the root only, but the nodes had to carry more information
-with them regarding their children.  But, with the other the nodes would have
-to ping their parent node for information.
+Starting with the root node, node1.  Each node in state KnowAndTell contacts other nodes at random and if they are not in the tree they become children of that node.  To ensure that this process terminates if a node contacts another node already in the tree then it will stop trying to find new children with certain probability.  A first version of this program has each node only track their parent.  This has drawbacks and problems.  A major drawback is that information cannot be easily passed down the tree; but it can be sent up the tree.  However, it is more capable of sending information up the tree.  If you want to give all nodes information, then the nodes have to periodically ping their parent.  A second version of this program has each node tracking all children.  This requires more storage space on the nodes and doesn't scale well to large networks.  A hybrid version wherein, both parents and children are tracked was not built.
 
 \subsection{Calculating the Average}
 
-I can talk about this problem.  We did it in class, so I have some notes.  Also,
-if you do it with one-way communication then one guy at the end has to time out;
-if you do it with pair-wise communication.  Also, if someone messages you with
- a different value you should start spreading again.  I'm fairly certain my 
-code doens't do that yet.  But, I can try that out.
+Provided that a set of N nodes all have some value $\chi_i$ then to calculate the average of the values in the network.  Each node will randomly chose another node in the network and share the values and then average.  This process is repeated until all the nodes in the network have the same value; which should be the average.  If a node is in a state where it doesn't seek other nodes and hears from a node with a different value it starts finding other nodes.  It looks like prj\_avg does just transmission of value.  Prj\_avg2 does a pair-wise value transmission.  Both projects quit seeking new numbers based on a dice roll after they find a node that matches another.  If the averaging is done by strictly pinging other nodes with your value then it doesn't follow the gossip pair-wise communication; but also the last guy at the end will have to time out.  This timeout is necessary because eventually no one will ping the remaining node.  With pair-wise proper communication this extra time out is unnecessary.
 
 \subsection{Tic-Tac-Toe}
 
-Your code was long and transmitted a lot of data around.  That's about all I can
- really say about it.
+Your code was long and transmitted a lot of data around.  That's about all I can really say about it.
 
 \section{X}
 
