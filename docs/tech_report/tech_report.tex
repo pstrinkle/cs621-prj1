@@ -19,7 +19,7 @@ Baltimore, MD, 21250\\
   \begin{@twocolumnfalse}
     \maketitle
     \begin{abstract}
-      Seriously awesome stuff about gossip; but we also address it's limitations.  and we use its awesomeness to solve problem X.  Might also, want to address its rhobustness.
+      Seriously awesome stuff about gossip; but we also address it's limitations.  and we use its awesomeness to solve problem X.  Might also, want to address its rhobustness. {\bf {\em NOTE: Need to actually write up the abstract.}}
     \end{abstract}
   \end{@twocolumnfalse}
   ]
@@ -34,11 +34,15 @@ Erlang provides a stable distributed system and development environment.  Theref
 
 Gossip protocol systems try to solve problems as aggregates.  They win with small communication requirements and do not assume reliable communication \cite{Birm2007}.
 
+{\bf {\em NOTE: Need to go more into a general summary of the background.}}
+
 \subsection{Erlang as a Distributed System}
 
 Erlang was developed to run real-time code \cite{Erlang}.
 
 Erlang!  Erlang!  Erlang!
+
+{\bf {\em NOTE: Need to write up Erlang Section}}
 
 \section{Early Experiments}
 
@@ -50,31 +54,53 @@ Developing a distributed system involves tweaking certain system parameters.  If
 
 How quickly they quit; whether ones that don't know yet can try to bug their peers for information...
 
+{\bf {\em NOTE: Need to review}}
+
 \subsection{Epidemic Rumor Spreading}
 
 This application spreads one rumor though the network starting at a node, node1.  As nodes are informed of the rumor they change state from DontKnow to KnowAndTell.  Each node, whose state is KnowAndTell uniformly randomly chooses another node in the network.  If this randomly chosen node knows the rumor, then the node who tried spreading the rumor will roll a die to determine whether or not to quit spreading the rumor.  Varying how likely you are to quit can impact how many nodes in the end of the rumor iterations are in the state DontKnow.
 
-Insert chart with varying values for this variable.
+{\bf {\em NOTE: Insert chart with varying values for this variable.}}
 
 \subsection{Spanning Tree Building}
 
 Starting with the root node, node1.  Each node in state KnowAndTell contacts other nodes at random and if they are not in the tree they become children of that node.  To ensure that this process terminates if a node contacts another node already in the tree then it will stop trying to find new children with certain probability.  A first version of this program has each node only track their parent.  This has drawbacks and problems.  A major drawback is that information cannot be easily passed down the tree; but it can be sent up the tree.  However, it is more capable of sending information up the tree.  If you want to give all nodes information, then the nodes have to periodically ping their parent.  A second version of this program has each node tracking all children.  This requires more storage space on the nodes and doesn't scale well to large networks.  A hybrid version wherein, both parents and children are tracked was not built.
 
+{\bf {\em NOTE: Need to review and consider making graphs}}
+
 \subsection{Calculating the Average}
 
 Provided that a set of N nodes all have some value $\chi_i$ then to calculate the average of the values in the network.  Each node will randomly chose another node in the network and share the values and then average.  This process is repeated until all the nodes in the network have the same value; which should be the average.  If a node is in a state where it doesn't seek other nodes and hears from a node with a different value it starts finding other nodes.  It looks like prj\_avg does just transmission of value.  Prj\_avg2 does a pair-wise value transmission.  Both projects quit seeking new numbers based on a dice roll after they find a node that matches another.  If the averaging is done by strictly pinging other nodes with your value then it doesn't follow the gossip pair-wise communication; but also the last guy at the end will have to time out.  This timeout is necessary because eventually no one will ping the remaining node.  With pair-wise proper communication this extra time out is unnecessary.
 
-\subsection{Tic-Tac-Toe}
+{\bf {\em NOTE: Maybe we should do something interesting with this?}}
 
-Your code was long and transmitted a lot of data around.  That's about all I can really say about it.
+\section{Learning the Perfect Tic-Tac-Toe Strategy}
 
-\section{X}
+{\bf {\em NOTE: Stuff about strategies.}}
 
-What problem did we solve and such.
+Nodes cooperate with each other to learn the perfect strategy.
+
+Need to discuss the complexity and timing and cost of messages.
+
+Does the node that wins share the perfect strategy with everyone else?
 
 \begin{thebibliography}{10}
 \bibitem[Birm2007]{Birm2007}K. Birman, ``The promise, and limitations, of gossip protocols," \emph{ACM SIGOPS Oper. Syst. Rev.}, pp 8-13, 2007
 \bibitem[Erlang]{Erlang}http://ftp.sunet.se/pub/lang/erlang/
 \end{thebibliography}
+
+\twocolumn[
+\begin{@twocolumnfalse}
+
+\section{Appendix I - Small Projects}
+
+\subsection{Rumor Spreading}
+\subsection{Spanning Tree}
+\subsection{Calculating the Average as an Aggregate}
+
+\section{Appendix II - Project Code}
+
+\end{@twocolumnfalse}
+]
 
 \end{document}
