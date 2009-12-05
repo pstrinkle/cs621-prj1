@@ -1,0 +1,525 @@
+<0.140.0> is node100
+<0.141.0> is node99
+<0.142.0> is node98
+<0.143.0> is node97
+<0.144.0> is node96
+<0.145.0> is node95
+<0.146.0> is node94
+<0.147.0> is node93
+<0.148.0> is node92
+<0.149.0> is node91
+<0.150.0> is node90
+<0.151.0> is node89
+<0.152.0> is node88
+<0.153.0> is node87
+<0.154.0> is node86
+<0.155.0> is node85
+<0.156.0> is node84
+<0.157.0> is node83
+<0.158.0> is node82
+<0.159.0> is node81
+<0.160.0> is node80
+<0.161.0> is node79
+<0.162.0> is node78
+<0.163.0> is node77
+<0.164.0> is node76
+<0.165.0> is node75
+<0.166.0> is node74
+<0.167.0> is node73
+<0.168.0> is node72
+<0.169.0> is node71
+<0.170.0> is node70
+<0.171.0> is node69
+<0.172.0> is node68
+<0.173.0> is node67
+<0.174.0> is node66
+<0.175.0> is node65
+<0.176.0> is node64
+<0.177.0> is node63
+<0.178.0> is node62
+<0.179.0> is node61
+<0.180.0> is node60
+<0.181.0> is node59
+<0.182.0> is node58
+<0.183.0> is node57
+<0.184.0> is node56
+<0.185.0> is node55
+<0.186.0> is node54
+<0.187.0> is node53
+<0.188.0> is node52
+<0.189.0> is node51
+<0.190.0> is node50
+<0.191.0> is node49
+<0.192.0> is node48
+<0.193.0> is node47
+<0.194.0> is node46
+<0.195.0> is node45
+<0.196.0> is node44
+<0.197.0> is node43
+<0.198.0> is node42
+<0.199.0> is node41
+<0.200.0> is node40
+<0.201.0> is node39
+<0.202.0> is node38
+<0.203.0> is node37
+<0.204.0> is node36
+<0.205.0> is node35
+<0.206.0> is node34
+<0.207.0> is node33
+<0.208.0> is node32
+<0.209.0> is node31
+<0.210.0> is node30
+<0.211.0> is node29
+<0.212.0> is node28
+<0.213.0> is node27
+<0.214.0> is node26
+<0.215.0> is node25
+<0.216.0> is node24
+<0.217.0> is node23
+<0.218.0> is node22
+<0.219.0> is node21
+<0.220.0> is node20
+<0.221.0> is node19
+<0.222.0> is node18
+<0.223.0> is node17
+<0.224.0> is node16
+<0.225.0> is node15
+<0.226.0> is node14
+<0.227.0> is node13
+<0.228.0> is node12
+<0.229.0> is node11
+<0.230.0> is node10
+<0.231.0> is node9
+<0.232.0> is node8
+<0.233.0> is node7
+<0.234.0> is node6
+<0.235.0> is node5
+<0.236.0> is node4
+<0.237.0> is node3
+<0.238.0> is node2
+<0.239.0> is node1
+<0.239.0> Tells "node17"
+true
+6>    <0.239.0> Tells "node51"
+6>    <0.223.0> Tells "node51"
+6>    I, <0.223.0>, Told someone who knew 0.1846944742749299
+6>    <0.189.0> Tells "node11"
+6>    <0.223.0> Tells "node11"
+6>    <0.239.0> Tells "node11"
+6>    I, <0.223.0>, Told someone who knew 0.271987947875827
+6>    I, <0.239.0>, Told someone who knew 0.2775942533205389
+6>    <0.239.0> Tells "node70"
+6>    <0.223.0> Tells "node70"
+6>    <0.229.0> Tells "node70"
+6>    I, <0.223.0>, Told someone who knew 0.359281421476724
+6>    I, <0.229.0>, Told someone who knew 0.3648877269214359
+6>    <0.189.0> Tells "node70"
+6>    I, <0.189.0>, Told someone who knew 0.37049403236614786
+6>    <0.189.0> Tells "node33"
+6>    <0.229.0> Tells "node33"
+6>    <0.170.0> Tells "node33"
+6>    <0.223.0> Tells "node33"
+6>    <0.239.0> Tells "node33"
+6>    I, <0.170.0>, Told someone who knew 0.05848664523426783
+6>    I, (<0.170.0>), quit.
+6>    I, <0.239.0>, Told someone who knew 0.06969925612369154
+6>    I, (<0.239.0>), quit.
+6>    I, <0.223.0>, Told someone who knew 0.0640929506789798
+6>    I, (<0.223.0>), quit.
+6>    I, <0.229.0>, Told someone who knew 0.047274034344843896
+6>    I, (<0.229.0>), quit.
+6>    <0.189.0> Tells "node92"
+6>    <0.207.0> Tells "node92"
+6>    I, <0.189.0>, Told someone who knew 0.1345675079457409
+6>    <0.189.0> Tells "node52"
+6>    <0.148.0> Tells "node52"
+6>    <0.207.0> Tells "node52"
+6>    I, <0.148.0>, Told someone who knew 0.22746728699134988
+6>    I, <0.207.0>, Told someone who knew 0.23307359243606185
+6>    <0.207.0> Tells "node14"
+6>    <0.148.0> Tells "node14"
+6>    <0.189.0> Tells "node14"
+6>    <0.188.0> Tells "node14"
+6>    I, <0.148.0>, Told someone who knew 0.014991305198805094
+6>    I, <0.189.0>, Told someone who knew 0.02059761064351706
+6>    I, <0.188.0>, Told someone who knew 0.026203916088228807
+6>    I, (<0.148.0>), quit.
+6>    I, (<0.189.0>), quit.
+6>    I, (<0.188.0>), quit.
+6>    <0.226.0> Tells "node73"
+6>    <0.207.0> Tells "node73"
+6>    I, <0.207.0>, Told someone who knew 0.1022847787997021
+6>    <0.207.0> Tells "node36"
+6>    <0.167.0> Tells "node36"
+6>    I, <0.167.0>, Told someone who knew 0.7958836971125338
+6>    <0.226.0> Tells "node36"
+6>    I, <0.226.0>, Told someone who knew 0.8014900025572458
+6>    <0.226.0> Tells "node95"
+6>    <0.204.0> Tells "node95"
+6>    <0.167.0> Tells "node95"
+6>    <0.207.0> Tells "node95"
+6>    I, <0.204.0>, Told someone who knew 0.8831771707134308
+6>    I, <0.167.0>, Told someone who knew 0.8887834761581428
+6>    I, <0.207.0>, Told someone who knew 0.8943897816028546
+6>    <0.207.0> Tells "node55"
+6>    <0.167.0> Tells "node55"
+6>    <0.204.0> Tells "node55"
+6>    <0.226.0> Tells "node55"
+6>    <0.145.0> Tells "node55"
+6>    I, <0.167.0>, Told someone who knew 0.9704706443143278
+6>    I, <0.204.0>, Told someone who knew 0.9760769497590398
+6>    I, <0.226.0>, Told someone who knew 0.9816832552037517
+6>    I, <0.145.0>, Told someone who knew 0.9872895606484636
+6>    <0.145.0> Tells "node14"
+6>    <0.226.0> Tells "node15"
+6>    <0.204.0> Tells "node15"
+6>    <0.167.0> Tells "node15"
+6>    <0.207.0> Tells "node15"
+6>    <0.185.0> Tells "node15"
+6>    I, <0.167.0>, Told someone who knew 0.5679379133840109
+6>    I, <0.207.0>, Told someone who knew 0.5735442188287229
+6>    I, <0.185.0>, Told someone who knew 0.5791505242734347
+6>    I, <0.226.0>, Told someone who knew 0.5567253024945871
+6>    I, <0.145.0>, Told someone who knew 0.052157812470512877
+6>    I, (<0.145.0>), quit.
+6>    <0.167.0> Tells "node74"
+6>    <0.207.0> Tells "node74"
+6>    <0.185.0> Tells "node74"
+6>    <0.226.0> Tells "node74"
+6>    <0.225.0> Tells "node74"
+6>    <0.204.0> Tells "node74"
+6>    I, <0.207.0>, Told someone who knew 0.14505759151612185
+6>    I, <0.185.0>, Told someone who knew 0.15066389696083382
+6>    I, <0.226.0>, Told someone who knew 0.1562702024055458
+6>    I, <0.204.0>, Told someone who knew 0.16748281329496972
+6>    I, <0.225.0>, Told someone who knew 0.16187650785025776
+6>    <0.167.0> Tells "node39"
+6>    <0.225.0> Tells "node39"
+6>    <0.166.0> Tells "node39"
+6>    <0.204.0> Tells "node39"
+6>    <0.226.0> Tells "node39"
+6>    <0.185.0> Tells "node39"
+6>    <0.207.0> Tells "node39"
+6>    I, <0.166.0>, Told someone who knew 0.21718106214897492
+6>    I, <0.204.0>, Told someone who knew 0.2227873675936869
+6>    I, <0.226.0>, Told someone who knew 0.22839367303839864
+6>    I, <0.185.0>, Told someone who knew 0.2339999784831106
+6>    I, <0.207.0>, Told someone who knew 0.23960628392782257
+6>    I, <0.167.0>, Told someone who knew 0.205968451259551
+6>    <0.167.0> Tells "node98"
+6>    <0.201.0> Tells "node98"
+6>    <0.207.0> Tells "node98"
+6>    <0.185.0> Tells "node98"
+6>    <0.226.0> Tells "node98"
+6>    <0.204.0> Tells "node98"
+6>    <0.166.0> Tells "node98"
+6>    <0.225.0> Tells "node98"
+6>    I, <0.166.0>, Told someone who knew 0.3268997575287196
+6>    I, <0.204.0>, Told someone who knew 0.3212934520840076
+6>    I, <0.226.0>, Told someone who knew 0.3156871466392957
+6>    I, <0.185.0>, Told someone who knew 0.31008084119458373
+6>    I, <0.207.0>, Told someone who knew 0.3044745357498718
+6>    I, <0.201.0>, Told someone who knew 0.29886823030515985
+6>    I, <0.167.0>, Told someone who knew 0.29326192486044794
+6>    <0.167.0> Tells "node60"
+6>    <0.142.0> Tells "node60"
+6>    <0.201.0> Tells "node60"
+6>    <0.207.0> Tells "node60"
+6>    <0.185.0> Tells "node60"
+6>    <0.226.0> Tells "node60"
+6>    <0.204.0> Tells "node60"
+6>    <0.166.0> Tells "node60"
+6>    <0.225.0> Tells "node60"
+6>    I, <0.142.0>, Told someone who knew 0.08639224851261496
+6>    I, <0.201.0>, Told someone who knew 0.09199855395732692
+6>    I, <0.207.0>, Told someone who knew 0.09760485940203889
+6>    I, <0.185.0>, Told someone who knew 0.10321116484675086
+6>    I, <0.226.0>, Told someone who knew 0.10881747029146283
+6>    I, <0.204.0>, Told someone who knew 0.11442377573617457
+6>    I, <0.166.0>, Told someone who knew 0.12003008118088654
+6>    I, <0.225.0>, Told someone who knew 0.1256363866255985
+6>    I, (<0.142.0>), quit.
+6>    I, (<0.201.0>), quit.
+6>    I, (<0.207.0>), quit.
+6>    <0.225.0> Tells "node20"
+6>    <0.166.0> Tells "node20"
+6>    <0.204.0> Tells "node20"
+6>    <0.226.0> Tells "node20"
+6>    <0.185.0> Tells "node20"
+6>    <0.167.0> Tells "node20"
+6>    <0.180.0> Tells "node20"
+6>    I, <0.166.0>, Told someone who knew 0.17368572211351196
+6>    I, <0.204.0>, Told someone who knew 0.17929202755822393
+6>    I, <0.226.0>, Told someone who knew 0.1848983330029359
+6>    I, <0.185.0>, Told someone who knew 0.19050463844764787
+6>    I, <0.167.0>, Told someone who knew 0.19611094389235983
+6>    I, <0.180.0>, Told someone who knew 0.20171724933707158
+6>    <0.220.0> Tells "node79"
+6>    <0.180.0> Tells "node79"
+6>    <0.167.0> Tells "node79"
+6>    <0.185.0> Tells "node79"
+6>    <0.226.0> Tells "node79"
+6>    <0.204.0> Tells "node79"
+6>    <0.166.0> Tells "node79"
+6>    <0.225.0> Tells "node79"
+6>    I, <0.220.0>, Told someone who knew 0.255372890269697
+6>    I, <0.167.0>, Told someone who knew 0.26658550115912094
+6>    I, <0.185.0>, Told someone who knew 0.2721918066038329
+6>    I, <0.225.0>, Told someone who knew 0.2946170283826806
+6>    I, <0.166.0>, Told someone who knew 0.2890107229379687
+6>    I, <0.204.0>, Told someone who knew 0.28340441749325673
+6>    I, <0.226.0>, Told someone who knew 0.2777981120485448
+6>    <0.226.0> Tells "node42"
+6>    <0.161.0> Tells "node42"
+6>    <0.204.0> Tells "node42"
+6>    <0.166.0> Tells "node42"
+6>    <0.225.0> Tells "node42"
+6>    <0.180.0> Tells "node42"
+6>    <0.220.0> Tells "node42"
+6>    <0.167.0> Tells "node42"
+6>    <0.185.0> Tells "node42"
+6>    I, <0.185.0>, Told someone who knew 0.9938222521402245
+6>    I, <0.167.0>, Told someone who knew 0.9882159466955125
+6>    I, <0.220.0>, Told someone who knew 0.9826096412508005
+6>    I, <0.225.0>, Told someone who knew 0.9713970303613766
+6>    I, <0.166.0>, Told someone who knew 0.9657907249166646
+6>    I, <0.204.0>, Told someone who knew 0.9601844194719529
+6>    I, <0.161.0>, Told someone who knew 0.9545781140272409
+6>    I, <0.226.0>, Told someone who knew 0.9489718085825289
+6>    <0.226.0> Tells "node1"
+6>    <0.180.0> Tells "node1"
+6>    <0.198.0> Tells "node1"
+6>    <0.161.0> Tells "node1"
+6>    <0.204.0> Tells "node1"
+6>    <0.166.0> Tells "node1"
+6>    <0.225.0> Tells "node1"
+6>    <0.220.0> Tells "node1"
+6>    <0.167.0> Tells "node1"
+6>    <0.185.0> Tells "node1"
+6>    I, <0.226.0>, Told someone who knew 0.03626528218342595
+6>    I, <0.180.0>, Told someone who knew 0.04187158762813792
+6>    I, <0.198.0>, Told someone who knew 0.047477893072849886
+6>    I, <0.161.0>, Told someone who knew 0.05308419851756163
+6>    I, (<0.161.0>), quit.
+6>    I, (<0.198.0>), quit.
+6>    I, (<0.180.0>), quit.
+6>    I, (<0.226.0>), quit.
+6>    I, <0.185.0>, Told someone who knew 0.08672203118583344
+6>    I, (<0.185.0>), quit.
+6>    I, <0.167.0>, Told someone who knew 0.08111572574112147
+6>    I, (<0.167.0>), quit.
+6>    I, <0.220.0>, Told someone who knew 0.0755094202964095
+6>    I, (<0.220.0>), quit.
+6>    I, <0.225.0>, Told someone who knew 0.06990311485169753
+6>    I, (<0.225.0>), quit.
+6>    I, <0.166.0>, Told someone who knew 0.06429680940698557
+6>    I, (<0.166.0>), quit.
+6>    I, <0.204.0>, Told someone who knew 0.0586905039622736
+6>    I, (<0.204.0>), quit.
+6>    6> prj:start(100,100).                      6> c(prj).          6> prj:close(100).                  6> prj:status(100).
+Status <0.140.0>:"DontKnow"
+Status <0.141.0>:"DontKnow"
+Status <0.142.0>:"KnowDontTell"
+Status <0.143.0>:"DontKnow"
+Status <0.144.0>:"DontKnow"
+Status <0.145.0>:"KnowDontTell"
+Status <0.146.0>:"DontKnow"
+Status <0.147.0>:"DontKnow"
+Status <0.148.0>:"KnowDontTell"
+Status <0.149.0>:"DontKnow"
+Status <0.150.0>:"DontKnow"
+Status <0.151.0>:"DontKnow"
+Status <0.152.0>:"DontKnow"
+Status <0.153.0>:"DontKnow"
+Status <0.154.0>:"DontKnow"
+Status <0.155.0>:"DontKnow"
+Status <0.156.0>:"DontKnow"
+Status <0.157.0>:"DontKnow"
+Status <0.158.0>:"DontKnow"
+Status <0.159.0>:"DontKnow"
+Status <0.160.0>:"DontKnow"
+Status <0.161.0>:"KnowDontTell"
+Status <0.162.0>:"DontKnow"
+Status <0.163.0>:"DontKnow"
+Status <0.164.0>:"DontKnow"
+Status <0.165.0>:"DontKnow"
+Status <0.166.0>:"KnowDontTell"
+Status <0.167.0>:"KnowDontTell"
+Status <0.168.0>:"DontKnow"
+Status <0.169.0>:"DontKnow"
+Status <0.170.0>:"KnowDontTell"
+Status <0.171.0>:"DontKnow"
+Status <0.172.0>:"DontKnow"
+Status <0.173.0>:"DontKnow"
+Status <0.174.0>:"DontKnow"
+Status <0.175.0>:"DontKnow"
+Status <0.176.0>:"DontKnow"
+Status <0.177.0>:"DontKnow"
+Status <0.178.0>:"DontKnow"
+Status <0.179.0>:"DontKnow"
+Status <0.180.0>:"KnowDontTell"
+Status <0.181.0>:"DontKnow"
+Status <0.182.0>:"DontKnow"
+Status <0.183.0>:"DontKnow"
+Status <0.184.0>:"DontKnow"
+Status <0.185.0>:"KnowDontTell"
+Status <0.186.0>:"DontKnow"
+Status <0.187.0>:"DontKnow"
+Status <0.188.0>:"KnowDontTell"
+Status <0.189.0>:"KnowDontTell"
+Status <0.190.0>:"DontKnow"
+Status <0.191.0>:"DontKnow"
+Status <0.192.0>:"DontKnow"
+Status <0.193.0>:"DontKnow"
+Status <0.194.0>:"DontKnow"
+Done Status
+Status <0.195.0>:"DontKnow"
+Status <0.196.0>:"DontKnow"
+Status <0.197.0>:"DontKnow"
+Status <0.198.0>:"KnowDontTell"
+Status <0.199.0>:"DontKnow"
+Status <0.200.0>:"DontKnow"
+Status <0.201.0>:"KnowDontTell"
+Status <0.202.0>:"DontKnow"
+Status <0.203.0>:"DontKnow"
+Status <0.204.0>:"KnowDontTell"
+Status <0.205.0>:"DontKnow"
+Status <0.206.0>:"DontKnow"
+Status <0.207.0>:"KnowDontTell"
+Status <0.208.0>:"DontKnow"
+Status <0.209.0>:"DontKnow"
+Status <0.210.0>:"DontKnow"
+Status <0.211.0>:"DontKnow"
+Status <0.212.0>:"DontKnow"
+Status <0.213.0>:"DontKnow"
+Status <0.214.0>:"DontKnow"
+Status <0.215.0>:"DontKnow"
+Status <0.216.0>:"DontKnow"
+Status <0.217.0>:"DontKnow"
+Status <0.218.0>:"DontKnow"
+Status <0.219.0>:"DontKnow"
+Status <0.220.0>:"KnowDontTell"
+Status <0.221.0>:"DontKnow"
+Status <0.222.0>:"DontKnow"
+Status <0.223.0>:"KnowDontTell"
+Status <0.224.0>:"DontKnow"
+Status <0.225.0>:"KnowDontTell"
+Status <0.226.0>:"KnowDontTell"
+Status <0.227.0>:"DontKnow"
+Status <0.228.0>:"DontKnow"
+Status <0.229.0>:"KnowDontTell"
+Status <0.230.0>:"DontKnow"
+Status <0.231.0>:"DontKnow"
+Status <0.232.0>:"DontKnow"
+Status <0.233.0>:"DontKnow"
+Status <0.234.0>:"DontKnow"
+Status <0.235.0>:"DontKnow"
+Status <0.236.0>:"DontKnow"
+Status <0.237.0>:"DontKnow"
+Status <0.238.0>:"DontKnow"
+Status <0.239.0>:"KnowDontTell"
+ok
+7>    7> prj:status(100).                   7> prj:start(100,100).                      7> c(prj).          7> prj:close(100).
+Stoping <0.140.0>
+Stoping <0.141.0>
+Stoping <0.142.0>
+Stoping <0.143.0>
+Stoping <0.144.0>
+Stoping <0.145.0>
+Stoping <0.146.0>
+Stoping <0.147.0>
+Stoping <0.148.0>
+Stoping <0.149.0>
+Stoping <0.150.0>
+Stoping <0.151.0>
+Stoping <0.152.0>
+Stoping <0.153.0>
+Stoping <0.154.0>
+Stoping <0.155.0>
+Stoping <0.156.0>
+Stoping <0.157.0>
+Stoping <0.158.0>
+Stoping <0.159.0>
+Stoping <0.160.0>
+Stoping <0.161.0>
+Stoping <0.162.0>
+Stoping <0.163.0>
+Stoping <0.164.0>
+Stoping <0.165.0>
+Stoping <0.166.0>
+Stoping <0.167.0>
+Done
+Stoping <0.239.0>
+Stoping <0.238.0>
+Stoping <0.237.0>
+Stoping <0.236.0>
+Stoping <0.235.0>
+Stoping <0.234.0>
+Stoping <0.233.0>
+Stoping <0.232.0>
+Stoping <0.231.0>
+Stoping <0.230.0>
+Stoping <0.229.0>
+Stoping <0.228.0>
+Stoping <0.227.0>
+Stoping <0.226.0>
+Stoping <0.225.0>
+Stoping <0.224.0>
+Stoping <0.223.0>
+Stoping <0.222.0>
+Stoping <0.221.0>
+Stoping <0.220.0>
+Stoping <0.219.0>
+Stoping <0.218.0>
+Stoping <0.217.0>
+Stoping <0.216.0>
+Stoping <0.215.0>
+Stoping <0.214.0>
+Stoping <0.213.0>
+Stoping <0.212.0>
+Stoping <0.211.0>
+Stoping <0.210.0>
+Stoping <0.209.0>
+Stoping <0.208.0>
+Stoping <0.207.0>
+Stoping <0.206.0>
+Stoping <0.205.0>
+Stoping <0.204.0>
+Stoping <0.203.0>
+Stoping <0.202.0>
+Stoping <0.201.0>
+Stoping <0.200.0>
+Stoping <0.199.0>
+Stoping <0.198.0>
+Stoping <0.197.0>
+Stoping <0.196.0>
+Stoping <0.195.0>
+Stoping <0.194.0>
+Stoping <0.193.0>
+Stoping <0.192.0>
+Stoping <0.191.0>
+Stoping <0.190.0>
+Stoping <0.189.0>
+Stoping <0.188.0>
+Stoping <0.187.0>
+Stoping <0.186.0>
+Stoping <0.185.0>
+Stoping <0.184.0>
+Stoping <0.183.0>
+Stoping <0.182.0>
+Stoping <0.181.0>
+Stoping <0.180.0>
+Stoping <0.179.0>
+Stoping <0.178.0>
+Stoping <0.177.0>
+Stoping <0.176.0>
+Stoping <0.175.0>
+Stoping <0.174.0>
+Stoping <0.173.0>
+Stoping <0.172.0>
+Stoping <0.171.0>
+Stoping <0.170.0>
+Stoping <0.169.0>
+Stoping <0.168.0>
+ok
+8> 
