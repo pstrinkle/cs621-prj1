@@ -3,96 +3,115 @@ Total Messages Sent: 10233
 Messages sent to a node that knew: 10134
 Nodes in state KnowDontTell: 100
 Nodes in state DontKnow: 0
+
 prj - 100 nodes - 0.05.txt
 Total Messages Sent: 1932
 Messages sent to a node that knew: 1833
 Nodes in state KnowDontTell: 100
 Nodes in state DontKnow: 0
+
 prj - 100 nodes - 0.10.txt
 Total Messages Sent: 108
 Messages sent to a node that knew: 88
 Nodes in state KnowDontTell: 21
 Nodes in state DontKnow: 79
+
 prj - 100 nodes - 0.15.txt
 Total Messages Sent: 180
 Messages sent to a node that knew: 140
 Nodes in state KnowDontTell: 41
 Nodes in state DontKnow: 59
+
 prj - 100 nodes - 0.20.txt
 Total Messages Sent: 295
 Messages sent to a node that knew: 230
 Nodes in state KnowDontTell: 66
 Nodes in state DontKnow: 34
+
 prj - 100 nodes - 0.25.txt
 Total Messages Sent: 95
 Messages sent to a node that knew: 77
 Nodes in state KnowDontTell: 19
 Nodes in state DontKnow: 81
+
 prj - 100 nodes - 0.30.txt
 Total Messages Sent: 382
 Messages sent to a node that knew: 328
 Nodes in state KnowDontTell: 55
 Nodes in state DontKnow: 45
+
 prj - 100 nodes - 0.35.txt
 Total Messages Sent: 108
 Messages sent to a node that knew: 89
 Nodes in state KnowDontTell: 20
 Nodes in state DontKnow: 80
+
 prj - 100 nodes - 0.40.txt
 Total Messages Sent: 138
 Messages sent to a node that knew: 106
 Nodes in state KnowDontTell: 33
 Nodes in state DontKnow: 67
+
 prj - 100 nodes - 0.45.txt
 Total Messages Sent: 19
 Messages sent to a node that knew: 12
 Nodes in state KnowDontTell: 8
 Nodes in state DontKnow: 92
+
 prj - 100 nodes - 0.50.txt
 Total Messages Sent: 162
 Messages sent to a node that knew: 103
 Nodes in state KnowDontTell: 60
 Nodes in state DontKnow: 40
+
 prj - 100 nodes - 0.55.txt
 Total Messages Sent: 16
 Messages sent to a node that knew: 10
 Nodes in state KnowDontTell: 7
 Nodes in state DontKnow: 93
+
 prj - 100 nodes - 0.60.txt
 Total Messages Sent: 30
 Messages sent to a node that knew: 16
 Nodes in state KnowDontTell: 15
 Nodes in state DontKnow: 85
+
 prj - 100 nodes - 0.65.txt
 Total Messages Sent: 82
 Messages sent to a node that knew: 58
 Nodes in state KnowDontTell: 25
 Nodes in state DontKnow: 75
+
 prj - 100 nodes - 0.70.txt
 Total Messages Sent: 17
 Messages sent to a node that knew: 9
 Nodes in state KnowDontTell: 9
 Nodes in state DontKnow: 91
+
 prj - 100 nodes - 0.75.txt
 Total Messages Sent: 18
 Messages sent to a node that knew: 11
 Nodes in state KnowDontTell: 8
 Nodes in state DontKnow: 92
+
 prj - 100 nodes - 0.80.txt
 Total Messages Sent: 30
 Messages sent to a node that knew: 16
 Nodes in state KnowDontTell: 15
 Nodes in state DontKnow: 85
+
 prj - 100 nodes - 0.85.txt
 Total Messages Sent: 25
 Messages sent to a node that knew: 13
 Nodes in state KnowDontTell: 13
 Nodes in state DontKnow: 87
+
 prj - 100 nodes - 0.90.txt
 Total Messages Sent: 25
 Messages sent to a node that knew: 13
 Nodes in state KnowDontTell: 13
 Nodes in state DontKnow: 87
+
 prj - 100 nodes - 0.95.txt
 Total Messages Sent: 23
 Messages sent to a node that knew: 12
