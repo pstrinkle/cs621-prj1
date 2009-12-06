@@ -1,0 +1,345 @@
+prj:start(100,100).
+<0.32.0> is node100
+<0.33.0> is node99
+<0.34.0> is node98
+<0.35.0> is node97
+<0.36.0> is node96
+<0.37.0> is node95
+<0.38.0> is node94
+<0.39.0> is node93
+<0.40.0> is node92
+<0.41.0> is node91
+<0.42.0> is node90
+<0.43.0> is node89
+<0.44.0> is node88
+<0.45.0> is node87
+<0.46.0> is node86
+<0.47.0> is node85
+<0.48.0> is node84
+<0.49.0> is node83
+<0.50.0> is node82
+<0.51.0> is node81
+<0.52.0> is node80
+<0.53.0> is node79
+<0.54.0> is node78
+<0.55.0> is node77
+<0.56.0> is node76
+<0.57.0> is node75
+<0.58.0> is node74
+<0.59.0> is node73
+<0.60.0> is node72
+<0.61.0> is node71
+<0.62.0> is node70
+<0.63.0> is node69
+<0.64.0> is node68
+<0.65.0> is node67
+<0.66.0> is node66
+<0.67.0> is node65
+<0.68.0> is node64
+<0.69.0> is node63
+<0.70.0> is node62
+<0.71.0> is node61
+<0.72.0> is node60
+<0.73.0> is node59
+<0.74.0> is node58
+<0.75.0> is node57
+<0.76.0> is node56
+<0.77.0> is node55
+<0.78.0> is node54
+<0.79.0> is node53
+<0.80.0> is node52
+<0.81.0> is node51
+<0.82.0> is node50
+<0.83.0> is node49
+<0.84.0> is node48
+<0.85.0> is node47
+<0.86.0> is node46
+<0.87.0> is node45
+<0.88.0> is node44
+<0.89.0> is node43
+<0.90.0> is node42
+<0.91.0> is node41
+<0.92.0> is node40
+<0.93.0> is node39
+<0.94.0> is node38
+<0.95.0> is node37
+<0.96.0> is node36
+<0.97.0> is node35
+<0.98.0> is node34
+<0.99.0> is node33
+<0.100.0> is node32
+<0.101.0> is node31
+<0.102.0> is node30
+<0.103.0> is node29
+<0.104.0> is node28
+<0.105.0> is node27
+<0.106.0> is node26
+<0.107.0> is node25
+<0.108.0> is node24
+<0.109.0> is node23
+<0.110.0> is node22
+<0.111.0> is node21
+<0.112.0> is node20
+<0.113.0> is node19
+<0.114.0> is node18
+<0.115.0> is node17
+<0.116.0> is node16
+<0.117.0> is node15
+<0.118.0> is node14
+<0.119.0> is node13
+<0.120.0> is node12
+<0.121.0> is node11
+<0.122.0> is node10
+<0.123.0> is node9
+<0.124.0> is node8
+<0.125.0> is node7
+<0.126.0> is node6
+<0.127.0> is node5
+<0.128.0> is node4
+<0.129.0> is node3
+<0.130.0> is node2
+<0.131.0> Tells "node66"
+true
+2>    <0.131.0> Tells "node4"
+2>    <0.66.0> Tells "node4"
+2>    I, <0.66.0>, Told someone who knew 0.10281318689087571
+2>    I, (<0.66.0>), quit.
+2>    <0.128.0> Tells "node64"
+2>    <0.131.0> Tells "node64"
+2>    I, <0.131.0>, Told someone who knew 0.19010666049177272
+2>    I, (<0.131.0>), quit.
+2>    <0.68.0> Tells "node26"
+2>    <0.128.0> Tells "node26"
+2>    I, <0.128.0>, Told someone who knew 0.8837055788046047
+2>    <0.128.0> Tells "node86"
+2>    <0.106.0> Tells "node86"
+2>    <0.68.0> Tells "node86"
+2>    I, <0.106.0>, Told someone who knew 0.9709990524055017
+2>    I, <0.68.0>, Told someone who knew 0.9766053578502136
+2>    <0.68.0> Tells "node45"
+2>    <0.106.0> Tells "node45"
+2>    <0.128.0> Tells "node45"
+2>    <0.46.0> Tells "node45"
+2>    I, <0.106.0>, Told someone who knew 0.05829252600639867
+2>    I, <0.128.0>, Told someone who knew 0.06389883145111064
+2>    I, <0.46.0>, Told someone who knew 0.06950513689582216
+2>    I, (<0.106.0>), quit.
+2>    I, (<0.128.0>), quit.
+2>    I, (<0.46.0>), quit.
+2>    <0.68.0> Tells "node5"
+2>    <0.87.0> Tells "node5"
+2>    I, <0.68.0>, Told someone who knew 0.1399796941625837
+2>    I, (<0.68.0>), quit.
+2>    <0.127.0> Tells "node64"
+2>    <0.87.0> Tells "node64"
+2>    I, <0.127.0>, Told someone who knew 0.22727316776348072
+2>    I, <0.87.0>, Told someone who knew 0.2328794732081927
+2>    I, (<0.127.0>), quit.
+2>    I, (<0.87.0>), quit.
+2> prj:status(100).
+Status <0.32.0>:"DontKnow"
+Status <0.33.0>:"DontKnow"
+Status <0.34.0>:"DontKnow"
+Status <0.35.0>:"DontKnow"
+Status <0.36.0>:"DontKnow"
+Status <0.37.0>:"DontKnow"
+Status <0.38.0>:"DontKnow"
+Status <0.39.0>:"DontKnow"
+Status <0.40.0>:"DontKnow"
+Status <0.41.0>:"DontKnow"
+Status <0.42.0>:"DontKnow"
+Status <0.43.0>:"DontKnow"
+Status <0.44.0>:"DontKnow"
+Status <0.45.0>:"DontKnow"
+Status <0.46.0>:"KnowDontTell"
+Status <0.47.0>:"DontKnow"
+Status <0.48.0>:"DontKnow"
+Status <0.49.0>:"DontKnow"
+Status <0.50.0>:"DontKnow"
+Status <0.51.0>:"DontKnow"
+Status <0.52.0>:"DontKnow"
+Status <0.53.0>:"DontKnow"
+Status <0.54.0>:"DontKnow"
+Status <0.55.0>:"DontKnow"
+Status <0.56.0>:"DontKnow"
+Status <0.57.0>:"DontKnow"
+Status <0.58.0>:"DontKnow"
+Status <0.59.0>:"DontKnow"
+Status <0.60.0>:"DontKnow"
+Status <0.61.0>:"DontKnow"
+Status <0.62.0>:"DontKnow"
+Status <0.63.0>:"DontKnow"
+Status <0.64.0>:"DontKnow"
+Status <0.65.0>:"DontKnow"
+Status <0.66.0>:"KnowDontTell"
+Status <0.67.0>:"DontKnow"
+Status <0.68.0>:"KnowDontTell"
+Status <0.69.0>:"DontKnow"
+Status <0.70.0>:"DontKnow"
+Status <0.71.0>:"DontKnow"
+Status <0.72.0>:"DontKnow"
+Status <0.73.0>:"DontKnow"
+Status <0.74.0>:"DontKnow"
+Done Status
+Status <0.75.0>:"DontKnow"
+Status <0.76.0>:"DontKnow"
+Status <0.77.0>:"DontKnow"
+Status <0.78.0>:"DontKnow"
+Status <0.79.0>:"DontKnow"
+Status <0.80.0>:"DontKnow"
+Status <0.81.0>:"DontKnow"
+Status <0.82.0>:"DontKnow"
+Status <0.83.0>:"DontKnow"
+Status <0.84.0>:"DontKnow"
+Status <0.85.0>:"DontKnow"
+Status <0.86.0>:"DontKnow"
+Status <0.87.0>:"KnowDontTell"
+Status <0.88.0>:"DontKnow"
+Status <0.89.0>:"DontKnow"
+Status <0.90.0>:"DontKnow"
+Status <0.91.0>:"DontKnow"
+Status <0.92.0>:"DontKnow"
+Status <0.93.0>:"DontKnow"
+Status <0.94.0>:"DontKnow"
+Status <0.95.0>:"DontKnow"
+Status <0.96.0>:"DontKnow"
+Status <0.97.0>:"DontKnow"
+Status <0.98.0>:"DontKnow"
+Status <0.99.0>:"DontKnow"
+Status <0.100.0>:"DontKnow"
+Status <0.101.0>:"DontKnow"
+Status <0.102.0>:"DontKnow"
+Status <0.103.0>:"DontKnow"
+Status <0.104.0>:"DontKnow"
+Status <0.105.0>:"DontKnow"
+Status <0.106.0>:"KnowDontTell"
+Status <0.107.0>:"DontKnow"
+Status <0.108.0>:"DontKnow"
+Status <0.109.0>:"DontKnow"
+Status <0.110.0>:"DontKnow"
+Status <0.111.0>:"DontKnow"
+Status <0.112.0>:"DontKnow"
+Status <0.113.0>:"DontKnow"
+Status <0.114.0>:"DontKnow"
+Status <0.115.0>:"DontKnow"
+Status <0.116.0>:"DontKnow"
+Status <0.117.0>:"DontKnow"
+Status <0.118.0>:"DontKnow"
+Status <0.119.0>:"DontKnow"
+Status <0.120.0>:"DontKnow"
+Status <0.121.0>:"DontKnow"
+Status <0.122.0>:"DontKnow"
+Status <0.123.0>:"DontKnow"
+Status <0.124.0>:"DontKnow"
+Status <0.125.0>:"DontKnow"
+Status <0.126.0>:"DontKnow"
+Status <0.127.0>:"KnowDontTell"
+Status <0.128.0>:"KnowDontTell"
+Status <0.129.0>:"DontKnow"
+Status <0.130.0>:"DontKnow"
+Status <0.131.0>:"KnowDontTell"
+ok
+3>    3> prj:status(100).(100). (100). (100). (100). (100). (100). c(100).l(100).o(100).s(100).e(100).
+Stoping <0.32.0>
+Stoping <0.33.0>
+Stoping <0.34.0>
+Stoping <0.35.0>
+Stoping <0.36.0>
+Stoping <0.37.0>
+Stoping <0.38.0>
+Stoping <0.39.0>
+Stoping <0.40.0>
+Stoping <0.41.0>
+Stoping <0.42.0>
+Stoping <0.43.0>
+Stoping <0.44.0>
+Stoping <0.45.0>
+Stoping <0.46.0>
+Stoping <0.47.0>
+Stoping <0.48.0>
+Stoping <0.49.0>
+Stoping <0.50.0>
+Stoping <0.51.0>
+Stoping <0.52.0>
+Stoping <0.53.0>
+Stoping <0.54.0>
+Stoping <0.55.0>
+Stoping <0.56.0>
+Stoping <0.57.0>
+Stoping <0.58.0>
+Stoping <0.59.0>
+Stoping <0.60.0>
+Stoping <0.61.0>
+Stoping <0.62.0>
+Stoping <0.63.0>
+Stoping <0.64.0>
+Stoping <0.65.0>
+Stoping <0.66.0>
+Stoping <0.67.0>
+Stoping <0.68.0>
+Stoping <0.69.0>
+Stoping <0.70.0>
+Stoping <0.71.0>
+Stoping <0.72.0>
+Stoping <0.73.0>
+Stoping <0.74.0>
+Stoping <0.75.0>
+Stoping <0.76.0>
+Stoping <0.77.0>
+Stoping <0.78.0>
+Stoping <0.79.0>
+Stoping <0.80.0>
+Stoping <0.81.0>
+Stoping <0.82.0>
+Stoping <0.83.0>
+Done
+Stoping <0.84.0>
+Stoping <0.85.0>
+Stoping <0.86.0>
+Stoping <0.87.0>
+Stoping <0.88.0>
+Stoping <0.89.0>
+Stoping <0.90.0>
+Stoping <0.91.0>
+Stoping <0.92.0>
+Stoping <0.93.0>
+Stoping <0.94.0>
+Stoping <0.95.0>
+Stoping <0.96.0>
+Stoping <0.97.0>
+Stoping <0.98.0>
+Stoping <0.99.0>
+Stoping <0.100.0>
+Stoping <0.101.0>
+Stoping <0.102.0>
+Stoping <0.103.0>
+Stoping <0.104.0>
+Stoping <0.105.0>
+Stoping <0.106.0>
+Stoping <0.107.0>
+Stoping <0.108.0>
+Stoping <0.109.0>
+Stoping <0.110.0>
+Stoping <0.111.0>
+Stoping <0.112.0>
+Stoping <0.113.0>
+Stoping <0.114.0>
+Stoping <0.115.0>
+Stoping <0.116.0>
+Stoping <0.117.0>
+Stoping <0.118.0>
+Stoping <0.119.0>
+Stoping <0.120.0>
+Stoping <0.121.0>
+Stoping <0.122.0>
+Stoping <0.123.0>
+Stoping <0.124.0>
+Stoping <0.125.0>
+Stoping <0.126.0>
+Stoping <0.127.0>
+Stoping <0.128.0>
+Stoping <0.129.0>
+Stoping <0.130.0>
+Stoping <0.131.0>
+ok
+4> 
