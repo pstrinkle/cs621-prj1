@@ -6,7 +6,7 @@
 %%% when a process win/draws 1000 games without losing it writes its moves to
 %%% test.erl and closes all process
 
--export([node_play/5,node_rec_game/5,start/2,close/1,status/2,stats/1,print/1,move/3,checkgame/1,play/6,set_random_seed/5,mergeMoves/3,eraseAll/2,mergeAll/2]).
+-export([node_play/5,node_rec_game/5,start/2,close/1,status/2,stats/1,print/1,move/3,checkgame/1,play/6,set_random_seed/5,mergeMoves/3,eraseAll/2,mergeAll/2,getRand/2]).
 
 %%%selects a rand node between 1 and NUMMODES other than MYNUM
 getRand(MYNUM,NUMNODES) ->
@@ -15,19 +15,20 @@ getRand(MYNUM,NUMNODES) ->
     RANDNUM == MYNUM ->
       getRand(MYNUM,NUMNODES);
     true ->
-      "node" ++ integer_to_list(RANDNUM)
+      list_to_atom("node" ++ integer_to_list(RANDNUM))
   end.
 
-%%%if in stats KnowAndTell ask a node to play then wait for response
+%%%if in stats knowAndTell ask a node to play then wait for response
 %%%otherwise just wait for a response
 node_play(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL}) ->
     if 
-      STATUS == "KnowAndTell" ->
+      STATUS == knowAndTell ->
           %%%if know pick random node and tell it the msg
           MSGNODE = getRand(MYNUM,NUMNODES),
           %%%sends message with id, moves, record
-          list_to_atom(MSGNODE) ! {self(),MYMOVES,{WIN,DRAW,LOSS,ALL}},
-          node_rec_game(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL}) ;
+          MSGNODE ! {MYNUM,MYMOVES,{WIN,DRAW,LOSS,ALL}},
+          %%%log(MYNUM,MSGNODE,"send game"),
+          node_rec_game(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL});
       true ->
           node_rec_game(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL}) 
     end.
@@ -40,10 +41,10 @@ node_play(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL}) ->
 %%%{{NEWWIN,NEWDRAW,NEWLOSS,NEWALL},MYNEWMOVES}: logs response from a game, then calls node_play
 %%%{NODE_ID,THEIRMOVES,{THEIRWIN,THEIRDRAW,THEIRLOSS,THEIRALL}}: plays a game with NODE_ID and then sends the results back
 
-node_rec_game(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL}) ->
+node_rec_game(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL}) ->          
      receive
         close ->
-           io:format("Stoping ~p~n", [self()]);  
+            io:format("Stoping ~p~n", [self()]);  
         {status,NODE_ID} ->
             NODE_ID ! {MYNUM,STATUS,WIN,DRAW,LOSS,ALL,length(dict:to_list(MYMOVES)),NUMNODES},
             node_rec_game(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL});
@@ -52,35 +53,56 @@ node_rec_game(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL}) ->
             io:fwrite(WriteDescr, "~n~p).~n%%%~p ~p ~p ~p", [MYMOVES,MYNUM,STATUS,NUMNODES,{WIN,DRAW,LOSS,ALL}]),
             file:close(WriteDescr),
             node_rec_game(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL});
-        {{NEWWIN,NEWDRAW,NEWLOSS,NEWALL},MYNEWMOVES} ->
-          if 
-            NEWLOSS > 0 ->
-              node_rec_game(MYNUM,"DontTell",NUMNODES,MYNEWMOVES,{NEWWIN,NEWDRAW,NEWLOSS,NEWALL});
-            NEWWIN + NEWDRAW > 3000 ->
-              status(NUMNODES,NUMNODES),
-              io:format("DRAWS! ~p | ~p | ~p~n", [MYNUM,STATUS,{NEWWIN,NEWDRAW,NEWLOSS,NEWALL}]),
-              {ok, WriteDescr} = file:open(test.erl, [append]),
-              io:fwrite(WriteDescr, "~n~p).~n%%%~p ~p ~p ~p", [MYMOVES,MYNUM,STATUS,NUMNODES,{WIN,DRAW,LOSS,ALL}]),
-              file:close(WriteDescr),
-              close(NUMNODES),
-              node_play(MYNUM,"KnowDontTell",NUMNODES,MYNEWMOVES,{NEWWIN,NEWDRAW,NEWLOSS,NEWALL});
-            true ->
-              node_play(MYNUM,STATUS,NUMNODES,MYNEWMOVES,{NEWWIN,NEWDRAW,NEWLOSS,NEWALL})
-          end;
-        {NODE_ID,THEIRMOVES,{THEIRWIN,THEIRDRAW,THEIRLOSS,THEIRALL}} ->
-            {WINNER,MYNEWMOVES,THEIRNEWMOVES} = play([s,s,s,s,s,s,s,s,s],x,dict:new(),[],THEIRMOVES,[]),
-            if 
-              WINNER == x ->
-                NODE_ID ! {{0,0,0,THEIRALL+1},mergeMoves(THEIRMOVES,[],THEIRNEWMOVES)},
-                node_rec_game(MYNUM,"KnowAndTell",NUMNODES,mergeMoves(MYMOVES,[],THEIRNEWMOVES),{WIN+1,DRAW,LOSS,ALL+1});
-              WINNER == o ->
-                NODE_ID ! {{THEIRWIN+1,THEIRDRAW,THEIRLOSS,THEIRALL+1},mergeMoves(THEIRMOVES,THEIRNEWMOVES,[])},
-                node_rec_game(MYNUM,"DontTell",NUMNODES,mergeMoves(MYMOVES,THEIRNEWMOVES,[]),{WIN,DRAW,LOSS+1,ALL+1});
+        {{NEWWIN,NEWDRAW,NEWLOSS,NEWALL},MYNEWMOVES,THEIRNUM} ->
+            if
+              NEWWIN + NEWDRAW > 3000 ->         
+                log(MYNUM,THEIRNUM,"3000"),
+                node_rec_game(MYNUM,knowDontTell,NUMNODES,MYNEWMOVES,{NEWWIN,NEWDRAW,NEWLOSS,NEWALL});
               true ->
-                NODE_ID !  {{THEIRWIN,THEIRDRAW+1,THEIRLOSS,THEIRALL+1},mergeMoves(THEIRMOVES,THEIRNEWMOVES,[])},
-                node_rec_game(MYNUM,STATUS,NUMNODES,mergeMoves(MYMOVES,THEIRNEWMOVES,[]),{WIN,DRAW+1,LOSS,ALL+1})
-            end           
-    end.
+                node_play(MYNUM,knowAndTell,NUMNODES,MYNEWMOVES,{NEWWIN,NEWDRAW,NEWLOSS,NEWALL})
+            end;
+        {NODE_ID,THEIRMOVES,{THEIRWIN,THEIRDRAW,THEIRLOSS,THEIRALL}} ->
+            %%%log(MYNUM,NODE_ID,"receive game"),
+            %%%know perfect strag, no need to play another game, just tell person so they know too
+            if 
+              STATUS == knowDontTell ->
+                log(MYNUM,NODE_ID,"told 3000"),
+                NODE_ID ! {{WIN,DRAW,LOSS,ALL},MYMOVES,MYNUM},
+                node_rec_game(MYNUM,knowDontTell,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL});
+              STATUS == dontTell ->
+                {WINNER,MYNEWMOVES,THEIRNEWMOVES} = play([s,s,s,s,s,s,s,s,s],x,MYMOVES,[],THEIRMOVES,[]),
+                if 
+                  WINNER == x ->
+                    NODE_ID ! {{0,0,0,THEIRALL+1},mergeMoves(THEIRMOVES,MYNEWMOVES,THEIRNEWMOVES),MYNUM},
+                    node_play(MYNUM,knowAndTell,NUMNODES,mergeMoves(MYMOVES,MYNEWMOVES,THEIRNEWMOVES),{WIN+1,DRAW,LOSS,ALL+1});
+                  WINNER == o ->
+                    NODE_ID ! {{THEIRWIN+1,THEIRDRAW,THEIRLOSS,THEIRALL+1},mergeMoves(THEIRMOVES,THEIRNEWMOVES,MYNEWMOVES),MYNUM},
+                    node_play(MYNUM,knowAndTell,NUMNODES,mergeMoves(MYMOVES,THEIRNEWMOVES,MYNEWMOVES),{0,0,0,ALL+1});
+                  true ->
+                    NODE_ID !  {{THEIRWIN,THEIRDRAW+1,THEIRLOSS,THEIRALL+1},mergeMoves(THEIRMOVES,THEIRNEWMOVES,[]),MYNUM},
+                    node_play(MYNUM,knowAndTell,NUMNODES,mergeMoves(MYMOVES,THEIRNEWMOVES,[]),{WIN,DRAW+1,LOSS,ALL+1})
+                end;
+              true ->
+                {WINNER,MYNEWMOVES,THEIRNEWMOVES} = play([s,s,s,s,s,s,s,s,s],x,MYMOVES,[],THEIRMOVES,[]),
+                if 
+                  WINNER == x ->
+                    NODE_ID ! {{0,0,0,THEIRALL+1},mergeMoves(THEIRMOVES,MYNEWMOVES,THEIRNEWMOVES),MYNUM},
+                    node_rec_game(MYNUM,knowAndTell,NUMNODES,mergeMoves(MYMOVES,MYNEWMOVES,THEIRNEWMOVES),{WIN+1,DRAW,LOSS,ALL+1});
+                  WINNER == o ->
+                    NODE_ID ! {{THEIRWIN+1,THEIRDRAW,THEIRLOSS,THEIRALL+1},mergeMoves(THEIRMOVES,THEIRNEWMOVES,MYNEWMOVES),MYNUM},
+                    node_rec_game(MYNUM,knowAndTell,NUMNODES,mergeMoves(MYMOVES,THEIRNEWMOVES,MYNEWMOVES),{0,0,0,ALL+1});
+                  true ->
+                    NODE_ID !  {{THEIRWIN,THEIRDRAW+1,THEIRLOSS,THEIRALL+1},mergeMoves(THEIRMOVES,THEIRNEWMOVES,[]),MYNUM},
+                    node_rec_game(MYNUM,knowAndTell,NUMNODES,mergeMoves(MYMOVES,THEIRNEWMOVES,[]),{WIN,DRAW+1,LOSS,ALL+1})
+                end
+            end
+     end.
+
+log(NODE1,NODE2,MSG) ->
+  {ok, WriteDescr} = file:open(log.txt, [append]),
+  io:fwrite(WriteDescr, "~p\t~p\t~p~n", [NODE1,NODE2,MSG]),
+  file:close(WriteDescr).
+
 
 %%%sets a random seed
 %%%code from: http://www.erlang.org/cgi-bin/ezmlm-cgi/3/457
@@ -88,18 +110,20 @@ set_random_seed(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL}) ->
     {_, _, Micros} = now(),
     A = erlang:phash2([make_ref(), self(), Micros]),
     random:seed(A, A, A),
-    node_play(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL}).
     
-%%%starts 5 nodes in status KnowAndTell
+    receive
+      a ->
+        io:format("as",[])
+      after 1000 ->
+        node_play(MYNUM,STATUS,NUMNODES,MYMOVES,{WIN,DRAW,LOSS,ALL})
+    end.
+    
+%%%starts 5 nodes in status knowAndTell
 %%%starting a few gets the message out faster
-start(5,ALL) ->
-    register(node5, spawn(ttt, set_random_seed, [5,"KnowAndTell",ALL,dict:new(),{0,0,0,0}])),
-    register(node4, spawn(ttt, set_random_seed, [4,"KnowAndTell",ALL,dict:new(),{0,0,0,0}])),
-    register(node3, spawn(ttt, set_random_seed, [3,"KnowAndTell",ALL,dict:new(),{0,0,0,0}])),
-    register(node2, spawn(ttt, set_random_seed, [2,"KnowAndTell",ALL,dict:new(),{0,0,0,0}])),
-    register(node1, spawn(ttt, set_random_seed, [1,"KnowAndTell",ALL,dict:new(),{0,0,0,0}]));
-start(N,ALL) -> 
-    register(list_to_atom("node" ++ integer_to_list(N)), spawn(ttt, set_random_seed, [N,"DontTell",ALL,dict:new(),{0,0,0,0}])),
+start(1,ALL) ->
+    register(node1, spawn(ttt, set_random_seed, [node1,knowAndTell,ALL,dict:new(),{0,0,0,0}]));
+start(N,ALL) ->
+    register(list_to_atom("node" ++ integer_to_list(N)), spawn(ttt, set_random_seed, [list_to_atom("node" ++ integer_to_list(N)),dontTell,ALL,dict:new(),{0,0,0,0}])),
     start(N-1,ALL).
 
 %%%send a message to N nodes to close
@@ -114,11 +138,11 @@ status(0,{T,K,D,ID,WD,A,L,N}) ->
   receive
     {MYNUM,STATUS,WIN,DRAW,_,ALL,LEN,NUM} ->
       if
-        STATUS == "KnowAndTell" ->
+        STATUS == knowAndTell ->
           {NEWT,NEWK,NEWD} = {T+1,K,D};
-        STATUS == "KnowDontTell" ->  
+        STATUS == knowDontTell ->  
           {NEWT,NEWK,NEWD} = {T,K+1,D};
-        STATUS == "DontTell" ->
+        STATUS == dontTell ->
           {NEWT,NEWK,NEWD} = {T,K,D+1};
         true->
           {NEWT,NEWK,NEWD}  = {T,K,D},
