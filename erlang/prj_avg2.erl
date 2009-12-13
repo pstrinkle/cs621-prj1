@@ -22,8 +22,9 @@ getRand(MYNUM, NUMNODES) ->
 
 %%% Tell Other Nodes
 node_tell(MYNUM, STATUS, NUMNODES, VALUE, TRIES) ->
+    NUMBER_ROUNDS = math:log10(NUMNODES),
     if
-      TRIES == 2 * NUMNODES ->
+      TRIES == NUMBER_ROUNDS ->
         node_rec(MYNUM, "KnowDontTell", NUMNODES, VALUE, TRIES);
       true ->
         if
@@ -47,18 +48,20 @@ node_rec(MYNUM, STATUS, NUMNODES, VALUE, TRIES) ->
            node_rec(MYNUM, STATUS, NUMNODES, VALUE, TRIES);
         {NODE_ID, reply, THEIR_VALUE} ->
             %%% Process Reply
+            %%% If their value matches my value I shift into KnowDontTell
+            %%% otherwise I just average the values and continue seeking nodes
             io:format("I, ~p(~p): received reply: ~p:~p~n", [self(), STATUS, NODE_ID, THEIR_VALUE]),
             if
               THEIR_VALUE == VALUE ->
                 io:format("Values Match! (~p, ~p)~n", [self(), NODE_ID]),
                 RANDNUM = random:uniform(),
-                if
-                  RANDNUM < 0.05 ->
+                %if
+                %  RANDNUM < 0.05 ->
                     io:format("I, (~p), quit.~n", [self()]),
                     node_rec(MYNUM, "KnowDontTell", NUMNODES, VALUE, TRIES);
-                  true ->
-                    node_rec(MYNUM, STATUS, NUMNODES, (VALUE + THEIR_VALUE) / 2, TRIES)
-                end;
+                %  true ->
+                %    node_rec(MYNUM, STATUS, NUMNODES, (VALUE + THEIR_VALUE) / 2, TRIES)
+                %end;
               true ->
                 node_rec(MYNUM, STATUS, NUMNODES, (VALUE + THEIR_VALUE) / 2, TRIES)
               end;
@@ -72,18 +75,18 @@ node_rec(MYNUM, STATUS, NUMNODES, VALUE, TRIES) ->
                   THEIR_VALUE == VALUE ->
                     io:format("Values Match! (~p, ~p)~n", [self(), NODE_ID]),
                     RANDNUM = random:uniform(),
-                    if
-                      RANDNUM < 0.05 ->
+                    %if
+                    %  RANDNUM < 0.05 ->
                         io:format("I, (~p), quit.~n", [self()]),
-                         node_rec(MYNUM, "KnowDontTell", NUMNODES, VALUE, TRIES);
-                      true ->
-                        node_rec(MYNUM, STATUS, NUMNODES, (VALUE + THEIR_VALUE) / 2, TRIES)
-                    end;
+                        node_rec(MYNUM, "KnowDontTell", NUMNODES, VALUE, TRIES);
+                    %  true ->
+                    %    node_rec(MYNUM, STATUS, NUMNODES, (VALUE + THEIR_VALUE) / 2, TRIES)
+                    %end;
                   true ->
                     node_rec(MYNUM, STATUS, NUMNODES, (VALUE + THEIR_VALUE) / 2, TRIES)
                 end;
               STATUS == "DontKnow" ->
-                node_rec(MYNUM, "KnowAndTell", NUMNODES, (VALUE + THEIR_VALUE) / 2, TRIES);
+                node_rec(MYNUM, "KnowAndTell", NUMNODES, (VALUE + THEIR_VALUE) / 2, TRIES);              
               true ->
                 node_rec(MYNUM, STATUS, NUMNODES, VALUE, TRIES)
             end
