@@ -1,0 +1,20 @@
+prj_avg2 behavior:
+
+variations:
+
+1) when someone has the same value you quit
+   ->when someone pings you with a different value you start up again
+
+2) when someone has the same value you probabilitistically quit
+   ->when someone pings you with a different value you start up again
+
+3) when someone has the same value you don't quit
+   ->you stop trying after you've pinged run into the same value X times
+
+4) when someone has the same value you don't quit
+   ->you just quit after some period of time
+
+5) when someone has a value within 1
+
+In all variations you start up again if someone pings you.
+Or you don't.
