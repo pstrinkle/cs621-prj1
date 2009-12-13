@@ -92,6 +92,16 @@ Add average table or chart; this experiment will examine error based on how quic
 
 \section{Learning the Perfect Tic-Tac-Toe Strategy}
 
+The goal of our Tic-Tac-Toe gossip algorithm is to simulate a population of people learning how to play Tic-Tac-Toe.  We start with a population of people with no tic-tac-toe strategy and one person that wants to play.  A person only knows the rules for tic-tac-toe and how to contact the other players.  Each game starts with one person requesting a game by sending his strategy to another person.  The person that receives the strategy then plays a game of Tic-Tac-Toe with themselves as player 1 and the requesting person as player 2.  After the game is over the strategy and record of both players are updated and both players then look for someone else to play a game with.  Each player continues to request games until they stop losing, then they stop asking other people to play.
+
+Each player represents their strategy as a series of snapshots of a board, along with the move for that snapshot.  When checking a board against their strategy all reflections and rotations are checked in order to minimize the number of snapshots needed to store.  After each game the strategies of the two players are modified in the following way.  If one of the players wins both players first remove the moves of the losing player from their strategy, then add the moves from the winning player into their strategy.  When there is a draw both players keep the moves from the second player, and no moves are removed.  The wins, losses, and draws are updated for each player after each game.  If the player loses its wins, losses, and draws are reset to zero in order to make checking for the stoping strategy easier.
+
+Modifying the strategies in this way promotes population growth by keeping moves that lead to wins and draws for the second player, and removing moves that lead to losses.  It also keeps first player moves that lead to wins which provide more opportunities for people to find ways to stop them.  
+
+There are two variables that modify the way this program runs.  The first is the number of nodes and the second is how many wins plus draws are needed before the process stop asking for additional games.  Both variables lead to more overall games the first by increasing the number of nodes playing, and the second by increasing the number of wins plus draws needed before stopping.
+
+
+
 {\bf {\em NOTE: Stuff about strategies.}}
 
 Nodes cooperate with each other to learn the perfect strategy?  Yes, after the game they add the winners moves to their strategy sets.
