@@ -6,6 +6,13 @@
 \setlength\parindent{0.25in}
 \setlength\parskip{1mm}
 
+% This package is for including our graph
+\usepackage{graphicx}
+
+% This package is for the write-up for node code
+\usepackage{pseudocode}
+
+% This package is just for including code
 \usepackage{listings}
 \lstset{language=erlang}
 \lstset{numbers=left, numberstyle=\tiny, stepnumber=2, numbersep=5pt}
@@ -23,7 +30,7 @@ Baltimore, MD, 21250\\
   \begin{@twocolumnfalse}
     \maketitle
     \begin{abstract}
-      Seriously awesome stuff about gossip; but we also address it's limitations.  and we use its awesomeness to solve problem X.  Might also, want to address its rhobustness. {\bf {\em NOTE: Need to actually write up the abstract.}}
+      Gossip is a robust protocol for nodes interacting in an unstructured network.  We apply this protocol to a set of nodes actively trying to solve a problem by interacting with each other.  The nodes are learning the perfect strategy for the game, Tic-Tac-Toe.  As the nodes play each other and try different strategies they move towards a perfect strategy, or one that does not lose.
     \end{abstract}
   \end{@twocolumnfalse}
   ]
@@ -38,7 +45,7 @@ Erlang provides a stable distributed system and development environment.  Theref
 
 Gossip protocol systems do not strictly compute aggregate calculations, but also disseminate information.  A system can manage data replicas as well as routing tables with gossip.  Nodes can use simple communication with other randomly selected nodes whereby one or both nodes change state after the information exchange.  These systems benefit from small communication requirements and do not require reliable communication.  Aggregate problems also converge in $O(\lg N)$ time to an estimate of the calculation.  These calculations can be anything that is composable, such as the average, variance, count.  Gossip can also estimate some problems that require complete knowledge (hollistic problems) \cite{Birm2007}.
 
-\subsection{Erlang as a Distributed System}
+\subsection{Erlang as a Distributed Environment}
 
 Erlang was developed by Ericsson for robust, real-time concurrent systems.  Interprocess communication is abstracted away into a rather simple system to aid development.  Also, because Erlang is a functional language all code is written to run recursively.  Parameters are copied at each function call in the recursion which makes it unsuitable for developing systems which require larger data structures.  Erlang provides a simple platform for developing concurrent code.  Each process is spawned to run a function, similarly to fork()ing processes in a standard system or spawning threads.  A running system supports code modules being recompiled and injected without stopping the system \cite{Erlang}.
 
@@ -88,6 +95,8 @@ Building spanning trees with gossip is fairly robust and runs quickly.  However,
 
 Provided that a set of N nodes all have some value $\chi_i$ then to calculate the average of the values in the network.  Each node will randomly chose another node in the network and share the values and then average.  This process is repeated until all the nodes in the network have the same value; which should be the average.  If a node is in a state where it doesn't seek other nodes and hears from a node with a different value it starts finding other nodes.  It looks like prj\_avg does just transmission of value.  Prj\_avg2 does a pair-wise value transmission.  Both projects quit seeking new numbers based on a dice roll after they find a node that matches another.  If the averaging is done by strictly pinging other nodes with your value then it doesn't follow the gossip pair-wise communication; but also the last guy at the end will have to time out.  This timeout is necessary because eventually no one will ping the remaining node.  With pair-wise proper communication this extra time out is unnecessary.
 
+Presently, if you're in KnowDontTell and you get a hello from another value you respond with yours and do nothing.  I should change it so that if the values don't match you start seeking guys again.
+
 Add average table or chart; this experiment will examine error based on how quickly the rumor spreading stops versus the bandwidth utilized.
 
 \section{Learning the Perfect Tic-Tac-Toe Strategy}
@@ -96,15 +105,66 @@ The goal of our Tic-Tac-Toe gossip algorithm is to simulate a population of peop
 
 Each player represents their strategy as a series of snapshots of a board, along with the move for that snapshot.  When checking a board against their strategy all reflections and rotations are checked in order to minimize the number of snapshots needed to store.  After each game the strategies of the two players are modified in the following way.  If one of the players wins both players first remove the moves of the losing player from their strategy, then add the moves from the winning player into their strategy.  When there is a draw both players keep the moves from the second player, and no moves are removed.  The wins, losses, and draws are updated for each player after each game.  If the player loses its wins, losses, and draws are reset to zero in order to make checking for the stoping strategy easier.
 
+Given two nodes: $i$ \& $j$ in the set of nodes.  Node$i$ randomly choses a node$j$ to play Tic-Tac-Toe with.  $X$ is the set of moves, whereby $X[i]$ is the set of moves for node$i$.  The following algorithm describes this interaction:
+
+\begin{pseudocode}[shadowbox]{Tic-Tac-Toe}{i,j}
+\IF i \THEN
+ \BEGIN
+  \CALL{SendStrategy}{X[i], j}\\
+  \CALL{ParseResponse}{X[i]}\\
+  \IF win \THEN
+   Wins \GETS Wins + 1
+  \ELSEIF draw \THEN
+   Draws \GETS Draws + 1
+  \ELSE
+   \BEGIN
+    Losses \GETS 0\\
+    Draws \GETS 0\\
+    Wins \GETS 0\\
+   \END
+ \END
+\ELSEIF j \THEN
+ \BEGIN
+  M \GETS \CALL{PlayGame}{X[i], X[j]}\\
+  \IF i \space \mbox{wins} \THEN
+   \BEGIN
+    X[i] \GETS X[i] - M_{loss}\\
+    X[j] \GETS X[j] - M_{loss}\\
+    X[j] \GETS X[j] + M_{win}\\
+   \END
+  \ELSE \THEN
+   \BEGIN
+    X[j] \GETS X[j] - M_{loss}\\
+    X[i] \GETS X[i] - M_{loss}\\
+    X[i] \GETS X[i] + M_{win}\\
+   \END \\
+  \IF win \THEN
+   Wins \GETS Wins + 1
+  \ELSEIF draw \THEN
+   Draws \GETS Draws + 1
+  \ELSE
+   \BEGIN
+    Losses \GETS 0\\
+    Draws \GETS 0\\
+    Wins \GETS 0\\
+   \END \\
+  \CALL{SendResponse}{X[i], i}\\
+ \END
+\end{pseudocode}
+
 Modifying the strategies in this way promotes population growth by keeping moves that lead to wins and draws for the second player, and removing moves that lead to losses.  It also keeps first player moves that lead to wins which provide more opportunities for people to find ways to stop them.  
 
 There are two variables that modify the way this program runs.  The first is the number of nodes and the second is how many wins plus draws are needed before the process stop asking for additional games.  Both variables lead to more overall games the first by increasing the number of nodes playing, and the second by increasing the number of wins plus draws needed before stopping.
 
-
+% Not sure why it won't place the image across both columns
+\begin{figure*}[thp]
+\centering
+\includegraphics[keepaspectratio=true,scale=0.85]{500nodes_winsdrawpergames.png}
+\caption{500 nodes}
+\label{fig:500nodes_windraw}
+\end{figure*}
 
 {\bf {\em NOTE: Stuff about strategies.}}
-
-Nodes cooperate with each other to learn the perfect strategy?  Yes, after the game they add the winners moves to their strategy sets.
 
 Need to discuss the complexity and timing and cost of messages? 
 
@@ -112,17 +172,11 @@ Does the node that wins share the perfect strategy with everyone else? No, but i
 
 While running, do the nodes share pieces of their winning strategies?  Yes--see First question.
 
-A Tic-Tac-Toe learning application was also developed wherein the nodes would play tic-tac-toe games with other nodes until they learned an effective perfect strategy.  This doesn't fit the traditional gossip model becasue it can take many steps; however, the node partners are chosen randomly and it does come to a conclusion and the nodes change state and make progress.
-
-The following pseudo-code defines a node's behavior:
-
 How many games did it take for the node who found it first?
 
 Average length of the strategies.
 
 The moves are random if there is no matching move in their set.
-
-A population starts off not knowing any moves (no strategy); then one node wants to play, from the first game both nodes learn the winning strategy.  If a node wins, or draws enough games to be considered a pro they stop seeking new opponents but will play with others when asked.  
 
 \section{Future Work}
 
@@ -133,6 +187,8 @@ Intelligent systems can process raw data and build analytics cooperatively.
 Query processing of data spread across the nodes.  They can gossip the query and their answer to it.  Cumulatively.
 
 Developing structures and information and sharing as they go with their neighbors; can help each other build more intelligent parsing, and contexts... Say, if they're parsing words.
+
+Systems can build up their own things (sketches) of the system status and then gossip this information in a similar fashion to the learning problem.
 
 \begin{thebibliography}{10}
 \bibitem[Birm2007]{Birm2007}K. Birman, ``The promise, and limitations, of gossip protocols," \emph{ACM SIGOPS Oper. Syst. Rev.}, pp 8-13, 2007
