@@ -151,13 +151,16 @@ Modifying the strategies in this way promotes population growth by keeping moves
 
 There are two variables that modify the way this program runs.  The first is the number of nodes and the second is how many wins plus draws are needed before the process stop asking for additional games.  Both variables lead to more overall games the first by increasing the number of nodes playing, and the second by increasing the number of wins plus draws needed before stopping.
 
+Figure \ref{fig:500nodes_windraw} displays the total wins and draws of a population of 500 nodes throughout a run of the algorithm.  The total number of wins and draws increase slowly over the first half of the graph while each process works on a strategy.  The slow increase is caused by the fact we reset the wins and draws to zero each time a process loses.  The wins and draw then increase faster once the process develop a strategy that is harder to beat.  When a perfect strategy is finally found the wins and draws increase exponentially as the process tests its strategy out to make sure it can't lose.
+
 % Not sure why it won't place the image across both columns
 \begin{figure*}[h]
-\centering
-\includegraphics[keepaspectratio=true,scale=0.85]{500nodes_winsdrawpergames.png}
+\centering\includegraphics[keepaspectratio=true,scale=0.85]{500nodes_winsdrawpergames.png}
+
 \caption{500 nodes}
 \label{fig:500nodes_windraw}
 \end{figure*}
+
 
 {\bf {\em NOTE: Stuff about strategies.}}
 
