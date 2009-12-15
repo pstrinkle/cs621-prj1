@@ -43,8 +43,6 @@ Erlang provides a stable distributed system and development environment.  Theref
 
 \section{Background}
 
-{\bf {\em Need to make sure I listed the three types, rumor-mongering, etc.}}
-
 Gossip protocol systems do not strictly compute aggregate calculations, but can also disseminate information.  A system can manage data replicas as well as routing tables with gossip.  Nodes can use simple communication with other randomly selected nodes whereby one or both nodes change state after the information exchange.  These systems benefit from small communication requirements and do not require reliable communication.  Aggregate problems also converge in $O(\lg N)$ time to an estimate of the calculation.  These calculations can be anything that is composable, such as the average, variance, count.  Gossip can also estimate some problems that require complete knowledge (hollistic problems) \cite{Birm2007}.
 
 \subsection{Erlang as a Distributed Environment}
@@ -54,6 +52,8 @@ Erlang was developed by Ericsson for robust, real-time concurrent systems.  Inte
 \section{Early Experiments}
 
 Before determining which problem to address with the gossip protocol, we built several relatively small-scale applications in Erlang.  These applications allowed us to further understand the variables involved in a distributed system, such as one using the gossip protocol.  An initial application was built which simply shared a rumor.  To stop the rumor spreading the nodes would quit with certain probability upon contacting a node, which already knew the rumor.  From this code base, two applications where quickly developed.  They both built a spanning tree with gossip: in the first application the nodes tracked their parent; in the second the parents tracked their children.  Nodes discontinued the hunt for available children based on a certain probability after finding a node that was already in the tree.  Two variations of the average aggregate were also programmed.
+
+These small programs provided useful feedback on the innerworkings of gossip as well as Erlang.  This feedback included how many nodes our systems could run and provide the illusion of concurrency, as well as how much each node could use for state before impacting performance and eventually crashing the Erlang system.
 
 \subsection{Variables}
 
@@ -95,11 +95,9 @@ Building spanning trees with gossip is fairly robust and runs quickly.  However,
 
 \subsection{Calculating the Average}
 
-Provided that a set of N nodes all have some value $\chi_i$.  To calculate the average of the values in the network, each node will randomly chose another node in the network and share the values and then average.  This process is repeated until all the nodes in the network have the same value; which should be the average.  It was more practical in our experiments to not seek equality, but rather some $\epsilon$ of each other.  If a node is in a state where it doesn't seek other nodes and hears from a node with a different value it starts finding other nodes.  It looks like prj\_avg does just transmission of value.  Prj\_avg2 does a pair-wise value transmission.  Both projects quit seeking new numbers based on a dice roll after they find a node that matches another.  If the averaging is done by strictly pinging other nodes with your value then it doesn't follow the gossip pair-wise communication; but also the last guy at the end will have to time out.  This timeout is necessary because eventually no one will ping the remaining node.  With pair-wise proper communication this extra time out is unnecessary.
+Provided that a set of N nodes all have some value $\chi_i$.  To calculate the average of the values in the network, each node will randomly chose another node in the network and share the values and then average.  This process is repeated until all the nodes in the network have the same value; which should be the average.  It was more practical in our experiments to not seek equality, but rather some $\epsilon$ of each other.  If a node is in a state where it doesn't seek other nodes and hears from a node with a different value it starts finding other nodes.  Our first model just transmits their value to the other node--kind of like bullying it.  The second model does a pair-wise value transmission.  Both projects quit seeking new numbers based on a dice roll after they find a node that matches another.  With the first project eventually everyone stops, but one node will remain seeking out other nodes.  This final node has to have a built-in timeout mechanism.  This timeout is necessary because eventually no one will ping the remaining node.  With pair-wise proper communication this extra time out is unnecessary.
 
-Presently, if you're in KnowDontTell and you get a hello from another value you respond with yours and do nothing.  I should change it so that if the values don't match you start seeking guys again.
-
-Add average table or chart; this experiment will examine error based on how quickly the rumor spreading stops versus the bandwidth utilized.
+Running several iterations of the models with varying behavior towards stopping provided interesting results.  Upon completion from a number of messages sent by each node; the nodes all were within 1.0 of each other.  This range allowed for us to set the $\epsilon$ to 1.0.  Within a reasonable number of iterations the nodes all converged.  Proving the number of steps for this was unimportant for our final and target project; Learning the Perfect Tic-Tac-Toe Strategy.
 
 \section{Learning the Perfect Tic-Tac-Toe Strategy}
 
@@ -182,13 +180,13 @@ The moves are random if there is no matching move in their set.
 
 \section{Future Work}
 
-In this system the nodes work together with gossip to reach a shared goal.  This approach that many nodes collectively and interactively work towards a shared goal can be applied to problems other than learning game strategies.  Further work can address how much interaction is required for certain systems to progress.  This approach can be applied to intelligent systems which process raw data to build analyzers.  The nodes can exchange these analyzers or processes with each other to build a better data processor.
+In this system the nodes work together with gossip to reach a shared goal.  This approach, wherein many nodes collectively and interactively work towards a shared goal can be applied to problems other than learning game strategies.  Further work can address how much interaction is required for certain systems to progress.  This approach can be applied to intelligent systems which process raw data to build analyzers.  The nodes can exchange these analyzers or processes with each other to build a better data processor.  A query can also be handled in a similar method whereby the nodes pass the query around as the rumor and contribute what they know of a response.
 
-Query processing of data spread across the nodes.  They can gossip the query and their answer to it.  Cumulatively.
+If the nodes are parsing large sets of text and building semantics and contexts for the contents, they can pass these around with the other nodes.  This improves the overall state of the parsers, as well as allows the work of building semantics to be distributed and shared among the nodes.
 
-Developing structures and information and sharing as they go with their neighbors; can help each other build more intelligent parsing, and contexts... Say, if they're parsing words.
+Systems can build up their own sketches or estimates of their status or data and then gossip this information in a similar fashion to the learning problem.  This would directly apply if the status of the node changed as the node's understanding of the data improved.
 
-Systems can build up their own things (sketches) of the system status and then gossip this information in a similar fashion to the learning problem.
+Building a Minimum Spanning Tree variation using gossip would require cost data  be included as well as knowledge of the node's parent.  The node would randomly interrogate other nodes on the network to determine if they would be a lower cost parent.  Provided there was a mechanism to avoid generating cycles; this implementation would be an interesting experiment using gossip.
 
 \begin{thebibliography}{10}
 \bibitem[Birm2007]{Birm2007}K. Birman, ``The promise, and limitations, of gossip protocols," \emph{ACM SIGOPS Oper. Syst. Rev.}, pp 8-13, 2007
