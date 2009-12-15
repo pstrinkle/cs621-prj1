@@ -12,11 +12,6 @@
 % This package is for the write-up for node code
 \usepackage{pseudocode}
 
-% This package is just for including code
-\usepackage{listings}
-\lstset{language=erlang}
-\lstset{numbers=left, numberstyle=\tiny, stepnumber=2, numbersep=5pt}
-
 \title{Learning the Perfect Strategy for Tic-Tac-Toe with Gossip}
 \author{Patrick Trinkle \& Mike Corbin\\
 Dept. of Computer Science and Electrical Engineering,\\
@@ -157,7 +152,7 @@ Modifying the strategies in this way promotes population growth by keeping moves
 There are two variables that modify the way this program runs.  The first is the number of nodes and the second is how many wins plus draws are needed before the process stop asking for additional games.  Both variables lead to more overall games the first by increasing the number of nodes playing, and the second by increasing the number of wins plus draws needed before stopping.
 
 % Not sure why it won't place the image across both columns
-\begin{figure*}[thp]
+\begin{figure*}[h]
 \centering
 \includegraphics[keepaspectratio=true,scale=0.85]{500nodes_winsdrawpergames.png}
 \caption{500 nodes}
