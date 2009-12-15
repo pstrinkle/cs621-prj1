@@ -34,7 +34,7 @@ Baltimore, MD, 21250\\
 
 The gossip protocol dictates that nodes on the network select other nodes in the network to share information.  The information shared is typically small and the sharing is not necessarily bidirectional.  A node may have information it wishes to send off to other nodes in the network; a rumor.  As each node in the network learns the rumor it then finds other nodes to tell.  At each step in the rumor-spreading, the state of one or both of the nodes changes.  Within $O(\lg N)$ steps all nodes should know the rumor.  There are many variations in the system which can determine the effectiveness of the gossip system.  These variables include: what a node does if it pings a node that already knows the rumor; what a node does if it has been waiting around--should it ask if there is a rumor; whether the node choices are random from the network or from a neighbor list \cite{Birm2007}.
 
-Erlang provides a stable distributed system and development environment.  Therefore it is a good choice for developing applications that utilize the gossip protocol.  However, it does have a limitation with the memory management system whereby all parameters to the recursive functions required are copied at each call{\bf \em{ Is this true?}}.  This downside makes Erlang a more suitable choice for rapid prototyping a system versus building a final program \cite{Erlang}.
+Erlang provides a stable distributed system and development environment.  Therefore it is a good choice for developing applications that utilize the gossip protocol.  However, it does have a limitation with the memory management system whereby it works much more efficiently when the parameters being passed are small.  This downside makes Erlang a more suitable choice for rapid prototyping a system versus building a final program \cite{Erlang}.
 
 \section{Background}
 
@@ -42,7 +42,7 @@ Gossip protocol systems do not strictly compute aggregate calculations, but can 
 
 \subsection{Erlang as a Distributed Environment}
 
-Erlang was developed by Ericsson for robust, real-time concurrent systems.  Interprocess communication is abstracted away into a rather simple system to aid development.  Also, because Erlang is a functional language all code is written to run recursively {\bf {\em Is this true?}}.  Parameters are copied at each function call in the recursion which makes it unsuitable for developing systems which require larger data structures {\bf {\em Is this true?}}.  Erlang provides a simple platform for developing concurrent code.  Each process is spawned to run a function, similarly to fork()ing processes in a standard system or spawning threads.  A running system supports code modules being recompiled and injected without stopping the system, which aids in real-time upgrades and debugging \cite{Erlang}.
+Erlang was developed by Ericsson for robust, real-time concurrent systems.  Interprocess communication is abstracted away into a rather simple system to aid development.  Also, because Erlang is a functional language all code is written to run recursively.  Erlang provides a simple platform for developing concurrent code.  Each process is spawned to run a function, similarly to fork()ing processes in a standard system or spawning threads.  A running system supports code modules being recompiled and injected without stopping the system, which aids in real-time upgrades and debugging \cite{Erlang}.
 
 \section{Early Experiments}
 
