@@ -21,7 +21,7 @@ import calendar
 #import glob
 import twitter
 
-sys.path.append( "tweetlib" )
+sys.path.append("tweetlib")
 import TweetXml
 
 def getRateStatus(api):

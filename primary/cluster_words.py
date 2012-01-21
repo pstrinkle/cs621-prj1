@@ -5,11 +5,7 @@ __author__ = 'tri1@umbc.edu'
 # Patrick Trinkle
 # Spring 2011
 #
-# This tries to build a word level histogram (sketch) for each
-# day's tweets.
-# OR
-# This tries to build a word level histogram (sketch) for each
-# hour's tweets.
+# This tries to cluster the tweets by topic.
 #
 # This opens the xml file holding the tweets, and builds a giant
 # tweet for each day, by appending the previous day's tweets.
@@ -20,7 +16,7 @@ __author__ = 'tri1@umbc.edu'
 import os
 import sys
 
-sys.path.append( "tweetlib" )
+sys.path.append("tweetlib")
 sys.path.append("modellib")
 import TweetClean
 import TweetDate

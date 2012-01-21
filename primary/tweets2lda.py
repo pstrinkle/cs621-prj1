@@ -18,7 +18,7 @@ __author__ = 'tri1@umbc.edu'
 
 import sys
 
-sys.path.append( "tweetlib" )
+sys.path.append("tweetlib")
 import TweetDate
 import TweetClean
 

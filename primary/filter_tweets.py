@@ -16,7 +16,7 @@ import sys
 import codecs
 import sqlite3
 
-sys.path.append( "tweetlib" )
+sys.path.append("tweetlib")
 import TweetDatabase as td
 
 # How many users we've printed.  It's a static (global. ugh) so we only have to

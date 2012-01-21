@@ -14,7 +14,7 @@ import os
 import sys
 import codecs
 
-sys.path.append( "tweetlib" )
+sys.path.append("tweetlib")
 import TweetDatabase as td
 
 def usage():

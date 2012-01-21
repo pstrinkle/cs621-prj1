@@ -20,8 +20,8 @@ __author__ = 'tri1@umbc.edu'
 import os
 import sys
 
-sys.path.append( "tweetlib" )
-sys.path.append( "modellib" )
+sys.path.append("tweetlib")
+sys.path.append("modellib")
 import TweetClean
 import TweetDate
 import VectorSpace

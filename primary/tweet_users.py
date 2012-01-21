@@ -17,7 +17,7 @@ import twitter
 import urllib2 # for the exception
 import httplib # for the exception
 
-sys.path.append( "tweetlib" )
+sys.path.append("tweetlib")
 import TweetXml
 
 def usage():

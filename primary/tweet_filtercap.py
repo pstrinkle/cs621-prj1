@@ -14,7 +14,7 @@ import codecs
 import socket
 import tweetstream
 
-sys.path.append( "tweetlib" )
+sys.path.append("tweetlib")
 import TweetXml as tx
 
 def usage():

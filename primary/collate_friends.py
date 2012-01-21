@@ -17,7 +17,7 @@ import glob
 import string
 import codecs
 
-sys.path.append( "tweetlib" )
+sys.path.append("tweetlib")
 import TweetXml
 
 def usage():

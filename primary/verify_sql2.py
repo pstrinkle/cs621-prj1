@@ -17,7 +17,7 @@ import codecs
 import sqlite3
 import datetime
 
-sys.path.append( "tweetlib" )
+sys.path.append("tweetlib")
 import TweetXml as tx
 import TweetDatabase as td
 
