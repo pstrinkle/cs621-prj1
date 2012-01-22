@@ -123,30 +123,16 @@ def main():
 	# docTermFreq    is the dictionary of term frequencies by date as integer
 	# docTfIdf       is similar to docTermFreq, but holds the tf-idf values
 
-	# Sort the lists by decreasing value and dump the information.
-	# TODO: Upgrade this to print the top 15-20 or so.
-	sorted_keys = docTfIdf.keys()
-	sorted_keys.sort()
-	print "token:weight"
-	for id in sorted_keys:
-		print str(id) + ":---"
-		sorted_tokens = [(v, k) for k, v in docTfIdf[id].items()]
-		sorted_tokens.sort()
-		sorted_tokens.reverse()
-		sorted_tokens = [(k, v) for v, k in sorted_tokens]
-		for k, v in sorted_tokens:
-			print k + ":" + str(v)
-
 	# Dump the matrix.
 	with open(sys.argv[2], "w") as f:
 		f.write(VectorSpace.dumpMatrix(docFreq, docTfIdf) + "\n")
 
 	# Computer cosine similarities between sequential days.
-	sorted_days = sorted(docTfIdf.keys())
+	sorted_docs = sorted(docTfIdf.keys())
 	with open(sys.argv[3], "w") as f:
-		for i in range(0, len(sorted_days) - 1):
-			f.write("similarity(%s, %s) = " % (str(sorted_days[i]), str(sorted_days[i+1])))
-			f.write(str(VectorSpace.cosineCompute(docTfIdf[sorted_days[i]], docTfIdf[sorted_days[i+1]])) + "\n")
+		for i in range(0, len(sorted_docs) - 1):
+			f.write("similarity(%s, %s) = " % (str(sorted_docs[i]), str(sorted_docs[i+1])))
+			f.write(str(VectorSpace.cosineCompute(docTfIdf[sorted_docs[i]], docTfIdf[sorted_docs[i+1]])) + "\n")
 
 	# ---------------------------------------------------------------------------
 	# Done.
