@@ -34,9 +34,10 @@ def build_matrix(inputString, invalids = ""):
   
   for i in range(len(words)-1):
     term = words[i] + "_" + words[i+1]
-    if term not in termMatrix:
-      termMatrix[term] = 0
-    termMatrix[term] += 1
+    try:
+      termMatrix[term] += 1
+    except KeyError:
+      termMatrix[term] = 1
   
   return termMatrix
 
@@ -52,8 +53,9 @@ def update_matrix(currentMatrix, updateMatrix):
   This should be used in tandem with build_matrix()
   """
   for k, v in updateMatrix.items():
-    if k not in currentMatrix:
-      currentMatrix[k] = 0
-    currentMatrix[k] += v
+    try:
+      currentMatrix[k] += v
+    except KeyError:
+      currentMatrix[k] = v
 
   return currentMatrix

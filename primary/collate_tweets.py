@@ -53,7 +53,7 @@ def main():
       with codecs.open(xml_file, "r", 'utf-8') as f:
         tweets = f.readlines()
         # strip off trailing new line characters
-        for i in range(len(tweets)):
+        for i in xrange(len(tweets)):
           tweets[i] = tweets[i].strip()
 
       users_tweets[user_id].addTweets(tweets)

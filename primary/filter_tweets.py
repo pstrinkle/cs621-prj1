@@ -41,6 +41,8 @@ def usage():
   print "\tif N is 0; it doesn't limit the output"
 
 def main():
+  #global output_sofar
+  # read-only doesn't require -- I think.
 
   # Did they provide the correct args?
   if len(sys.argv) < 5 or len(sys.argv) > 6:

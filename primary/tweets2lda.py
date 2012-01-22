@@ -26,7 +26,7 @@ def getIndx(vocab, term):
   """
   Given a vocabulary array and a term, return the index into the array; returns -1 if not present.
   """
-  for i in range(len(vocab)):
+  for i in xrange(len(vocab)):
     if term == vocab[i]:
       return i
 
