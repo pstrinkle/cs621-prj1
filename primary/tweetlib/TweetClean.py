@@ -10,6 +10,19 @@ __author__ = 'tri1@umbc.edu'
 
 import re
 
+def extract_id(tweet):
+  """
+  Given a line from my XML file of tweets, return a tuple (tweet_id, tweet_contents)
+  """
+  idRe = re.search('<id>"(.*?)"</id>', tweet)
+  textRe = re.search('<text>"(.*?)"</text>', tweet)
+  
+  if idRe == None or textRe == None:
+    print "you have a formatting error"
+    return None
+  
+  return (idRe.group(1), textRe.group(1))
+
 def extract(tweet):
   """
   Given a line from my XML file of tweets, return a tuple (date string, tweet contents)

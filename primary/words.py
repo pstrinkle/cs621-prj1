@@ -107,15 +107,17 @@ def main():
 			if len(w) > 1:
 				totalTermCount += 1
 				
-				if w not in docTermFreq[day]:
-					docTermFreq[day][w] = 0
-				docTermFreq[day][w] += 1
+				try:
+					docTermFreq[day][w] += 1
+				except KeyError:
+					docTermFreq[day][w] = 1
 
 		# Contribute to the document frequencies.
 		for w in docTermFreq[day]:
-			if w not in docFreq:
-				docFreq[w] = 0
-			docFreq[w] += 1
+			try:
+				docFreq[w] += 1
+			except KeyError:
+				docFreq[w] = 1
 
 	# ---------------------------------------------------------------------------
 	# Dump how many unique terms were identified by spacing splitting.
