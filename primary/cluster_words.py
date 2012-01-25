@@ -117,7 +117,7 @@ def main():
 
 	# Recap of everything we have stored.
 	# totalTermCount is the total count of all terms
-	# cleanTweets     is the dictionary of the tweets by id as string
+	# cleanTweets    is the dictionary of the tweets by id as string
 	# docFreq        is the dictionary of in how many documents the "word" appears
 	# invdocFreq     is the dictionary of the inverse document frequencies
 	# docTermFreq    is the dictionary of term frequencies by date as integer
