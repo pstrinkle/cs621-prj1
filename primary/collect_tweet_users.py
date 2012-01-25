@@ -27,59 +27,17 @@ def usage():
   print "       this software can only run 350 queries at a time, so it"
   print "       first walks the input file and collects their friends before it dives into the list."
 
-
-def getRateStatus(api):
-  """
-  Given an api object, call GetRateLimitStatus() and if it throws a "Capacity Error" 
-  continue calling until it doesn't, with a 2 second pause.  Any other exceptions are
-  passed up.
-  
-  Input: api := Twitter.api object
-  
-  Return: RateLimit dictionary.  See python-twitter docs.
-  """
-
-  success = 0
-  rate_status = None
-  
-  # while the API call fails for capacity error reasons:
-  while success == 0:
-    try:
-      rate_status = api.GetRateLimitStatus()
-      success = 1
-    except twitter.TwitterError, e:
-      if e.message == "Capacity Error":
-        print "capacity error on getRateStatus"
-        pass
-      else:
-        break
-    except urllib2.URLError, e:
-      print "exception: %s" % e.message
-    except httplib.BadStatusLine, e:
-      print "exception: %s" % e.message
-  
-  if rate_status == None:
-    sys.stderr.write("could not get api rate limit status!\n")
-    sys.exit(-1)
-  
-  return rate_status
-
 def main():
-
-  consumer_key = 'IoOS13WALONePQbVoq9ePQ'
-  consumer_secret = 'zjf2HsUqe6FHdwy81lX93BOuk8NFT9jGdBZTprAhY'
-  access_token_key = '187244615-s3gCVJNg9TZJPlIEW7yFKHYPXi2xf3lpQnv9uDNV'
-  access_token_secret = 'Hig5HYmDqv7j7cM4LxZExpXKcKfWs1Xb5sWRU24Bg5E'
 
   if len(sys.argv) != 4:
     usage()
     sys.exit(-1)
 
   api = twitter.Api(
-                    consumer_key=consumer_key,
-                    consumer_secret=consumer_secret,
-                    access_token_key=access_token_key,
-                    access_token_secret=access_token_secret)
+                    consumer_key=TweetRequest.consumer_key,
+                    consumer_secret=TweetRequest.consumer_secret,
+                    access_token_key=TweetRequest.access_token_key,
+                    access_token_secret=TweetRequest.access_token_secret)
 
   input_users = []
   new_users = []
@@ -106,7 +64,7 @@ def main():
       print user # this is basically a progress counter so I know where to kick it off next time.
       
       # Do we need to wait?
-      rate_status = getRateStatus(api)
+      rate_status = TweetRequest.getRateStatus(api)
       remains = rate_status['remaining_hits']
     
       if remains < 1:

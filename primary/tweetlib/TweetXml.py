@@ -25,6 +25,13 @@ invalid_chars = ('\x00', '\x01', '\x02', '\x03', '\x04',
 # I convert these characters to a single space character.
 space_chars = ('\n', '\r')
 
+# oldest_id is min(id), since_id is max(id)
+def output(current_id, oldest_id, since_id):
+  """
+  This is the same as the output function in filter_tweets.py
+  """
+  return "<id>%d</id><last_since_id>%d</last_since_id><oldest_id>%d</oldest_id>" % (current_id, since_id, oldest_id)
+
 def double_unescape(value):
   """
   SQL is all single-quotes, so I have to unescape the double quotes.

@@ -18,17 +18,7 @@ import sqlite3
 
 sys.path.append("tweetlib")
 import TweetDatabase as td
-
-# How many users we've printed.  It's a static (global. ugh) so we only have to
-# increment it in one spot.
-output_sofar = 0
-
-# oldest_id is min(id), since_id is max(id)
-def output(current_id, oldest_id, since_id):
-  global output_sofar
-  print "<id>%d</id><last_since_id>%d</last_since_id><oldest_id>%d</oldest_id>" %\
-    (current_id, since_id, oldest_id)
-  output_sofar += 1
+import TweetXml
 
 def usage():
   print "usage: %s <sqlite_db> <excludes_list> (-all N|-nf N|-nt N|-gt N|-mint N M|-maxt N M)" % sys.argv[0]
@@ -41,8 +31,6 @@ def usage():
   print "\tif N is 0; it doesn't limit the output"
 
 def main():
-  #global output_sofar
-  # read-only doesn't require -- I think.
 
   # Did they provide the correct args?
   if len(sys.argv) < 5 or len(sys.argv) > 6:
@@ -103,11 +91,14 @@ def main():
 
   # ---------------------------------------------------------------------------
   # Search the database file for certain things.
+  output_sofar = 0
+  
   for row in c.execute(query):
     if output_sofar > user_val and user_val != 0:
       break
     if row['owner'] not in excludes:
-      output(row['owner'], row['min(id)'], row['max(id)'])
+      print "%s" % TweetXml.output(row['owner'], row['min(id)'], row['max(id)'])
+      output_sofar += 1
 
   # ---------------------------------------------------------------------------
   # Done.

@@ -17,62 +17,15 @@ import time
 import calendar
 import twitter
 import codecs
-import urllib2 # for the exception
-import httplib # for the exception
 
 sys.path.append("tweetlib")
 import TweetXml
-
-class RequestTuple:
-  def __init__(self, user_id, since_id = 0, max_id = 0):
-    self.user_id = user_id
-    self.since_id = since_id
-    self.max_id = max_id
-    self.count = 0
-  
-  def __str__(self):
-    return str(self.user_id)
-
-def getRateStatus(api):
-  """
-  Given an api object, call GetRateLimitStatus() and if it throws a "Capacity Error" 
-  continue calling until it doesn't, with a 2 second pause.  Any other exceptions are
-  passed up.
-  
-  Input: api := Twitter.api object
-  
-  Return: RateLimit dictionary.  See python-twitter docs.
-  """
-
-  success = 0
-  rate_status = None
-  
-  # while the API call fails for capacity error reasons:
-  while success == 0:
-    try:
-      rate_status = api.GetRateLimitStatus()
-      success = 1
-    except twitter.TwitterError, e:
-      if e.message == "Capacity Error":
-        print "capacity error on getRateStatus"
-        pass
-      else:
-        break
-    except urllib2.URLError, e:
-      print "exception: %s" % e.message
-    except httplib.BadStatusLine, e:
-      print "exception: %s" % e.message
-  
-  if rate_status == None:
-    sys.stderr.write("could not get api rate limit status!\n")
-    sys.exit(-1)
-  
-  return rate_status
+import TweetRequest
 
 def usage():
   usageStr =\
   """
-  usage: %s -ts <users_input_filename> <output_folder> <error_log> <kill_file> <success_log>
+  usage: %s -ts <users_input_filename> <output_folder> <error_log> <kill_file> <success_log> <status_log>
   
       -ts := pull tweets
       users_input_filename := this is a file of the following format: "<id>id</id>..."
@@ -86,12 +39,7 @@ def usage():
 
 def main():
 
-  consumer_key = 'IoOS13WALONePQbVoq9ePQ'
-  consumer_secret = 'zjf2HsUqe6FHdwy81lX93BOuk8NFT9jGdBZTprAhY'
-  access_token_key = '187244615-s3gCVJNg9TZJPlIEW7yFKHYPXi2xf3lpQnv9uDNV'
-  access_token_secret = 'Hig5HYmDqv7j7cM4LxZExpXKcKfWs1Xb5sWRU24Bg5E'
-  
-  if len(sys.argv) != 7:
+  if len(sys.argv) != 8:
     usage()
     sys.exit(-1)
   
@@ -100,17 +48,11 @@ def main():
   # Looks like I need to update the library or figure out how to get to the oauth stuff from it;
   # I built my own application thing and have my own oauth stuff.
   #
-  # API key == IoOS13WALONePQbVoq9ePQ
-  # Consumer key == IoOS13WALONePQbVoq9ePQ
-  # Consumer secret == zjf2HsUqe6FHdwy81lX93BOuk8NFT9jGdBZTprAhY
-  # Your Twitter Access Token key: 187244615-s3gCVJNg9TZJPlIEW7yFKHYPXi2xf3lpQnv9uDNV
-  # Access Token secret: Hig5HYmDqv7j7cM4LxZExpXKcKfWs1Xb5sWRU24Bg5E
-  #
   api = twitter.Api(
-                    consumer_key=consumer_key,
-                    consumer_secret=consumer_secret,
-                    access_token_key=access_token_key,
-                    access_token_secret=access_token_secret)
+                    consumer_key=TweetRequest.consumer_key,
+                    consumer_secret=TweetRequest.consumer_secret,
+                    access_token_key=TweetRequest.access_token_key,
+                    access_token_secret=TweetRequest.access_token_secret)
 
   users = []
   
@@ -120,6 +62,7 @@ def main():
   file_errors = sys.argv[4]
   file_kill = sys.argv[5]
   file_fin = sys.argv[6]
+  file_sta = sys.argv[7]
   
   pull_statuses = 0
   pull_friends = 0
@@ -139,9 +82,9 @@ def main():
       onlyid = re.search("<id>(\d+?)</id>", i)
       if urs and urs.group(1) not in users:
         # the oldest_id is 0 to start with because we want to kick off with the since_id for this one.
-        users.append(RequestTuple(int(urs.group(1)), int(urs.group(2)), 0))
+        users.append(TweetRequest.RequestTuple(int(urs.group(1)), int(urs.group(2)), 0))
       elif onlyid and onlyid.group(1) not in users:
-        users.append(RequestTuple(int(onlyid.group(1))))
+        users.append(TweetRequest.RequestTuple(int(onlyid.group(1))))
   
   print "users to pull: %d" % len(users)
   
@@ -150,6 +93,9 @@ def main():
   
   # open success log:
   fin = open(file_fin, "w")
+  
+  # open status log:
+  sta = open(file_sta, "w")
 
   # ---------------------------------------------------------------------------
   # For each user in the users input file.
@@ -168,10 +114,14 @@ def main():
       # short-cut out!
       if os.path.exists(file_kill):
         print "prematurely killing"
+        print "dumping state"
+        # userid, oldest, since... this could backlog.
+        # not quite perfect yet... it can't yet pick up where it left off..
+        #sta.write("%s" % TweetXml.output(user.user_id, 0, user.since_id))
         break
     
       # Do we need to wait?
-      rate_status = getRateStatus(api)
+      rate_status = TweetRequest.getRateStatus(api)
       remains = rate_status['remaining_hits']
     
       if remains < 1:
@@ -253,6 +203,7 @@ def main():
 
   fin.close()
   err.close()
+  sta.close()
 
   # ---------------------------------------------------------------------------
   # Done.

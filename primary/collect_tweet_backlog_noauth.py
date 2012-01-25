@@ -22,52 +22,7 @@ import httplib # for the exception
 
 sys.path.append("tweetlib")
 import TweetXml
-
-class RequestTuple:
-  def __init__(self, user_id, since_id = 0, max_id = 0):
-    self.user_id = user_id
-    self.since_id = since_id
-    self.max_id = max_id
-    self.count = 0
-  
-  def __str__(self):
-    return str(self.user_id)
-
-def getRateStatus(api):
-  """
-  Given an api object, call GetRateLimitStatus() and if it throws a "Capacity Error" 
-  continue calling until it doesn't, with a 2 second pause.  Any other exceptions are
-  passed up.
-  
-  Input: api := Twitter.api object
-  
-  Return: RateLimit dictionary.  See python-twitter docs.
-  """
-
-  success = 0
-  rate_status = None
-  
-  # while the API call fails for capacity error reasons:
-  while success == 0:
-    try:
-      rate_status = api.GetRateLimitStatus()
-      success = 1
-    except twitter.TwitterError, e:
-      if e.message == "Capacity Error":
-        print "capacity error on getRateStatus"
-        pass
-      else:
-        break
-    except urllib2.URLError, e:
-      print "%s" % e.message
-    except httplib.BadStatusLine, e:
-      print "%s" % e.message
-  
-  if rate_status == None:
-    sys.stderr.write("could not get api rate limit status!\n")
-    sys.exit(-1)
-  
-  return rate_status
+import TweetRequest
 
 def usage():
   usageStr =\
@@ -94,12 +49,6 @@ def main():
   
   # Looks like I need to update the library or figure out how to get to the oauth stuff from it;
   # I built my own application thing and have my own oauth stuff.
-  #
-  # API key == IoOS13WALONePQbVoq9ePQ
-  # Consumer key == IoOS13WALONePQbVoq9ePQ
-  # Consumer secret == zjf2HsUqe6FHdwy81lX93BOuk8NFT9jGdBZTprAhY
-  # Your Twitter Access Token key: 187244615-s3gCVJNg9TZJPlIEW7yFKHYPXi2xf3lpQnv9uDNV
-  # Access Token secret: Hig5HYmDqv7j7cM4LxZExpXKcKfWs1Xb5sWRU24Bg5E
   #
   api = twitter.Api()
 
@@ -138,9 +87,9 @@ def main():
         # miss some.
         #
         # Ugh.  I need to get some work done on this.
-        users.append(RequestTuple(int(urs.group(1)), 0, int(urs.group(3))))
+        users.append(TweetRequest.RequestTuple(int(urs.group(1)), 0, int(urs.group(3))))
       elif onlyid and onlyid.group(1) not in users:
-        users.append(RequestTuple(int(onlyid.group(1))))
+        users.append(TweetRequest.RequestTuple(int(onlyid.group(1))))
   
   print "users to pull: %d" % len(users)
   
@@ -170,7 +119,7 @@ def main():
         break
     
       # Do we need to wait?
-      rate_status = getRateStatus(api)
+      rate_status = TweetRequest.getRateStatus(api)
       remains = rate_status['remaining_hits']
     
       if remains < 1:
