@@ -24,6 +24,7 @@ sys.path.append("modellib")
 import TweetClean
 import TweetDate
 import VectorSpace
+import Centroid
 
 def usage():
 	print "usage: %s <input file> <out:matrix file> <out:similarity file>" % sys.argv[0]

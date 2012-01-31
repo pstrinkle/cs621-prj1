@@ -116,8 +116,10 @@ def main():
         print "prematurely killing"
         print "dumping state"
         # userid, oldest, since... this could backlog.
-        # not quite perfect yet... it can't yet pick up where it left off..
-        #sta.write("%s" % TweetXml.output(user.user_id, 0, user.since_id))
+        # not quite perfect yet... it can't yet pick up where it left off...
+        # so feed this to collect_tweet_backlog.py
+        # NOT VERIFIED TO REALLY DO WHAT I WANT.
+        sta.write("%s" % TweetXml.output(user.user_id, 0, user.since_id))
         break
     
       # Do we need to wait?
