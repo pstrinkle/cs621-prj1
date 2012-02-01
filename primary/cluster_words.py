@@ -153,17 +153,6 @@ def main():
   # invdocFreq     is the dictionary of the inverse document frequencies
   # docTermFreq    is the dictionary of term frequencies by date as integer
   # docTfIdf       is similar to docTermFreq, but holds the tf-idf values
-  
-  sorted_tokens = [(v, k) for k, v in docTfIdf.items()]
-  sorted_tokens.sort()
-  sorted_tokens.reverse()
-  sorted_tokens = [(k, v) for v, k in sorted_tokens]
-  i = 0
-  for tok in sorted_tokens:
-    print tok
-    i += 1
-    
-  sys.exit(0)
 
   # ---------------------------------------------------------------------------
   # Build Centroid List

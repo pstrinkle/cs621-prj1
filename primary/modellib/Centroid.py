@@ -37,8 +37,10 @@ def topTerms(a, n):
   sorted_tokens.reverse()
   sorted_tokens = [(k, v) for v, k in sorted_tokens]
   
+  print "len(sorted_tokens): %d" % len(sorted_tokens)
+  
   # count to index
-  to_print = min(n, len(sorted_tokens)) - 1
+  to_print = min(n, len(sorted_tokens))
   top_terms = []
   
   print "to_print: %d" % to_print

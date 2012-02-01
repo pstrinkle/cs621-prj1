@@ -38,7 +38,7 @@ def extract(tweet):
   
   return (createdRe.group(1), textRe.group(1))
 
-def cleanup(tweet, lowercase = True):
+def cleanup(tweet, lowercase = True, to_ascii = False):
   """
   Clean up the string in all the pretty ways.
   
@@ -46,12 +46,17 @@ def cleanup(tweet, lowercase = True):
                   and let python handle the stuff... but that may not work if I leave the English
                   base.
          lowercase := defaults to True, would you like the tweet moved entirely into lowercase?
+         
+         to_ascii := defaults to False, would you like only the valid ascii characters used?
   
   Output: Cleaned tweet string.
   
   This currently removes any @username mentions, extraneous newlines, parentheses, and most if not all
   punctuation.  It does leave in apostrophies.
   """
+  
+  if to_ascii:
+    tweet = tweet.encode('ascii', 'ignore')
   
   newTweet = tweet.replace("\n", ' ')     # newline character
   newTweet = newTweet.replace(r"\n", ' ') # newline string (yes, there are those)
