@@ -28,6 +28,26 @@ def similarity(a, b):
 
     return float(dotproduct / (lengthA * lengthB))
 
+def topTerms(a, n):
+  """
+  Returns the n-highest tf-idf terms in the vector.
+  """
+  sorted_tokens = [(v, k) for k, v in a.centroidVector.items()]
+  sorted_tokens.sort()
+  sorted_tokens.reverse()
+  sorted_tokens = [(k, v) for v, k in sorted_tokens]
+  
+  # count to index
+  to_print = min(n, len(sorted_tokens)) - 1
+  top_terms = []
+  
+  print "to_print: %d" % to_print
+  
+  for i in xrange(0, to_print):
+    top_terms.append(sorted_tokens[i])
+
+  return top_terms
+
 class Centroid:
   """
   This data structure represents an average of documents in a vector space.

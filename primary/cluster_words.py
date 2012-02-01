@@ -27,7 +27,26 @@ import VectorSpace
 import Centroid
 
 def usage():
-	print "usage: %s <input file>" % sys.argv[0]
+	"""
+	Standard usage method.
+	"""
+	print "usage: %s <tweet file> <stopwords file>" % sys.argv[0]
+
+def findAvg(centroids):
+	"""
+	Given a list of Centroids, compute the similarity of each pairing and return the
+	average.
+	"""
+	total_sim = 0.0
+	total_comparisons = 0
+
+	for i in xrange(0, len(centroids) - 1):
+		for j in xrange(0, len(centroids) - 1):
+			if i != j: 
+				total_sim += Centroid.similarity(centroids[i], centroids[j])
+				total_comparisons += 1
+
+	return (total_sim / total_comparisons)
 
 def findMax(centroids):
 	"""
@@ -61,13 +80,17 @@ def main():
 	docTfIdf = {}      # similar to docTermFreq, but holds the tf-idf values
 
 	# Did they provide the correct args?
-	if len(sys.argv) != 2:
+	if len(sys.argv) != 3:
 		usage()
 		sys.exit(-1)
 
 	# Pull lines
 	with open(sys.argv[1], "r") as f:
 		tweets = f.readlines()
+
+	# Pull stop words
+	with open(sys.argv[2], "r") as f:
+		stopwords = f.readlines()
 
 	# ---------------------------------------------------------------------------
 	# Process tweets
@@ -80,25 +103,24 @@ def main():
 		# entry.
 		info = TweetClean.extract_id(i)
 		if info == None:
+			sys.stderr.write("Invalid tweet hit\n")
 			sys.exit(-1)
 
-		# Do some cleanup
 		# Add this tweet to the collection of clean ones.
 		cleanTweets[info[0]] = TweetClean.cleanup(info[1])
 
 	# ---------------------------------------------------------------------------
 	# Process the collected tweets
-	#print "tweet days: %d" % len(cleanTweets)
 	for id in cleanTweets.keys():
 		docTermFreq[id] = {} # Prepare the dictionary for that document.
-		
+
 		# Calculate Term Frequencies for this id/document.
 		# Skip 1 letter words.
 		words = cleanTweets[id].split(' ')
 		for w in words:
 			if len(w) > 1:
 				totalTermCount += 1
-				
+
 				try:
 					docTermFreq[id][w] += 1
 				except KeyError:
@@ -113,16 +135,13 @@ def main():
 
 	# ---------------------------------------------------------------------------
 	# Dump how many unique terms were identified by spacing splitting.
-	# Dump how many days of tweets we collected.
-	# For each id of tweets, dump how many unique terms were identified by space splitting.
-	#
 	print "Total Count of Terms: %d" % totalTermCount
 	print "Unique Terms: %d" % len(docFreq)           # this is how many unique terms
 	print "How many Documents: %d" % len(docTermFreq) # this is how many days
-	
+
 	# Calculate the inverse document frequencies.
 	invdocFreq = VectorSpace.calculate_invdf(len(docTermFreq), docFreq)
-	
+
 	# Calculate the tf-idf values.
 	docTfIdf = VectorSpace.calculate_tfidf(totalTermCount, docTermFreq, invdocFreq)
 
@@ -138,18 +157,20 @@ def main():
 	# ---------------------------------------------------------------------------
 	# Build Centroid List
 	centroids = []
-	
+
 	for doc, vec in docTfIdf.iteritems():
 		centroids.append(Centroid.Centroid(str(doc), vec))
-	
+
+	average_sim = findAvg(centroids)
+
 	# ---------------------------------------------------------------------------
 	# Merge centroids by highest similarity of at least threshold	
-	threshold = 0.025
+	threshold = average_sim
 	deleted = False
 
 	while len(centroids) > 1:
 		i, j, sim = findMax(centroids)
-		
+
 		if sim >= threshold:
 			centroids[i].addVector(centroids[j].name, centroids[j].vectorCnt, centroids[j].centroidVector)
 			del centroids[j]
@@ -158,6 +179,9 @@ def main():
 			break
 
 	print "len(centroids): %d" % len(centroids)
+	print "avg(centroids): %.10f" % average_sim
+	
+	print Centroid.topTerms(centroids[0], 10)
 
 	# ---------------------------------------------------------------------------
 	# Done.
