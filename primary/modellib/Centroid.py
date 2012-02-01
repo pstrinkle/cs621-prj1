@@ -10,6 +10,24 @@ __author__ = 'tri1@umbc.edu'
 
 import math
 
+def similarity(a, b):
+    """
+    Compute dot product of vectors A & B
+    """
+    vectorA = a.centroidVector
+    vectorB = b.centroidVector
+    
+    lengthA = a.length
+    lengthB = b.length
+    
+    dotproduct = 0.0
+
+    for key, value in vectorA.iteritems():
+      if key in vectorB: # if both vectors have the key
+        dotproduct += (value * vectorB[key])
+
+    return float(dotproduct / (lengthA * lengthB))
+
 class Centroid:
   """
   This data structure represents an average of documents in a vector space.
@@ -17,23 +35,24 @@ class Centroid:
   Amusingly, modeled directly after a C# class I wrote for a class I took.
   """
   
-  def __init__(self, name):
+  def __init__(self, name, dv):
     """
     Representation of a document(s) as a tf-idf vector.
     
     name the name for it.
     """
-    self.name = name
+    self.name = "" # it's added below
     self.vectorCnt = 0
     self.centroidVector = {}
     self.length = 0.00
+    self.addVector(name, 1, dv)
     
 
   def __len__(self):
     """
     Get the length of it!
     """
-    return len(self.vector)
+    return len(self.centroidVector)
 
   def addVector(self, docName, addCnt, newDocVec):
     """
@@ -56,7 +75,7 @@ class Centroid:
       self.name += ", %s" % docName
     
     # calculate new centroid
-    centroidTerms = list(this.centroidVector.keys())
+    centroidTerms = list(self.centroidVector.keys())
     
     # reduce weight of values already in vector
     for key in centroidTerms:
@@ -67,25 +86,22 @@ class Centroid:
         self.centroidVector[key] = oldValue + newValue
         
         # so when we go through to add in all the missing ones we won't have excess
-        newDocVec.remove(key)
+        del newDocVec[key]
       else: # if it is strictly in the old vector
         oldValue = float(self.centroidVector[key]) * oldWeight
         self.centroidVector[key] = oldValue
     
     # add new values to vector
-    for key, value in newDocVec:
+    for key, value in newDocVec.iteritems():
       # we don't so we'll have to create a new value with the weight of the added vector
-      newValue = value * newWeight
-      self.centroidVector.add(key, newValue)
+      self.centroidVector[key] = float(value) * newWeight
 
     self.vectorCnt += addCnt
     self.length = 0
     
     # calculate magnitude
-    for key, value in self.centoidVector:
+    for key, value in self.centroidVector.iteritems():
       self.length += (value * value)
     
     self.length = math.sqrt(self.length)
-
-    
     

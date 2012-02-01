@@ -50,7 +50,7 @@ def main():
 	with open(sys.argv[1], "r") as f:
 		tweets = f.readlines()
 
-	print "tweets: %d" % len(tweets)
+	#print "tweets: %d" % len(tweets)
 
 	# ---------------------------------------------------------------------------
 	# Process tweets
@@ -74,7 +74,7 @@ def main():
 
 	# ---------------------------------------------------------------------------
 	# Process the collected tweets
-	print "tweet days: %d" % len(cleanTweets)
+	#print "tweet days: %d" % len(cleanTweets)
 	for id in cleanTweets.keys():
 		docTermFreq[id] = {} # Prepare the dictionary for that document.
 		
@@ -102,12 +102,12 @@ def main():
 	# Dump how many days of tweets we collected.
 	# For each id of tweets, dump how many unique terms were identified by space splitting.
 	#
-	print "sizeof documents: %d" % totalTermCount
-	print "sizeof docFreq: %d" % len(docFreq)         # this is how many unique terms
-	print "sizeof docTermFreq: %d" % len(docTermFreq) # this is how many days
+	print "Total Count of Terms: %d" % totalTermCount
+	print "Unique Terms: %d" % len(docFreq)           # this is how many unique terms
+	print "How many Documents: %d" % len(docTermFreq) # this is how many days
 
-	for id in docTermFreq:
-		print "sizeof docTermFreq[%s]: %d" % (str(id), len(docTermFreq[id])) # this is how many unique terms were in that id
+	#for id in docTermFreq:
+		#print "sizeof docTermFreq[%s]: %d" % (str(id), len(docTermFreq[id])) # this is how many unique terms were in that id
 		#print docTermFreq[id]
 	
 	# Calculate the inverse document frequencies.
@@ -124,9 +124,52 @@ def main():
 	# docTermFreq    is the dictionary of term frequencies by date as integer
 	# docTfIdf       is similar to docTermFreq, but holds the tf-idf values
 
+	# Build Centroid List
+	centroids = []
+	
+	for doc, vec in docTfIdf.iteritems():
+		#print doc
+		centroids.append(Centroid.Centroid(str(doc), vec))
+	
+	print "sizeof(centroids): %d" % len(centroids)
+	for cen in centroids:
+		if cen.name not in docTfIdf:
+			print "bad"
+
+	# Compute all similarities
+	max_sim = 0.0
+	max_nameA = ""
+	max_nameB = ""
+	max_i = 0
+	max_j = 0
+	
+	for i in xrange(0, len(centroids) - 1):
+		for j in xrange(0, len(centroids) - 1):
+			if i != j:
+				curr_sim = Centroid.similarity(centroids[i], centroids[j])
+				if curr_sim > max_sim:
+					max_sim = curr_sim
+					max_nameA = centroids[i].name
+					max_nameB = centroids[j].name
+					max_i = i
+					max_j = j
+				print "similarity %f" % curr_sim
+	
+	print "%f" % max_sim
+	print "%s (%d) v %s (%d)" % (max_nameA, max_i, max_nameB, max_j)
+	print "%s" % cleanTweets[max_nameA]
+	print "%s" % cleanTweets[max_nameB]
+
+	print "i: %f" % centroids[max_i].length
+	print "j: %f" % centroids[max_j].length
+
+	centroids[max_i].addVector(centroids[max_j].name, 1, centroids[max_j].centroidVector)
+	
+	print "merged: %f" % centroids[max_i].length
+
 	# Dump the matrix.
-	with open(sys.argv[2], "w") as f:
-		f.write(VectorSpace.dumpMatrix(docFreq, docTfIdf) + "\n")
+	#with open(sys.argv[2], "w") as f:
+		#f.write(VectorSpace.dumpMatrix(docFreq, docTfIdf) + "\n")
 
 	# Computer cosine similarities between sequential days.
 	sorted_docs = sorted(docTfIdf.keys())
