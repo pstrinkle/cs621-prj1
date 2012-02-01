@@ -19,6 +19,7 @@ __author__ = 'tri1@umbc.edu'
 import os
 import sys
 import codecs
+import numpy
 
 sys.path.append("tweetlib")
 sys.path.append("modellib")
@@ -33,6 +34,20 @@ def usage():
   """
   print "usage: %s <tweet file> <stopwords file>" % sys.argv[0]
 
+def findStd(centroids):
+  """
+  Given a list of Centroids, computer the standard deviation of the similarities.
+  """
+  
+  sims = []
+  
+  for i in xrange(0, len(centroids)):
+    for j in xrange(0, len(centroids)):
+      if i != j:
+        sims.append(Centroid.similarity(centroids[i], centroids[j]))
+  
+  return numpy.std(sims)
+
 def findAvg(centroids):
   """
   Given a list of Centroids, compute the similarity of each pairing and return the
@@ -43,7 +58,7 @@ def findAvg(centroids):
 
   for i in xrange(0, len(centroids)):
     for j in xrange(0, len(centroids)):
-      if i != j: 
+      if i != j:
         total_sim += Centroid.similarity(centroids[i], centroids[j])
         total_comparisons += 1
 
@@ -133,7 +148,7 @@ def main():
         pruned.append(w)
 
     if len(pruned) < 2:
-      print "skipping %s" % id
+      #print "skipping %s" % id
       continue
 
     docTermFreq[id] = {} # Prepare the dictionary for that document.
@@ -183,10 +198,13 @@ def main():
     centroids.append(Centroid.Centroid(str(doc), vec))
 
   average_sim = findAvg(centroids)
+  stddev_sim = findStd(centroids)
+  
+  print "mean: %.10f\tstd: %.10f" % (average_sim, stddev_sim)
   
   # ---------------------------------------------------------------------------
   # Merge centroids by highest similarity of at least threshold  
-  threshold = average_sim
+  threshold = stddev_sim
 
   while len(centroids) > 1:
     i, j, sim = findMax(centroids)
@@ -200,6 +218,7 @@ def main():
 
   print "len(centroids): %d" % len(centroids)
   print "avg(centroids): %.10f" % average_sim
+  print "std(centroids): %.10f" % stddev_sim
   
   for cen in centroids:
     print Centroid.topTerms(cen, 10)
