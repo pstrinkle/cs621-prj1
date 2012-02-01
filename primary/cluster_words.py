@@ -27,7 +27,7 @@ import VectorSpace
 import Centroid
 
 def usage():
-	print "usage: %s <input file> <out:matrix file> <out:similarity file>" % sys.argv[0]
+	print "usage: %s <input file>" % sys.argv[0]
 
 def main():
 	# Weirdly in Python, you have free access to globals from within main().
@@ -42,7 +42,7 @@ def main():
 	docTfIdf = {}      # similar to docTermFreq, but holds the tf-idf values
 
 	# Did they provide the correct args?
-	if len(sys.argv) != 4:
+	if len(sys.argv) != 2:
 		usage()
 		sys.exit(-1)
 
@@ -116,6 +116,7 @@ def main():
 	# Calculate the tf-idf values.
 	docTfIdf = VectorSpace.calculate_tfidf(totalTermCount, docTermFreq, invdocFreq)
 
+	# ---------------------------------------------------------------------------
 	# Recap of everything we have stored.
 	# totalTermCount is the total count of all terms
 	# cleanTweets    is the dictionary of the tweets by id as string
@@ -128,55 +129,74 @@ def main():
 	centroids = []
 	
 	for doc, vec in docTfIdf.iteritems():
-		#print doc
 		centroids.append(Centroid.Centroid(str(doc), vec))
 	
-	print "sizeof(centroids): %d" % len(centroids)
-	for cen in centroids:
-		if cen.name not in docTfIdf:
-			print "bad"
+	#print "sizeof(centroids): %d" % len(centroids)
+	#for cen in centroids:
+		#if cen.name not in docTfIdf:
+			#print "bad"
+	
+	threshold = 0.025
+	deleted = False
 
+	# Not 100% satisfied with this method.  I should search for the maximum similarity
+	# and then repeat this process, as my c# program does.
+	while len(centroids) > 1:
+		print "while!"
+		# did we fully loop?
+		if i == (len(centroids) - 1) and j == (len(centroids) - 1):
+			break
+		
+		deleted = False
+		
+		for i in xrange(0, len(centroids) - 1):
+			for j in xrange(0, len(centroids) - 1):
+				if i != j:
+					curr_sim = Centroid.similarity(centroids[i], centroids[j])
+					print "curr_sim: %f" % curr_sim
+					if curr_sim >= threshold:
+						print "above threshold merger, %s, %s" % (centroids[i].name, centroids[j].name)
+						centroids[i].addVector(centroids[j].name, centroids[j].vectorCnt, centroids[j].centroidVector)
+						del centroids[j]
+						deleted = True
+						break
+					else:
+						print "not above"
+			if deleted: # if inner loop deleted, then try again from outer loop.
+				print "should break to while"
+				break
+
+
+	# ---------------------------------------------------------------------------
+	# - Disabled code start -- just finds closest tweet and merges.
 	# Compute all similarities
-	max_sim = 0.0
-	max_nameA = ""
-	max_nameB = ""
-	max_i = 0
-	max_j = 0
+	#max_sim = 0.0
+	#max_nameA = ""
+	#max_nameB = ""
+	#max_i = 0
+	#max_j = 0
+
+	#for i in xrange(0, len(centroids) - 1):
+		#for j in xrange(0, len(centroids) - 1):
+			#if i != j:
+				#curr_sim = Centroid.similarity(centroids[i], centroids[j])
+				#if curr_sim > max_sim:
+					#max_sim = curr_sim
+					#max_nameA = centroids[i].name
+					#max_nameB = centroids[j].name
+					#max_i = i
+					#max_j = j
+				#print "similarity %f" % curr_sim
 	
-	for i in xrange(0, len(centroids) - 1):
-		for j in xrange(0, len(centroids) - 1):
-			if i != j:
-				curr_sim = Centroid.similarity(centroids[i], centroids[j])
-				if curr_sim > max_sim:
-					max_sim = curr_sim
-					max_nameA = centroids[i].name
-					max_nameB = centroids[j].name
-					max_i = i
-					max_j = j
-				print "similarity %f" % curr_sim
+	#print "%f\n%s (%d) v %s (%d)" % (max_sim, max_nameA, max_i, max_nameB, max_j)
+	#print "'%s' -- '%s'" % (cleanTweets[max_nameA], cleanTweets[max_nameB])
+	#print "i: %f\nj: %f" % (centroids[max_i].length, centroids[max_j].length)
+
+	#centroids[max_i].addVector(centroids[max_j].name, 1, centroids[max_j].centroidVector)
+	#del centroids[max_j]
 	
-	print "%f" % max_sim
-	print "%s (%d) v %s (%d)" % (max_nameA, max_i, max_nameB, max_j)
-	print "%s" % cleanTweets[max_nameA]
-	print "%s" % cleanTweets[max_nameB]
-
-	print "i: %f" % centroids[max_i].length
-	print "j: %f" % centroids[max_j].length
-
-	centroids[max_i].addVector(centroids[max_j].name, 1, centroids[max_j].centroidVector)
-	
-	print "merged: %f" % centroids[max_i].length
-
-	# Dump the matrix.
-	#with open(sys.argv[2], "w") as f:
-		#f.write(VectorSpace.dumpMatrix(docFreq, docTfIdf) + "\n")
-
-	# Computer cosine similarities between sequential days.
-	sorted_docs = sorted(docTfIdf.keys())
-	with open(sys.argv[3], "w") as f:
-		for i in xrange(0, len(sorted_docs) - 1):
-			f.write("similarity(%s, %s) = " % (str(sorted_docs[i]), str(sorted_docs[i+1])))
-			f.write(str(VectorSpace.cosineCompute(docTfIdf[sorted_docs[i]], docTfIdf[sorted_docs[i+1]])) + "\n")
+	#print "merged: %f\nmerged: '%s'" % (centroids[max_i].length, centroids[max_i].name)
+	# - End Disabled code region.
 
 	# ---------------------------------------------------------------------------
 	# Done.
