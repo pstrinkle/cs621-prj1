@@ -30,6 +30,7 @@ def main():
 
   input_files = []
   
+  # starts at one... so we need to take it out of the upper limit?
   for i in range(1, len(sys.argv)-1):
     input_files.append(sys.argv[i])
   

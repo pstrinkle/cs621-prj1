@@ -26,6 +26,10 @@ def similarity(a, b):
       if key in vectorB: # if both vectors have the key
         dotproduct += (value * vectorB[key])
 
+    #print "a: %.10f\tb: %.10f" % (lengthA, lengthB)
+    #print "b: %s" % b.centroidVector
+    #print "b: %s" % b.name
+
     return float(dotproduct / (lengthA * lengthB))
 
 def topTerms(a, n):
@@ -42,8 +46,6 @@ def topTerms(a, n):
   # count to index
   to_print = min(n, len(sorted_tokens))
   top_terms = []
-  
-  print "to_print: %d" % to_print
   
   for i in xrange(0, to_print):
     top_terms.append(sorted_tokens[i])

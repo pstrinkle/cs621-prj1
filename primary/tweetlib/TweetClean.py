@@ -48,6 +48,8 @@ def cleanup(tweet, lowercase = True, to_ascii = False):
          lowercase := defaults to True, would you like the tweet moved entirely into lowercase?
          
          to_ascii := defaults to False, would you like only the valid ascii characters used?
+         
+         Only set to_ascii as true if you read the file in with codecs.open()!
   
   Output: Cleaned tweet string.
   
@@ -56,7 +58,7 @@ def cleanup(tweet, lowercase = True, to_ascii = False):
   """
   
   if to_ascii:
-    tweet = tweet.encode('ascii', 'ignore')
+    tweet = tweet.encode('ascii', errors='ignore')
   
   newTweet = tweet.replace("\n", ' ')     # newline character
   newTweet = newTweet.replace(r"\n", ' ') # newline string (yes, there are those)

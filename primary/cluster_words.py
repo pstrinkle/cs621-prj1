@@ -18,6 +18,7 @@ __author__ = 'tri1@umbc.edu'
 
 import os
 import sys
+import codecs
 
 sys.path.append("tweetlib")
 sys.path.append("modellib")
@@ -40,8 +41,8 @@ def findAvg(centroids):
   total_sim = 0.0
   total_comparisons = 0
 
-  for i in xrange(0, len(centroids) - 1):
-    for j in xrange(0, len(centroids) - 1):
+  for i in xrange(0, len(centroids)):
+    for j in xrange(0, len(centroids)):
       if i != j: 
         total_sim += Centroid.similarity(centroids[i], centroids[j])
         total_comparisons += 1
@@ -58,8 +59,8 @@ def findMax(centroids):
   max_i = 0
   max_j = 0
 
-  for i in xrange(0, len(centroids) - 1):
-    for j in xrange(0, len(centroids) - 1):
+  for i in xrange(0, len(centroids)):
+    for j in xrange(0, len(centroids)):
       if i != j:
         curr_sim = Centroid.similarity(centroids[i], centroids[j])
         if curr_sim > max_sim:
@@ -85,12 +86,16 @@ def main():
     sys.exit(-1)
 
   # Pull lines
-  with open(sys.argv[1], "r") as f:
+  with codecs.open(sys.argv[1], "r", 'utf-8') as f:
     tweets = f.readlines()
 
   # Pull stop words
   with open(sys.argv[2], "r") as f:
     stopwords = f.readlines()
+
+  # clean them up!
+  for i in xrange(0, len(stopwords)):
+    stopwords[i] = stopwords[i].strip()
 
   # ---------------------------------------------------------------------------
   # Process tweets
@@ -106,19 +111,35 @@ def main():
       sys.stderr.write("Invalid tweet hit\n")
       sys.exit(-1)
 
+    if len(info[1]) < 3:
+      print info[1]
+      sys.exit(0)
+
     # Add this tweet to the collection of clean ones.
-    cleanTweets[info[0]] = TweetClean.cleanup(info[1])
+    cleanTweets[info[0]] = TweetClean.cleanup(info[1], True, True)
 
   # ---------------------------------------------------------------------------
   # Process the collected tweets
   for id in cleanTweets.keys():
-    docTermFreq[id] = {} # Prepare the dictionary for that document.
-
     # Calculate Term Frequencies for this id/document.
     # Skip 1 letter words.
     words = cleanTweets[id].split(' ')
+
+    # let's make a short list of the words we'll accept.
+    pruned = []
+
     for w in words:
-      if len(w) > 1:
+      if len(w) > 1 and w not in stopwords:
+        pruned.append(w)
+
+    if len(pruned) < 2:
+      print "skipping %s" % id
+      continue
+
+    docTermFreq[id] = {} # Prepare the dictionary for that document.
+    
+    for w in pruned:
+      if len(w) > 1 and w not in stopwords:
         totalTermCount += 1
 
         try:

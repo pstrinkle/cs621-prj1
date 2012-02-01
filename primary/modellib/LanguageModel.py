@@ -32,7 +32,8 @@ def build_matrix(inputString, invalids = ""):
     if word in invalids:
       words.remove(word)
   
-  for i in range(len(words)-1):
+  # -1 here because we extend each step by +1
+  for i in xrange(0, len(words)-1):
     term = words[i] + "_" + words[i+1]
     try:
       termMatrix[term] += 1

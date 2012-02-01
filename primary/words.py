@@ -167,6 +167,7 @@ def main():
   # Computer cosine similarities between sequential days.
   sorted_days = sorted(docTfIdf.keys())
   with open(sys.argv[4], "w") as f:
+    # -1 because each goes +1
     for i in xrange(0, len(sorted_days) - 1):
       f.write("similarity(%s, %s) = " % (str(sorted_days[i]), str(sorted_days[i+1])))
       f.write(str(VectorSpace.cosineCompute(docTfIdf[sorted_days[i]], docTfIdf[sorted_days[i+1]])) + "\n")
