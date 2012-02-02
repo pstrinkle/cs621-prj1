@@ -25,6 +25,7 @@ anywhere
 are
 area
 areas
+arent
 around
 as
 ask
@@ -59,6 +60,7 @@ by
 c
 came
 can
+cant
 cannot
 case
 cases
@@ -76,6 +78,7 @@ differently
 do
 does
 done
+dont
 down
 down
 downed
@@ -161,6 +164,7 @@ how
 however
 i
 if
+im
 important
 in
 interest
@@ -172,6 +176,7 @@ is
 it
 its
 itself
+ive
 j
 just
 k
@@ -341,6 +346,7 @@ take
 taken
 than
 that
+thats
 the
 their
 them

@@ -36,7 +36,8 @@ def usage():
 
 def findStd(centroids):
   """
-  Given a list of Centroids, computer the standard deviation of the similarities.
+  Given a list of Centroids, computer the standard deviation of the 
+  similarities.
   """
   
   sims = []
@@ -50,8 +51,8 @@ def findStd(centroids):
 
 def findAvg(centroids):
   """
-  Given a list of Centroids, compute the similarity of each pairing and return the
-  average.
+  Given a list of Centroids, compute the similarity of each pairing and return 
+  the average.
   """
   total_sim = 0.0
   total_comparisons = 0
@@ -66,9 +67,9 @@ def findAvg(centroids):
 
 def findMax(centroids):
   """
-  Given a list of Centroids, compute the similarity of each pairing and return the
-  pair with the highest similarity, and their similarity score--so i don't have to 
-  re-compute.
+  Given a list of Centroids, compute the similarity of each pairing and return 
+  the pair with the highest similarity, and their similarity score--so i don't 
+  have to re-compute.
   """
   max_sim = 0.0
   max_i = 0
@@ -126,10 +127,6 @@ def main():
       sys.stderr.write("Invalid tweet hit\n")
       sys.exit(-1)
 
-    if len(info[1]) < 3:
-      print info[1]
-      sys.exit(0)
-
     # Add this tweet to the collection of clean ones.
     cleanTweets[info[0]] = TweetClean.cleanup(info[1], True, True)
 
@@ -154,13 +151,12 @@ def main():
     docTermFreq[id] = {} # Prepare the dictionary for that document.
     
     for w in pruned:
-      if len(w) > 1 and w not in stopwords:
-        totalTermCount += 1
+      totalTermCount += 1
 
-        try:
-          docTermFreq[id][w] += 1
-        except KeyError:
-          docTermFreq[id][w] = 1
+      try:
+        docTermFreq[id][w] += 1
+      except KeyError:
+        docTermFreq[id][w] = 1
 
     # Contribute to the document frequencies.
     for w in docTermFreq[id]:
@@ -172,8 +168,8 @@ def main():
   # ---------------------------------------------------------------------------
   # Dump how many unique terms were identified by spacing splitting.
   print "Total Count of Terms: %d" % totalTermCount
-  print "Unique Terms: %d" % len(docFreq)           # this is how many unique terms
-  print "How many Documents: %d" % len(docTermFreq) # this is how many days
+  print "Unique Terms: %d" % len(docFreq)
+  print "How many Documents: %d" % len(docTermFreq)
 
   # Calculate the inverse document frequencies.
   invdocFreq = VectorSpace.calculate_invdf(len(docTermFreq), docFreq)
@@ -193,10 +189,19 @@ def main():
   # ---------------------------------------------------------------------------
   # Build Centroid List
   centroids = []
+  #terms = [] # <-- temp
 
   for doc, vec in docTfIdf.iteritems():
     centroids.append(Centroid.Centroid(str(doc), vec))
+    
+    #x = Centroid.Centroid(str(doc), vec)
+    #terms.extend(Centroid.topTerms(x, 10))
 
+  #with open("out.txt", 'w') as f:
+    #for t in terms:
+      #f.write("%s\n" % t[0])
+
+  #sys.exit(0)
   average_sim = findAvg(centroids)
   stddev_sim = findStd(centroids)
   
