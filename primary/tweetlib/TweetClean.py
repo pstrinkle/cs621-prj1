@@ -67,7 +67,8 @@ def cleanup(tweet, lowercase = True, to_ascii = False):
   # make it lowercase -- important so that the I don't get caught up in case;
   # although in the future i may want that distinction.
   # TODO: Remove this call if we want case sensitivity.
-  newTweet = newTweet.lower()
+  if lowercase:
+    newTweet = newTweet.lower()
 
   # I really should try to remove any URLs in here, and chances are there is only 1.
   # Really need to add in re.IGNORECASE if you remove the lower() call above.
@@ -75,23 +76,32 @@ def cleanup(tweet, lowercase = True, to_ascii = False):
 
   if url != None:
     newTweet = newTweet.replace(url.group(1), '')
+    
+  # Could for the most part just use ascii char available.
 
-  newTweet = newTweet.replace('\\', '')  # excessive backslashing
-  newTweet = newTweet.replace('.', ' ')  # periods.  Safe to remove only after you've cleared out the URLs
-  newTweet = newTweet.replace('/', ' ')  # excessive forward-slashing
-  newTweet = newTweet.replace("--", ' ') # emphasis dashes
-  newTweet = newTweet.replace('(', '').replace(')', '')   # parentheses
-  newTweet = newTweet.replace('!', '')   # exclamation point
-  newTweet = newTweet.replace('?', '')   # question mark
-  newTweet = newTweet.replace('"', '')   # double-quote
-  newTweet = newTweet.replace("#", '')   # topic tag TODO: Removing this unweighs the term.
-  newTweet = newTweet.replace(":", ' ')  # colon
   newTweet = newTweet.replace("&gt;", ">") # html to character
   newTweet = newTweet.replace("&lt;", "<") # html to character
   newTweet = newTweet.replace("&amp;", "&") # html to character
-  newTweet = newTweet.replace(";", ' ')  # semi-colon
-  netTweet = newTweet.replace("&", ' ')  # ampersand
+
+  # excessive backslashing
+  # periods.  Safe to remove only after you've cleared out the URLs
+  # excessive forward-slashing
+  # emphasis dashes
+  # parentheses
+  # exclamation point
+  # question mark
+  # double-quote
+  # topic tag TODO: Removing this unweighs the term.
+  # colon
+  # semi-colon
+  # ampersand
+  # asterics
+  # single-quotes
+  replacements = ['\\', '.', '/', "--", '(', ')', '!', '?', '"', '#', ':', ";", "&", "*"]
   
+  for r in replacements:
+    newTweet = newTweet.replace(r, ' ')
+
   # &amp;
   # &gt;
   # &lt;
@@ -108,7 +118,8 @@ def cleanup(tweet, lowercase = True, to_ascii = False):
   newTweet = newTweet.replace("@", '')   # at sign
   #newTweet = newTweet.replace('-', ' ')  # hyphen (us-1, i-95)
   # TODO: I would like to however, remove -x or x-... can use regex... 
-  
+  newTweet = newTweet.replace("'", '') # makes don't -> dont
+
   newTweet = newTweet.replace("  ", " ") # extra spaces together
   newTweet = newTweet.strip()
 
