@@ -11,8 +11,6 @@ __author__ = 'tri1@umbc.edu'
 #
 # Run tweets_by_user.py
 
-import re
-import os
 import sys
 import codecs
 import sqlite3

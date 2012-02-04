@@ -9,14 +9,8 @@ __author__ = 'tri1@umbc.edu'
 # given an entire folder of xml files, instead of using sort/uniq
 # on a per file basis.
 
-import re
-import os
 import sys
-import codecs
 import sqlite3
-
-sys.path.append("tweetlib")
-import TweetDatabase as td
 
 # oldest_id is min(id), since_id is max(id)
 def output(current_id, text):
@@ -37,7 +31,7 @@ def main():
   database_file = sys.argv[1]
   minimum = int(sys.argv[2])
   
-  print "database folder: %s" % database_file
+  print "database: %s" % database_file
   print "minimum: %d" % minimum
 
   # this won't return the 3 columns we care about.

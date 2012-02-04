@@ -15,16 +15,17 @@ __author__ = 'tri1@umbc.edu'
 # select count(*), owner from tweets group by owner having count(*) > 1000;
 #
 # The input for this program can be found by running pull_from_database.py.
+#
+# If you update the clustering algorithm here, until it's pulled into a separate
+#  library you also must update auto_pull_label.py.
 
 import os
 import sys
 import codecs
-import numpy
 
 sys.path.append("tweetlib")
 sys.path.append("modellib")
 import TweetClean
-import TweetDate
 import VectorSpace
 import Centroid
 
@@ -33,58 +34,6 @@ def usage():
   Standard usage method.
   """
   print "usage: %s <tweet file> <stopwords file>" % sys.argv[0]
-
-def findStd(centroids):
-  """
-  Given a list of Centroids, computer the standard deviation of the 
-  similarities.
-  """
-  
-  sims = []
-  
-  for i in xrange(0, len(centroids)):
-    for j in xrange(0, len(centroids)):
-      if i != j:
-        sims.append(Centroid.similarity(centroids[i], centroids[j]))
-  
-  return numpy.std(sims)
-
-def findAvg(centroids):
-  """
-  Given a list of Centroids, compute the similarity of each pairing and return 
-  the average.
-  """
-  total_sim = 0.0
-  total_comparisons = 0
-
-  for i in xrange(0, len(centroids)):
-    for j in xrange(0, len(centroids)):
-      if i != j:
-        total_sim += Centroid.similarity(centroids[i], centroids[j])
-        total_comparisons += 1
-
-  return (total_sim / total_comparisons)
-
-def findMax(centroids):
-  """
-  Given a list of Centroids, compute the similarity of each pairing and return 
-  the pair with the highest similarity, and their similarity score--so i don't 
-  have to re-compute.
-  """
-  max_sim = 0.0
-  max_i = 0
-  max_j = 0
-
-  for i in xrange(0, len(centroids)):
-    for j in xrange(0, len(centroids)):
-      if i != j:
-        curr_sim = Centroid.similarity(centroids[i], centroids[j])
-        if curr_sim > max_sim:
-          max_sim = curr_sim
-          max_i = i
-          max_j = j
-
-  return (max_i, max_j, max_sim)
 
 def main():
 
@@ -145,7 +94,6 @@ def main():
         pruned.append(w)
 
     if len(pruned) < 2:
-      #print "skipping %s" % id
       continue
 
     docTermFreq[id] = {} # Prepare the dictionary for that document.
@@ -189,21 +137,12 @@ def main():
   # ---------------------------------------------------------------------------
   # Build Centroid List
   centroids = []
-  #terms = [] # <-- temp
 
   for doc, vec in docTfIdf.iteritems():
     centroids.append(Centroid.Centroid(str(doc), vec))
-    
-    #x = Centroid.Centroid(str(doc), vec)
-    #terms.extend(Centroid.topTerms(x, 10))
 
-  #with open("out.txt", 'w') as f:
-    #for t in terms:
-      #f.write("%s\n" % t[0])
-
-  #sys.exit(0)
-  average_sim = findAvg(centroids)
-  stddev_sim = findStd(centroids)
+  average_sim = Centroid.findAvg(centroids)
+  stddev_sim = Centroid.findStd(centroids)
   
   print "mean: %.10f\tstd: %.10f" % (average_sim, stddev_sim)
   
@@ -212,7 +151,7 @@ def main():
   threshold = stddev_sim
 
   while len(centroids) > 1:
-    i, j, sim = findMax(centroids)
+    i, j, sim = Centroid.findMax(centroids)
 
     if sim >= threshold:
       centroids[i].addVector(centroids[j].name, centroids[j].vectorCnt, centroids[j].centroidVector)

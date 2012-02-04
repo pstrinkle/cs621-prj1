@@ -9,6 +9,7 @@ __author__ = 'tri1@umbc.edu'
 #
 
 import math
+import numpy
 
 def similarity(a, b):
     """
@@ -31,6 +32,58 @@ def similarity(a, b):
     #print "b: %s" % b.name
 
     return float(dotproduct / (lengthA * lengthB))
+
+def findStd(centroids):
+  """
+  Given a list of Centroids, computer the standard deviation of the 
+  similarities.
+  """
+  
+  sims = []
+  
+  for i in xrange(0, len(centroids)):
+    for j in xrange(0, len(centroids)):
+      if i != j:
+        sims.append(similarity(centroids[i], centroids[j]))
+  
+  return numpy.std(sims)
+
+def findAvg(centroids):
+  """
+  Given a list of Centroids, compute the similarity of each pairing and return 
+  the average.
+  """
+  total_sim = 0.0
+  total_comparisons = 0
+
+  for i in xrange(0, len(centroids)):
+    for j in xrange(0, len(centroids)):
+      if i != j:
+        total_sim += similarity(centroids[i], centroids[j])
+        total_comparisons += 1
+
+  return (total_sim / total_comparisons)
+
+def findMax(centroids):
+  """
+  Given a list of Centroids, compute the similarity of each pairing and return 
+  the pair with the highest similarity, and their similarity score--so i don't 
+  have to re-compute.
+  """
+  max_sim = 0.0
+  max_i = 0
+  max_j = 0
+
+  for i in xrange(0, len(centroids)):
+    for j in xrange(0, len(centroids)):
+      if i != j:
+        curr_sim = similarity(centroids[i], centroids[j])
+        if curr_sim > max_sim:
+          max_sim = curr_sim
+          max_i = i
+          max_j = j
+
+  return (max_i, max_j, max_sim)
 
 def topTerms(a, n):
   """
