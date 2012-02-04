@@ -33,11 +33,29 @@ def similarity(a, b):
 
     return float(dotproduct / (lengthA * lengthB))
 
-def findStd(centroids):
+def getSims(centroids):
   """
-  Given a list of Centroids, computer the standard deviation of the 
+  Given a list of Centroids, compute the similarity score between all pairs and
+  return the list.  This can be fed into findAvg(), findStd().
+  """
+
+  sims = []
+  
+  for i in xrange(0, len(centroids)):
+    for j in xrange(0, len(centroids)):
+      if i != j:
+        sims.append(similarity(centroids[i], centroids[j]))
+  
+  return sims
+
+def findStd(centroids, short_cut = False, sim_scores = None):
+  """
+  Given a list of Centroids, compute the standard deviation of the 
   similarities.
   """
+  
+  if short_cut:
+    return numpy.std(sim_scores)
   
   sims = []
   
@@ -48,13 +66,25 @@ def findStd(centroids):
   
   return numpy.std(sims)
 
-def findAvg(centroids):
+def findAvg(centroids, short_cut = False, sim_scores = None):
   """
   Given a list of Centroids, compute the similarity of each pairing and return 
   the average.
+  
+  If short_cut is True, it'll use sim_scores as the input instead of calculating
+   the scores.
   """
   total_sim = 0.0
   total_comparisons = 0
+  
+  if short_cut:
+    total_comparisons = len(sim_scores)
+    
+    for score in sim_scores:
+      total_sim += score
+    
+    return (total_sim / total_comparisons)
+      
 
   for i in xrange(0, len(centroids)):
     for j in xrange(0, len(centroids)):

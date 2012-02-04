@@ -72,27 +72,9 @@ def main():
   print "users: %d" % len(users)
 
   # ---------------------------------------------------------------------------
-  # Search the database file for those users' tweets.
-  users_tweets = {}
-  tweet_cnt = 0
-
-  for u in users:
-    users_tweets[u] = {}
-    for row in c.execute(query_tweets % u):
-      users_tweets[u][row['id']] = row['text']
-      tweet_cnt += 1
-
-  print "tweet count: %d" % tweet_cnt
-
-  # Close the database connection.
-  conn.close()
-
-  # ---------------------------------------------------------------------------
   # Process those tweets by user set.
 
-  # users_tweets is a dictionary by user_id, then a dictionary by tweet_id.
-  #              cleaned up during this loop.
-  # 
+  tweet_cnt = 0
 
   print "user\tcnt"
 
@@ -107,14 +89,25 @@ def main():
     docTermFreq = {}   # dictionary of term frequencies by date as integer
     docTfIdf = {}      # similar to docTermFreq, but holds the tf-idf values
     
-    print "%d\t%d" % (u, len(users_tweets[u]))
+    # could easily just have the thing not store them early.
+    # this way though, we don't collect all the tweets for all the users
+    # beforehand and store them in memory.
+    users_tweets = {}
+    for row in c.execute(query_tweets % u):
+      users_tweets[row['id']] = row['text']
+      tweet_cnt += 1
     
-    for id in users_tweets[u]:
-      users_tweets[u][id] = TweetClean.cleanup(users_tweets[u][id], True, True)
+    print "%d\t%d" % (u, len(users_tweets)),
+    
+    progress = 0.0
+    processed = 0
+    
+    for id in users_tweets:
+      users_tweets[id] = TweetClean.cleanup(users_tweets[id], True, True)
       
       # Calculate Term Frequencies for this id/document.
       # Skip 1 letter words.
-      words = users_tweets[u][id].split(' ')
+      words = users_tweets[id].split(' ')
 
       # let's make a short list of the words we'll accept.
       pruned = []
@@ -142,6 +135,10 @@ def main():
           docFreq[w] += 1
         except KeyError:
           docFreq[w] = 1
+      
+      #print ".",
+
+    print "" # for newline
 
     # Calculate the inverse document frequencies.
     invdocFreq = VectorSpace.calculate_invdf(len(docTermFreq), docFreq)
@@ -150,24 +147,39 @@ def main():
     docTfIdf = VectorSpace.calculate_tfidf(totalTermCount, docTermFreq, invdocFreq)
 
     # Build Centroid List
-    centroids = []
+    # XXX: This step is slow.  They should be centroids from the get-go; so I'm
+    # going to need to copy some of the VectorSpace (or re-use) code into the
+    # centroid thing.
+    centroids = {}
+    arbitrary_name = 0
 
     for doc, vec in docTfIdf.iteritems():
-      centroids.append(Centroid.Centroid(str(doc), vec))
+      centroids[arbitrary_name] = Centroid.Centroid(str(doc), vec) 
+      arbitrary_name += 1
 
-    average_sim = Centroid.findAvg(centroids)
-    stddev_sim = Centroid.findStd(centroids)
+    # Significant speedup, since now I only build the list once per user at this
+    #  step, instead of twice.
+    initial_similarities = Centroid.getSims(centroids)
+    average_sim = Centroid.findAvg(centroids, True, initial_similarities)
+    stddev_sim = Centroid.findStd(centroids, True, initial_similarities)
 
     # Merge centroids by highest similarity of at least threshold  
     threshold = stddev_sim
 
     while len(centroids) > 1:
+      print " %d" % len(centroids)
+      # This findMax is slow, because I should cache the values -- like my c#
+      # program.  Some similarity values are no longer valid, and now a new loop
+      #  needs to be performed. -- Except here, we're not doing it by name, 
+      # they're in a list -- not a dictionary.  So if we change to a dictionary
+      # we'll need to either give them meaningless names -- like sequentially
+      # numbered ... that might be better.  Then I can just recompute on 
+      # addition.
       i, j, sim = Centroid.findMax(centroids)
 
       if sim >= threshold:
         centroids[i].addVector(centroids[j].name, centroids[j].vectorCnt, centroids[j].centroidVector)
         del centroids[j]
-        print "merged with sim: %.10f" % sim
       else:
         break
 
@@ -179,6 +191,9 @@ def main():
 
   # ---------------------------------------------------------------------------
   # Done.
+  conn.close()
+  
+  print "tweet count: %d" % tweet_cnt
 
 if __name__ == "__main__":
   main()
