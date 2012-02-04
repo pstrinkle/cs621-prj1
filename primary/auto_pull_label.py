@@ -94,6 +94,8 @@ def main():
   #              cleaned up during this loop.
   # 
 
+  print "user\tcnt"
+
   for u in users:
     
     # These variables are per user, because users aren't clustered with each 
@@ -104,6 +106,8 @@ def main():
     invdocFreq = {}    # dictionary of the inverse document frequencies
     docTermFreq = {}   # dictionary of term frequencies by date as integer
     docTfIdf = {}      # similar to docTermFreq, but holds the tf-idf values
+    
+    print "%d\t%d" % (u, len(users_tweets[u]))
     
     for id in users_tweets[u]:
       users_tweets[u][id] = TweetClean.cleanup(users_tweets[u][id], True, True)
