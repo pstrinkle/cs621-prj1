@@ -12,39 +12,60 @@ import math
 import numpy
 
 def similarity(a, b):
-    """
-    Compute dot product of vectors A & B
-    """
-    vectorA = a.centroidVector
-    vectorB = b.centroidVector
+  """
+  Compute dot product of vectors A & B
+  """
+  vectorA = a.centroidVector
+  vectorB = b.centroidVector
     
-    lengthA = a.length
-    lengthB = b.length
+  lengthA = a.length
+  lengthB = b.length
     
-    dotproduct = 0.0
+  dotproduct = 0.0
 
-    for key, value in vectorA.iteritems():
-      if key in vectorB: # if both vectors have the key
-        dotproduct += (value * vectorB[key])
+  for key, value in vectorA.iteritems():
+    if key in vectorB: # if both vectors have the key
+      dotproduct += (value * vectorB[key])
 
-    #print "a: %.10f\tb: %.10f" % (lengthA, lengthB)
-    #print "b: %s" % b.centroidVector
-    #print "b: %s" % b.name
+  return float(dotproduct / (lengthA * lengthB))
 
-    return float(dotproduct / (lengthA * lengthB))
+def getSimMatrix(centroids):
+  """
+  Given a list of Centroids, compute the similarity score between each
+  and return a matrix, matrix[i][j] = 0.000... as a dictionary of dictionaries.
+
+  This function could easily work on a list of them... except then the list 
+  would be const, because any manipulation of the centroid list would invalidate
+   the matrix.
+
+  XXX: There has to be a cleaner way, since the innermost part of the loop is
+  identical...
+
+  XXX: Also, since 4x5 will have the same value as 5x4... I only need to think
+  about the upper triangle of values -- see program where i handle this 
+  correctly. 
+  """
+  matrix = {}
+
+  for i in xrange(0, len(centroids)):
+    matrix[i] = {}
+
+    for j in xrange(i + 1, len(centroids)):
+      matrix[i][j] = similarity(centroids[i], centroids[j])
+
+  return matrix
 
 def getSims(centroids):
   """
-  Given a list of Centroids, compute the similarity score between all pairs and
-  return the list.  This can be fed into findAvg(), findStd().
+  Given a list of Centroids, compute the similarity score between all 
+  pairs and return the list.  This can be fed into findAvg(), findStd().
   """
 
   sims = []
   
   for i in xrange(0, len(centroids)):
-    for j in xrange(0, len(centroids)):
-      if i != j:
-        sims.append(similarity(centroids[i], centroids[j]))
+    for j in xrange(i + 1, len(centroids)):
+      sims.append(similarity(centroids[i], centroids[j]))
   
   return sims
 
@@ -60,9 +81,8 @@ def findStd(centroids, short_cut = False, sim_scores = None):
   sims = []
   
   for i in xrange(0, len(centroids)):
-    for j in xrange(0, len(centroids)):
-      if i != j:
-        sims.append(similarity(centroids[i], centroids[j]))
+    for j in xrange(i + 1, len(centroids)):
+      sims.append(similarity(centroids[i], centroids[j]))
   
   return numpy.std(sims)
 
@@ -84,13 +104,11 @@ def findAvg(centroids, short_cut = False, sim_scores = None):
       total_sim += score
     
     return (total_sim / total_comparisons)
-      
 
   for i in xrange(0, len(centroids)):
-    for j in xrange(0, len(centroids)):
-      if i != j:
-        total_sim += similarity(centroids[i], centroids[j])
-        total_comparisons += 1
+    for j in xrange(i + 1, len(centroids)):
+      total_sim += similarity(centroids[i], centroids[j])
+      total_comparisons += 1
 
   return (total_sim / total_comparisons)
 
@@ -105,13 +123,12 @@ def findMax(centroids):
   max_j = 0
 
   for i in xrange(0, len(centroids)):
-    for j in xrange(0, len(centroids)):
-      if i != j:
-        curr_sim = similarity(centroids[i], centroids[j])
-        if curr_sim > max_sim:
-          max_sim = curr_sim
-          max_i = i
-          max_j = j
+    for j in xrange(i + 1, len(centroids)):
+      curr_sim = similarity(centroids[i], centroids[j])
+      if curr_sim > max_sim:
+        max_sim = curr_sim
+        max_i = i
+        max_j = j
 
   return (max_i, max_j, max_sim)
 
@@ -153,7 +170,6 @@ class Centroid:
     self.centroidVector = {}
     self.length = 0.00
     self.addVector(name, 1, dv)
-    
 
   def __len__(self):
     """
