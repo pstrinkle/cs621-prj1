@@ -29,6 +29,63 @@ import Centroid
 def usage():
   print "usage: %s <sqlite_db> <minimum> <stopwords> <output>" % sys.argv[0]
 
+def buildDocTfIdf(users_tweets, stopwords):
+
+  totalTermCount = 0 # total count of all terms
+  docFreq = {}       # dictionary of in how many documents the "word" appears
+  invdocFreq = {}    # dictionary of the inverse document frequencies
+  docTermFreq = {}   # dictionary of term frequencies by date as integer
+  docTfIdf = {}      # similar to docTermFreq, but holds the tf-idf values
+
+  for id in users_tweets:
+
+    if users_tweets[id] == None:
+      continue
+
+    users_tweets[id] = TweetClean.cleanup(users_tweets[id], True, True)
+
+    # Calculate Term Frequencies for this id/document.
+    # Skip 1 letter words.
+    words = users_tweets[id].split(' ')
+
+    # let's make a short list of the words we'll accept.
+    pruned = []
+
+    for w in words:
+      if len(w) > 1 and w not in stopwords:
+        pruned.append(w)
+
+    if len(pruned) < 2:
+      continue
+
+    docTermFreq[id] = {} # Prepare the dictionary for that document.
+
+    totalTermCount += len(pruned)
+
+    for w in pruned:
+      try:
+        docTermFreq[id][w] += 1
+      except KeyError:
+        docTermFreq[id][w] = 1
+
+    # Contribute to the document frequencies.
+    for w in docTermFreq[id]:
+      try:
+        docFreq[w] += 1
+      except KeyError:
+        docFreq[w] = 1
+
+  # Calculate the inverse document frequencies.
+  invdocFreq = VectorSpace.calculate_invdf(len(docTermFreq), docFreq)
+
+  # Calculate the tf-idf values.
+  docTfIdf = VectorSpace.calculate_tfidf(
+                                         totalTermCount,
+                                         docTermFreq,
+                                         invdocFreq)
+
+  return docTfIdf
+
 def findMatrixMax(matrix):
   """
   This provides the outer and inner key and the value, of the maximum value.
@@ -108,11 +165,13 @@ def main():
 
   print "\n----------------------"
   print "Parameters:"
-  print "database: %s\nminimum: %d\noutput: %s\nstop: %s" % (database_file, minimum, output_file, stop_file) 
+  print "database: %s\nminimum: %d\noutput: %s\nstop: %s" \
+    % (database_file, minimum, output_file, stop_file) 
   print "----------------------\n"
 
   # this won't return the 3 columns we care about.
-  query_collect = "select owner from tweets group by owner having count(*) >= %d;"
+  query_collect = \
+    "select owner from tweets group by owner having count(*) >= %d;"
   query_tweets = "select id, contents as text from tweets where owner = %d;"
 
   conn = sqlite3.connect(database_file)
@@ -137,73 +196,18 @@ def main():
   print "usr\tcnt\tavg\tstd\tend"
 
   for u in users:
-    
-    # These variables are per user, because users aren't clustered with each 
-    # other here.
-    
-    totalTermCount = 0 # total count of all terms
-    docFreq = {}       # dictionary of in how many documents the "word" appears
-    invdocFreq = {}    # dictionary of the inverse document frequencies
-    docTermFreq = {}   # dictionary of term frequencies by date as integer
     docTfIdf = {}      # similar to docTermFreq, but holds the tf-idf values
-    
-    # could easily just have the thing not store them early.
-    # this way though, we don't collect all the tweets for all the users
-    # beforehand and store them in memory.
     users_tweets = {}
+    
     for row in c.execute(query_tweets % u):
       users_tweets[row['id']] = row['text']
-      tweet_cnt += 1
-    
+
+    tweet_cnt += len(users_tweets)
     print "%d\t%d" % (u, len(users_tweets)),
-    
-    progress = 0.0
-    processed = 0
-    
-    for id in users_tweets:
-      
-      if users_tweets[id] == None:
-        continue
-      
-      users_tweets[id] = TweetClean.cleanup(users_tweets[id], True, True)
-      
-      # Calculate Term Frequencies for this id/document.
-      # Skip 1 letter words.
-      words = users_tweets[id].split(' ')
 
-      # let's make a short list of the words we'll accept.
-      pruned = []
+    docTfIdf = buildDocTfIdf(users_tweets, stopwords)
 
-      for w in words:
-        if len(w) > 1 and w not in stopwords:
-          pruned.append(w)
-
-      if len(pruned) < 2:
-        continue
-
-      docTermFreq[id] = {} # Prepare the dictionary for that document.
-
-      for w in pruned:
-        totalTermCount += 1
-
-        try:
-          docTermFreq[id][w] += 1
-        except KeyError:
-          docTermFreq[id][w] = 1
-
-      # Contribute to the document frequencies.
-      for w in docTermFreq[id]:
-        try:
-          docFreq[w] += 1
-        except KeyError:
-          docFreq[w] = 1
-
-    # Calculate the inverse document frequencies.
-    invdocFreq = VectorSpace.calculate_invdf(len(docTermFreq), docFreq)
-
-    # Calculate the tf-idf values.
-    docTfIdf = VectorSpace.calculate_tfidf(totalTermCount, docTermFreq, invdocFreq)
-
+    # -------------------------------------------------------------------------
     # Build Centroid List
     # XXX: This step is somewhat slow.  They should be centroids from the 
     # get-go; so I'm going to need to copy some of the VectorSpace (or re-use) 
@@ -215,9 +219,6 @@ def main():
       centroids[arbitrary_name] = Centroid.Centroid(str(doc), vec) 
       arbitrary_name += 1
 
-    # Significant speedup, since now I only build the list once per user at this
-    #  step, instead of twice -- also, a hack because arbitrary_name lets you 
-    # treat it as a list.
     initial_similarities = Centroid.getSims(centroids)
     average_sim = Centroid.findAvg(centroids, True, initial_similarities)
     stddev_sim = Centroid.findStd(centroids, True, initial_similarities)
@@ -227,17 +228,18 @@ def main():
 
     print "\t%.3f\t%.3f" % (average_sim, stddev_sim),
 
+    # -------------------------------------------------------------------------
+    # Merge centroids
     sim_matrix = Centroid.getSimMatrix(centroids)
-
-    #print "len(cen): %d" % len(centroids)
-    #print "len(sim_matrix.keys()): %d" % len(sim_matrix.keys())
-    #print "%s" % sim_matrix.keys()
 
     while len(centroids) > 1:
       i, j, sim = findMatrixMax(sim_matrix)
 
       if sim >= threshold:
-        centroids[i].addVector(centroids[j].name, centroids[j].vectorCnt, centroids[j].centroidVector)
+        centroids[i].addVector(
+                               centroids[j].name,
+                               centroids[j].vectorCnt,
+                               centroids[j].centroidVector)
         del centroids[j]
 
         removeMatrixEntry(sim_matrix, i)
@@ -253,7 +255,7 @@ def main():
       f.write("user: %d\n" % u)
       for cen in centroids:
         f.write("%s\n" % Centroid.topTerms(centroids[cen], 10))
-      f.write("-------------------------------------------------------------\n")
+      f.write("------------------------------------------------------------\n")
 
   # ---------------------------------------------------------------------------
   # Done.

@@ -197,34 +197,39 @@ class Centroid:
     else:
       self.name += ", %s" % docName
     
-    # calculate new centroid
-    centroidTerms = list(self.centroidVector.keys())
+    # computes magnitude as it goes.
+    self.length = 0
     
     # reduce weight of values already in vector
-    for key in centroidTerms:
+    for key in self.centroidVector.keys():
       if key in newDocVec: # if is in both vectors!
+        
         oldValue = float(self.centroidVector[key]) * oldWeight
         newValue = float(newDocVec[key]) * newWeight
+        value = oldValue + newValue
         
-        self.centroidVector[key] = oldValue + newValue
-        
-        # so when we go through to add in all the missing ones we won't have excess
+        self.centroidVector[key] = value
+        self.length += (value * value) # magnitude
+                
+        # so when we go through to add in all the missing ones we won't have 
+        # excess
         del newDocVec[key]
       else: # if it is strictly in the old vector
+        
         oldValue = float(self.centroidVector[key]) * oldWeight
         self.centroidVector[key] = oldValue
+        self.length += (oldValue * oldValue) # magnitude
     
     # add new values to vector
     for key, value in newDocVec.iteritems():
-      # we don't so we'll have to create a new value with the weight of the added vector
-      self.centroidVector[key] = float(value) * newWeight
+      # we don't so we'll have to create a new value with the weight of the 
+      # added vector
+      value = float(value) * newWeight
+      self.centroidVector[key] = value
+      self.length += (value * value)
 
     self.vectorCnt += addCnt
-    self.length = 0
-    
+
     # calculate magnitude
-    for key, value in self.centroidVector.iteritems():
-      self.length += (value * value)
-    
     self.length = math.sqrt(self.length)
     

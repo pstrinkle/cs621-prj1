@@ -63,6 +63,7 @@ def cleanup(tweet, lowercase = True, to_ascii = False):
   newTweet = tweet.replace("\n", ' ')     # newline character
   newTweet = newTweet.replace(r"\n", ' ') # newline string (yes, there are those)
   newTweet = newTweet.replace(',', ' ')   # commas provide nothing to us
+  newTweet = newTweet.replace(r"\t", ' ') # tab string (yes, there are those)
 
   # make it lowercase -- important so that the I don't get caught up in case;
   # although in the future i may want that distinction.
@@ -78,7 +79,6 @@ def cleanup(tweet, lowercase = True, to_ascii = False):
     newTweet = newTweet.replace(url.group(1), '')
     
   # Could for the most part just use ascii char available.
-
   newTweet = newTweet.replace("&gt;", ">") # html to character
   newTweet = newTweet.replace("&lt;", "<") # html to character
   newTweet = newTweet.replace("&amp;", "&") # html to character
@@ -111,16 +111,14 @@ def cleanup(tweet, lowercase = True, to_ascii = False):
 
   while user != None:
     newTweet = newTweet.replace(user.group(1), '')
-
     user = re.search('(@\S+)', newTweet)
-  # end while loop
   
   newTweet = newTweet.replace("@", '')   # at sign
   #newTweet = newTweet.replace('-', ' ')  # hyphen (us-1, i-95)
-  # TODO: I would like to however, remove -x or x-... can use regex... 
+  # XXX: I would like to however, remove -x or x-... can use regex... 
   newTweet = newTweet.replace("'", '') # makes don't -> dont
-
   newTweet = newTweet.replace("  ", " ") # extra spaces together
+  # XXX: Have this loop!
   newTweet = newTweet.strip()
 
   return newTweet
