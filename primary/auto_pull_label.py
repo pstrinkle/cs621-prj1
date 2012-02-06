@@ -17,6 +17,7 @@ __author__ = 'tri1@umbc.edu'
 # standard deviation of all similarities in the user's set.
 
 import sys
+import time
 import sqlite3
 
 sys.path.append("tweetlib")
@@ -27,7 +28,8 @@ import VectorSpace
 import Centroid
 
 def usage():
-  print "usage: %s <sqlite_db> <minimum> <stopwords> <output>" % sys.argv[0]
+  print "usage: %s <sqlite_db> <minimum> <maximum> <stopwords> <output>" \
+    % sys.argv[0]
 
 def buildDocTfIdf(users_tweets, stopwords):
 
@@ -96,6 +98,42 @@ def findMatrixMax(matrix):
   max_j = 0
 
   for i in matrix.keys():
+
+    #if len(matrix[i]) == 0:
+    #  sys.stderr.write("why are there no things for %d\n" % i)
+    #  continue
+
+    # this should be faster than searching by key on the inner loop.
+    #
+    # Double-looping keys and checking each took 4.5s.
+    # Single-looping keys and building sorted list in 3 steps took over 122s.
+    # " performing custom sort (w/ iteritems()): 9.33s.
+    # " (w/ items()): 58.33s.
+
+    # 3-step process... slow.
+    #sorted_tokens = [(v, k) for k, v in matrix[i].items()]
+    #sorted_tokens.sort()
+    #sorted_tokens.reverse()
+
+    # items() creates a copy of the dictionary pairs.
+    #sorted_tokens = sorted(matrix[i].items(), key=operator.itemgetter(1), reverse=True)
+
+    # is iteritems() faster?
+
+    #print "%s" % str(sorted_tokens[0])
+    #sys.exit(-1)
+
+    #print "max v: %s" % str(sorted_tokens[0][0])
+    #print "key: %s" % str(sorted_tokens[0][1])
+    
+    # Maybe I should store the max value with the array, and then always store
+    # the previous largest, and when i insert or delete...
+    
+    #if sorted_tokens[0][1] > max_val:
+      #max_val = sorted_tokens[0][1]
+      #max_i = i
+      #max_j = sorted_tokens[0][0]
+
     for j in matrix[i].keys():
       if matrix[i][j] > max_val:
         max_val = matrix[i][j]
@@ -144,7 +182,7 @@ def addMatrixEntry(matrix, centroids, new_centroid, name):
 def main():
 
   # Did they provide the correct args?
-  if len(sys.argv) != 5:
+  if len(sys.argv) != 6:
     usage()
     sys.exit(-1)
 
@@ -152,26 +190,35 @@ def main():
   # Parse the parameters.
   database_file = sys.argv[1]
   minimum = int(sys.argv[2])
-  stop_file = sys.argv[3]
-  output_file = sys.argv[4]
-  
+  maximum = int(sys.argv[3])
+  stop_file = sys.argv[4]
+  output_file = sys.argv[5]
+
   # Pull stop words
   with open(stop_file, "r") as f:
     stopwords = f.readlines()
 
-  # clean them up!
-  for i in xrange(0, len(stopwords)):
-    stopwords[i] = stopwords[i].strip()
+    # clean them up!
+    for i in xrange(0, len(stopwords)):
+      stopwords[i] = stopwords[i].strip()
 
-  print "\n----------------------"
-  print "Parameters:"
-  print "database: %s\nminimum: %d\noutput: %s\nstop: %s" \
-    % (database_file, minimum, output_file, stop_file) 
-  print "----------------------\n"
+  kickoff = \
+"""
+-------------------------------------------------------------------
+parameters :
+database   : %s
+minimum    : %d
+maximum    : %d
+output     : %s
+stop       : %s
+-------------------------------------------------------------------
+"""
+
+  print kickoff % (database_file, minimum, maximum, output_file, stop_file) 
 
   # this won't return the 3 columns we care about.
   query_collect = \
-    "select owner from tweets group by owner having count(*) >= %d;"
+    "select owner from tweets group by owner having count(*) >= %d and count(*) < %d;"
   query_tweets = "select id, contents as text from tweets where owner = %d;"
 
   conn = sqlite3.connect(database_file)
@@ -183,9 +230,10 @@ def main():
   # Search the database file for users.
   users = []
 
-  for row in c.execute(query_collect % minimum):
+  for row in c.execute(query_collect % (minimum, maximum)):
     users.append(row['owner'])
 
+  print "query users: %f" % time.clock()
   print "users: %d\n" % len(users)
 
   # ---------------------------------------------------------------------------
@@ -198,20 +246,22 @@ def main():
   for u in users:
     docTfIdf = {}      # similar to docTermFreq, but holds the tf-idf values
     users_tweets = {}
+    output = "%d\t%d\t%.3f\t%.3f\t%d"
     
     for row in c.execute(query_tweets % u):
       users_tweets[row['id']] = row['text']
 
+    #print "query time: %f" % time.clock()
+
     tweet_cnt += len(users_tweets)
-    print "%d\t%d" % (u, len(users_tweets)),
+    curr_cnt = len(users_tweets)
 
     docTfIdf = buildDocTfIdf(users_tweets, stopwords)
+    
+    #print "doc tf-idf: %f" % time.clock()
 
     # -------------------------------------------------------------------------
-    # Build Centroid List
-    # XXX: This step is somewhat slow.  They should be centroids from the 
-    # get-go; so I'm going to need to copy some of the VectorSpace (or re-use) 
-    # code into the centroid thing.
+    # Build Centroid List (this step is not actually slow.)
     centroids = {}
     arbitrary_name = 0
 
@@ -219,27 +269,32 @@ def main():
       centroids[arbitrary_name] = Centroid.Centroid(str(doc), vec) 
       arbitrary_name += 1
 
-    initial_similarities = Centroid.getSims(centroids)
+    #print "conversion to centroids: %f" % time.clock()
+
+    # The size of sim_matrix is: (num_centroids^2 / 2) - (num_centroids / 2)
+    # -- verified, my code does this correctly. : )
+
+    sim_matrix = Centroid.getSimMatrix(centroids)
+    initial_similarities = Centroid.getSimsFromMatrix(sim_matrix)
     average_sim = Centroid.findAvg(centroids, True, initial_similarities)
     stddev_sim = Centroid.findStd(centroids, True, initial_similarities)
+
+    #print "initial similarities (start-of matrix): %f" % time.clock()
+    #print "len(init_sims): %d" % len(initial_similarities)
 
     # Merge centroids by highest similarity of at least threshold  
     threshold = stddev_sim
 
-    print "\t%.3f\t%.3f" % (average_sim, stddev_sim),
-
     # -------------------------------------------------------------------------
     # Merge centroids
-    sim_matrix = Centroid.getSimMatrix(centroids)
 
     while len(centroids) > 1:
+      start = time.clock()
       i, j, sim = findMatrixMax(sim_matrix)
+      #print "findmax: %f" % (time.clock() - start)
 
       if sim >= threshold:
-        centroids[i].addVector(
-                               centroids[j].name,
-                               centroids[j].vectorCnt,
-                               centroids[j].centroidVector)
+        centroids[i].addCentroid(centroids[j])
         del centroids[j]
 
         removeMatrixEntry(sim_matrix, i)
@@ -249,7 +304,7 @@ def main():
       else:
         break
 
-    print "\t%d" % len(centroids)
+    print output % (u, curr_cnt, average_sim, stddev_sim, len(centroids))
 
     with open(output_file, "a") as f:
       f.write("user: %d\n" % u)

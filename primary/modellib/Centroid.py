@@ -7,9 +7,14 @@ __author__ = 'tri1@umbc.edu'
 #
 # This handles representing/storing document centroids in a vector space model.
 #
+# Originally I was calling len(centroids) in each function as input to xrange,
+# but I honestly have no idea whether that is being re-evaluated each time or
+# whether or not it's a constant.  So, I'm saving it as a variable that doesn't
+# change.  In theory, hm... no idea whether this will give me speed-up or not.
 
 import math
 import numpy
+import operator
 
 def similarity(a, b):
   """
@@ -42,18 +47,32 @@ def getSimMatrix(centroids):
   identical...
 
   XXX: Also, since 4x5 will have the same value as 5x4... I only need to think
-  about the upper triangle of values -- see program where i handle this 
+  about the lower left triangle of values -- see program where i handle this 
   correctly. 
   """
   matrix = {}
+  length = len(centroids)
 
-  for i in xrange(0, len(centroids)):
+  for i in xrange(0, length):
     matrix[i] = {}
 
-    for j in xrange(i + 1, len(centroids)):
+    for j in xrange(i + 1, length):
       matrix[i][j] = similarity(centroids[i], centroids[j])
 
   return matrix
+
+def getSimsFromMatrix(matrix):
+  """
+  Given a matrix of similarity values, covert to a straight list.
+  """
+  
+  sims = []
+  
+  for i in matrix.keys():
+    for j in matrix[i].keys():
+      sims.append(matrix[i][j])
+  
+  return sims
 
 def getSims(centroids):
   """
@@ -62,9 +81,10 @@ def getSims(centroids):
   """
 
   sims = []
+  length = len(centroids)
   
-  for i in xrange(0, len(centroids)):
-    for j in xrange(i + 1, len(centroids)):
+  for i in xrange(0, length):
+    for j in xrange(i + 1, length):
       sims.append(similarity(centroids[i], centroids[j]))
   
   return sims
@@ -79,9 +99,10 @@ def findStd(centroids, short_cut = False, sim_scores = None):
     return numpy.std(sim_scores)
   
   sims = []
+  length = len(centroids)
   
-  for i in xrange(0, len(centroids)):
-    for j in xrange(i + 1, len(centroids)):
+  for i in xrange(0, length):
+    for j in xrange(i + 1, length):
       sims.append(similarity(centroids[i], centroids[j]))
   
   return numpy.std(sims)
@@ -105,8 +126,10 @@ def findAvg(centroids, short_cut = False, sim_scores = None):
     
     return (total_sim / total_comparisons)
 
-  for i in xrange(0, len(centroids)):
-    for j in xrange(i + 1, len(centroids)):
+  length = len(centroids)
+
+  for i in xrange(0, length):
+    for j in xrange(i + 1, length):
       total_sim += similarity(centroids[i], centroids[j])
       total_comparisons += 1
 
@@ -121,9 +144,10 @@ def findMax(centroids):
   max_sim = 0.0
   max_i = 0
   max_j = 0
+  length = len(centroids)
 
-  for i in xrange(0, len(centroids)):
-    for j in xrange(i + 1, len(centroids)):
+  for i in xrange(0, length):
+    for j in xrange(i + 1, length):
       curr_sim = similarity(centroids[i], centroids[j])
       if curr_sim > max_sim:
         max_sim = curr_sim
@@ -136,10 +160,15 @@ def topTerms(a, n):
   """
   Returns the n-highest tf-idf terms in the vector.
   """
-  sorted_tokens = [(v, k) for k, v in a.centroidVector.items()]
-  sorted_tokens.sort()
-  sorted_tokens.reverse()
-  sorted_tokens = [(k, v) for v, k in sorted_tokens]
+  #sorted_tokens = [(v, k) for k, v in a.centroidVector.items()]
+  #sorted_tokens.sort()
+  #sorted_tokens.reverse()
+  #sorted_tokens = [(k, v) for v, k in sorted_tokens]
+  
+  sorted_tokens = sorted(
+                         a.centroidVector.items(),
+                         key=operator.itemgetter(1),
+                         reverse=True)
   
   #print "len(sorted_tokens): %d" % len(sorted_tokens)
   
@@ -177,13 +206,21 @@ class Centroid:
     """
     return len(self.centroidVector)
 
+  def addCentroid(self, newCen):
+    """
+    This merges in the new centroid.
+    
+    newCent := the centroid object to add.
+    """
+    self.addVector(newCen.name, newCen.vectorCnt, newCen.centroidVector)
+
   def addVector(self, docName, addCnt, newDocVec):
     """
     This averages in the new vector.
     
-    docName := the name of the thing we're adding in.
-    addCnt  := the number of documents represented by newV.
-    newV    := the vector representing the document(s).
+    docName   := the name of the thing we're adding in.
+    addCnt    := the number of documents represented by newV.
+    newDocVec := the vector representing the document(s).
     
     This is copied and translated directly from my c# program.
     """
