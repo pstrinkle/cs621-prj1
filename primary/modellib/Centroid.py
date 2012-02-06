@@ -156,31 +156,6 @@ def findMax(centroids):
 
   return (max_i, max_j, max_sim)
 
-def topTerms(a, n):
-  """
-  Returns the n-highest tf-idf terms in the vector.
-  """
-  #sorted_tokens = [(v, k) for k, v in a.centroidVector.items()]
-  #sorted_tokens.sort()
-  #sorted_tokens.reverse()
-  #sorted_tokens = [(k, v) for v, k in sorted_tokens]
-  
-  sorted_tokens = sorted(
-                         a.centroidVector.items(),
-                         key=operator.itemgetter(1),
-                         reverse=True)
-  
-  #print "len(sorted_tokens): %d" % len(sorted_tokens)
-  
-  # count to index
-  to_print = min(n, len(sorted_tokens))
-  top_terms = []
-  
-  for i in xrange(0, to_print):
-    top_terms.append(sorted_tokens[i])
-
-  return top_terms
-
 class Centroid:
   """
   This data structure represents an average of documents in a vector space.
@@ -205,6 +180,29 @@ class Centroid:
     Get the length of it!
     """
     return len(self.centroidVector)
+  
+  def topTerms(self, n):
+    """
+    Returns the n-highest tf-idf terms in the vector.
+    
+    n := the number of terms to get.
+    """
+  
+    sorted_tokens = sorted(
+                           self.centroidVector.items(),
+                           key=operator.itemgetter(1), # (1) is value
+                           reverse=True)
+  
+    #print "len(sorted_tokens): %d" % len(sorted_tokens)
+
+    # count to index
+    to_print = min(n, len(sorted_tokens))
+    top_terms = []
+  
+    for i in xrange(0, to_print):
+      top_terms.append(sorted_tokens[i])
+
+    return top_terms
 
   def addCentroid(self, newCen):
     """

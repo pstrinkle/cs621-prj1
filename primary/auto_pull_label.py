@@ -19,6 +19,7 @@ __author__ = 'tri1@umbc.edu'
 import sys
 import time
 import sqlite3
+import operator
 
 sys.path.append("tweetlib")
 import TweetClean
@@ -99,16 +100,18 @@ def findMatrixMax(matrix):
 
   for i in matrix.keys():
 
-    #if len(matrix[i]) == 0:
-    #  sys.stderr.write("why are there no things for %d\n" % i)
-    #  continue
+    # sys.stderr.write("why are there no things for %d\n" % i)
+    #if len(matrix[i]) == 0: ## checking each time is slow.
+      #continue
 
     # this should be faster than searching by key on the inner loop.
     #
-    # Double-looping keys and checking each took 4.5s.
-    # Single-looping keys and building sorted list in 3 steps took over 122s.
-    # " performing custom sort (w/ iteritems()): 9.33s.
-    # " (w/ items()): 58.33s.
+    # Double-looping keys and checking each took:                     4.50s.
+    # Single-looping keys and building sorted list in 3 steps took: 122.00s.
+    # " performing custom sort (w/ iteritems()):                      9.33s.
+    # " (w/ items()):                                                58.33s.
+    # Single-looping keys and max() operator instead of sort:         2.35s
+    # " (w/o the length check):                                       2.22s
 
     # 3-step process... slow.
     #sorted_tokens = [(v, k) for k, v in matrix[i].items()]
@@ -116,11 +119,18 @@ def findMatrixMax(matrix):
     #sorted_tokens.reverse()
 
     # items() creates a copy of the dictionary pairs.
-    #sorted_tokens = sorted(matrix[i].items(), key=operator.itemgetter(1), reverse=True)
+    #sorted_tokens = sorted(
+    #                       matrix[i].items(),
+    #                       key=operator.itemgetter(1),
+    #                       reverse=True)
+    try:
+      kvp = max(matrix[i].iteritems(), key=operator.itemgetter(1))
+    except ValueError: # if matrix[i] is None, then this moves forward
+      continue         # The way I'm doing this, it doesn't have to check each time.
 
     # is iteritems() faster?
 
-    #print "%s" % str(sorted_tokens[0])
+    #print "%s" % str(kvp)
     #sys.exit(-1)
 
     #print "max v: %s" % str(sorted_tokens[0][0])
@@ -129,16 +139,21 @@ def findMatrixMax(matrix):
     # Maybe I should store the max value with the array, and then always store
     # the previous largest, and when i insert or delete...
     
+    if kvp[1] > max_val:
+      max_val = kvp[1]
+      max_i = i
+      max_j = kvp[0]
+    
     #if sorted_tokens[0][1] > max_val:
       #max_val = sorted_tokens[0][1]
       #max_i = i
       #max_j = sorted_tokens[0][0]
 
-    for j in matrix[i].keys():
-      if matrix[i][j] > max_val:
-        max_val = matrix[i][j]
-        max_i = i
-        max_j = j
+    #for j in matrix[i].keys():
+      #if matrix[i][j] > max_val:
+        #max_val = matrix[i][j]
+        #max_i = i
+        #max_j = j
 
   return (max_i, max_j, max_val)
 
@@ -193,6 +208,10 @@ def main():
   maximum = int(sys.argv[3])
   stop_file = sys.argv[4]
   output_file = sys.argv[5]
+  
+  if minimum >= maximum:
+    usage()
+    sys.exit(-2)
 
   # Pull stop words
   with open(stop_file, "r") as f:
@@ -202,15 +221,17 @@ def main():
     for i in xrange(0, len(stopwords)):
       stopwords[i] = stopwords[i].strip()
 
+  #print "finished importing stopwords @%fs" % time.clock()
+
   kickoff = \
 """
 -------------------------------------------------------------------
-parameters :
-database   : %s
-minimum    : %d
-maximum    : %d
-output     : %s
-stop       : %s
+parameters   :
+  database   : %s
+  minimum    : %d
+  maximum    : %d
+  output     : %s
+  stop       : %s
 -------------------------------------------------------------------
 """
 
@@ -230,10 +251,12 @@ stop       : %s
   # Search the database file for users.
   users = []
 
+  #print "starting user query @%fs" % time.clock()
+
   for row in c.execute(query_collect % (minimum, maximum)):
     users.append(row['owner'])
 
-  print "query users: %f" % time.clock()
+  #print "query users: %fs" % time.clock()
   print "users: %d\n" % len(users)
 
   # ---------------------------------------------------------------------------
@@ -251,14 +274,14 @@ stop       : %s
     for row in c.execute(query_tweets % u):
       users_tweets[row['id']] = row['text']
 
-    #print "query time: %f" % time.clock()
+    #print "query time: %fs" % time.clock()
 
     tweet_cnt += len(users_tweets)
     curr_cnt = len(users_tweets)
 
     docTfIdf = buildDocTfIdf(users_tweets, stopwords)
     
-    #print "doc tf-idf: %f" % time.clock()
+    #print "doc tf-idf: %fs" % time.clock()
 
     # -------------------------------------------------------------------------
     # Build Centroid List (this step is not actually slow.)
@@ -269,7 +292,7 @@ stop       : %s
       centroids[arbitrary_name] = Centroid.Centroid(str(doc), vec) 
       arbitrary_name += 1
 
-    #print "conversion to centroids: %f" % time.clock()
+    #print "conversion to centroids: %fs" % time.clock()
 
     # The size of sim_matrix is: (num_centroids^2 / 2) - (num_centroids / 2)
     # -- verified, my code does this correctly. : )
@@ -279,7 +302,7 @@ stop       : %s
     average_sim = Centroid.findAvg(centroids, True, initial_similarities)
     stddev_sim = Centroid.findStd(centroids, True, initial_similarities)
 
-    #print "initial similarities (start-of matrix): %f" % time.clock()
+    #print "initial similarities (start-of matrix): %fs" % time.clock()
     #print "len(init_sims): %d" % len(initial_similarities)
 
     # Merge centroids by highest similarity of at least threshold  
@@ -289,9 +312,9 @@ stop       : %s
     # Merge centroids
 
     while len(centroids) > 1:
-      start = time.clock()
+      #start = time.clock()
       i, j, sim = findMatrixMax(sim_matrix)
-      #print "findmax: %f" % (time.clock() - start)
+      #print "findmax: %fs" % (time.clock() - start)
 
       if sim >= threshold:
         centroids[i].addCentroid(centroids[j])
@@ -309,13 +332,13 @@ stop       : %s
     with open(output_file, "a") as f:
       f.write("user: %d\n" % u)
       for cen in centroids:
-        f.write("%s\n" % Centroid.topTerms(centroids[cen], 10))
+        f.write("%s\n" % centroids[cen].topTerms(10))
       f.write("------------------------------------------------------------\n")
 
   # ---------------------------------------------------------------------------
   # Done.
   conn.close()
-  
+
   print "tweet count: %d" % tweet_cnt
 
 if __name__ == "__main__":
