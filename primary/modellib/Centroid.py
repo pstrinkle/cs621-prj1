@@ -114,6 +114,8 @@ def findAvg(centroids, short_cut = False, sim_scores = None):
   
   If short_cut is True, it'll use sim_scores as the input instead of calculating
    the scores.
+  
+  This can only work on the early perfect version of the centroid list.
   """
   total_sim = 0.0
   total_comparisons = 0
