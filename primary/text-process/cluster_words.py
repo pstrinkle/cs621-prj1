@@ -2,10 +2,11 @@
 
 __author__ = 'tri1@umbc.edu'
 
-# Patrick Trinkle
+##
+# @author: Patrick Trinkle
 # Spring 2012
 #
-# This tries to cluster the tweets by topic.
+# @summary: This tries to cluster the tweets by topic.
 #
 # This opens the xml file holding the tweets, and builds a giant
 # tweet for each day, by appending the previous day's tweets.
@@ -18,13 +19,15 @@ __author__ = 'tri1@umbc.edu'
 #
 # If you update the clustering algorithm here, until it's pulled into a separate
 #  library you also must update auto_pull_label.py.
+#
+# @warning: Fairly inefficient.  Take a look at auto_pull_label.py
 
 import os
 import sys
 import codecs
 
-sys.path.append("tweetlib")
-sys.path.append("modellib")
+sys.path.append(os.path.join("..", "tweetlib"))
+sys.path.append(os.path.join("..", "modellib"))
 import TweetClean
 import VectorSpace
 import Centroid
