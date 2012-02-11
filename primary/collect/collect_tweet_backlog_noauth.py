@@ -17,15 +17,17 @@ import time
 import calendar
 import twitter
 import codecs
+import urllib2 # for the exception
+import httplib # for the exception
 
-sys.path.append("tweetlib")
+sys.path.append(os.path.join("..", "tweetlib"))
 import TweetXml
 import TweetRequest
 
 def usage():
   usageStr =\
   """
-  usage: %s -ts <users_input_filename> <output_folder> <error_log> <kill_file> <success_log>
+  usage: %s (-ts|-both) <users_input_filename> <output_folder> <error_log> <kill_file> <success_log>
   
       -ts := pull tweets
       users_input_filename := this is a file of the following format: "<id>id</id>..."
@@ -48,11 +50,7 @@ def main():
   # Looks like I need to update the library or figure out how to get to the oauth stuff from it;
   # I built my own application thing and have my own oauth stuff.
   #
-  api = twitter.Api(
-                    consumer_key=TweetRequest.consumer_key,
-                    consumer_secret=TweetRequest.consumer_secret,
-                    access_token_key=TweetRequest.access_token_key,
-                    access_token_secret=TweetRequest.access_token_secret)
+  api = twitter.Api()
 
   users = []
   
@@ -80,7 +78,15 @@ def main():
       urs = re.search(r"<id>(\d+?)</id><last_since_id>(\d+?)</last_since_id><oldest_id>(\d+?)</oldest_id>", i)
       onlyid = re.search("<id>(\d+?)</id>", i)
       if urs and urs.group(1) not in users:
-        # since_id is 0 here because we want to start at a point in the past and walk backwards.
+        # In this case we want to make since_id to be 0 so we can go back in time
+        # and we set max_id to be the last time we pulled.. in the future this will be the
+        # oldest tweet_id.
+        #
+        # Once we've run backlog on our users we don't really need to go too far into the past;
+        # Albeit it'd be a good idea to properly handle going back in time to an extent if we
+        # miss some.
+        #
+        # Ugh.  I need to get some work done on this.
         users.append(TweetRequest.RequestTuple(int(urs.group(1)), 0, int(urs.group(3))))
       elif onlyid and onlyid.group(1) not in users:
         users.append(TweetRequest.RequestTuple(int(onlyid.group(1))))
@@ -100,7 +106,7 @@ def main():
   # For each user:
   for user in users:
     
-    print "\nprocessing: %d" % user.user_id
+    print "processing: %d" % user.user_id
     
     # FYI, this API can only get me 3500 tweets back--that being said, I want to hit each user
     # repeatedly until no more come out, even if the last one is a wasted call.
@@ -124,7 +130,6 @@ def main():
         min_wait = (reset_time - my_time) / 60
         sec_wait = (reset_time - my_time) - (min_wait *60)
         print "forced sleep: %dm:%ds" % (min_wait, sec_wait)
-        sys.stdout.flush()
         time.sleep((reset_time - my_time))
       else:
         time.sleep(6) # 3600 / 350 ~ 10, so 6.
@@ -169,19 +174,18 @@ def main():
 
       except twitter.TwitterError, e:
         if e.message == "Capacity Error":
-          print "capacity error caught on api.GetUserTimeline(%s) added back in." % str(user)
+          print "capacity error caught on api.GetUserTimeline(%s) added back in.\n" % str(user)
           users.append(user)
           done = True
           pass
         else:
-          print "other error caught, not adding back in: %s" % e.message
           err.write("%s on <id>%d</id>\n" % (e.message, user.user_id))
           err.flush()
           done = True
       except urllib2.URLError, e:
-        print "exception: %s" % e.message
+        print "%s" % e.message
       except httplib.BadStatusLine, e:
-        print "exception: %s" % e.message
+        print "%s" % e.message
 
   fin.close()
   err.close()

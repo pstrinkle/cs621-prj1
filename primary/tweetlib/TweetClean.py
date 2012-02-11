@@ -10,6 +10,19 @@ __author__ = 'tri1@umbc.edu'
 
 import re
 
+def importStopWords(location):
+  """
+  Given a file location, read in the stop words.
+  """
+  with open(location, "r") as f:
+    stopwords = f.readlines()
+
+    # clean them up!
+    for i in xrange(0, len(stopwords)):
+      stopwords[i] = stopwords[i].strip()
+  
+  return stopwords
+
 def extract_id(tweet):
   """
   Given a line from my XML file of tweets, return a tuple (tweet_id, tweet_contents)

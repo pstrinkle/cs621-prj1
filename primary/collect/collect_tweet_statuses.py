@@ -18,7 +18,7 @@ import calendar
 import twitter
 import codecs
 
-sys.path.append("tweetlib")
+sys.path.append(os.path.join("..", "tweetlib"))
 import TweetXml
 import TweetRequest
 

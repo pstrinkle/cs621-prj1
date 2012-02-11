@@ -113,16 +113,6 @@ def findMatrixMax(matrix):
     # Single-looping keys and max() operator instead of sort:         2.35s
     # " (w/o the length check):                                       2.22s
 
-    # 3-step process... slow.
-    #sorted_tokens = [(v, k) for k, v in matrix[i].items()]
-    #sorted_tokens.sort()
-    #sorted_tokens.reverse()
-
-    # items() creates a copy of the dictionary pairs.
-    #sorted_tokens = sorted(
-    #                       matrix[i].items(),
-    #                       key=operator.itemgetter(1),
-    #                       reverse=True)
     try:
       kvp = max(matrix[i].iteritems(), key=operator.itemgetter(1))
     except ValueError: # if matrix[i] is None, then this moves forward
@@ -143,17 +133,6 @@ def findMatrixMax(matrix):
       max_val = kvp[1]
       max_i = i
       max_j = kvp[0]
-    
-    #if sorted_tokens[0][1] > max_val:
-      #max_val = sorted_tokens[0][1]
-      #max_i = i
-      #max_j = sorted_tokens[0][0]
-
-    #for j in matrix[i].keys():
-      #if matrix[i][j] > max_val:
-        #max_val = matrix[i][j]
-        #max_i = i
-        #max_j = j
 
   return (max_i, max_j, max_val)
 
@@ -214,24 +193,17 @@ def main():
     sys.exit(-2)
 
   # Pull stop words
-  with open(stop_file, "r") as f:
-    stopwords = f.readlines()
-
-    # clean them up!
-    for i in xrange(0, len(stopwords)):
-      stopwords[i] = stopwords[i].strip()
-
-  #print "finished importing stopwords @%fs" % time.clock()
+  stopwords = TweetClean.importStopWords(stop_file)
 
   kickoff = \
 """
 -------------------------------------------------------------------
-parameters   :
-  database   : %s
-  minimum    : %d
-  maximum    : %d
-  output     : %s
-  stop       : %s
+parameters  :
+  database  : %s
+  minimum   : %d
+  maximum   : %d
+  output    : %s
+  stop      : %s
 -------------------------------------------------------------------
 """
 
@@ -251,12 +223,12 @@ parameters   :
   # Search the database file for users.
   users = []
 
-  #print "starting user query @%fs" % time.clock()
+  start = time.clock()
 
   for row in c.execute(query_collect % (minimum, maximum)):
     users.append(row['owner'])
 
-  #print "query users: %fs" % time.clock()
+  print "query time: %f" % (time.clock() - start)
   print "users: %d\n" % len(users)
 
   # ---------------------------------------------------------------------------
@@ -264,24 +236,22 @@ parameters   :
 
   tweet_cnt = 0
 
-  print "usr\tcnt\tavg\tstd\tend"
+  print "usr\tcnt\tavg\tstd\tend\tdur"
 
   for u in users:
     docTfIdf = {}      # similar to docTermFreq, but holds the tf-idf values
     users_tweets = {}
-    output = "%d\t%d\t%.3f\t%.3f\t%d"
+    output = "%d\t%d\t%.3f\t%.3f\t%d\t%fs"
+    
+    start = time.clock()
     
     for row in c.execute(query_tweets % u):
       users_tweets[row['id']] = row['text']
-
-    #print "query time: %fs" % time.clock()
 
     tweet_cnt += len(users_tweets)
     curr_cnt = len(users_tweets)
 
     docTfIdf = buildDocTfIdf(users_tweets, stopwords)
-    
-    #print "doc tf-idf: %fs" % time.clock()
 
     # -------------------------------------------------------------------------
     # Build Centroid List (this step is not actually slow.)
@@ -292,8 +262,6 @@ parameters   :
       centroids[arbitrary_name] = Centroid.Centroid(str(doc), vec) 
       arbitrary_name += 1
 
-    #print "conversion to centroids: %fs" % time.clock()
-
     # The size of sim_matrix is: (num_centroids^2 / 2) - (num_centroids / 2)
     # -- verified, my code does this correctly. : )
 
@@ -302,9 +270,6 @@ parameters   :
     average_sim = Centroid.findAvg(centroids, True, initial_similarities)
     stddev_sim = Centroid.findStd(centroids, True, initial_similarities)
 
-    #print "initial similarities (start-of matrix): %fs" % time.clock()
-    #print "len(init_sims): %d" % len(initial_similarities)
-
     # Merge centroids by highest similarity of at least threshold  
     threshold = stddev_sim
 
@@ -312,22 +277,23 @@ parameters   :
     # Merge centroids
 
     while len(centroids) > 1:
-      #start = time.clock()
       i, j, sim = findMatrixMax(sim_matrix)
-      #print "findmax: %fs" % (time.clock() - start)
 
       if sim >= threshold:
+        
         centroids[i].addCentroid(centroids[j])
         del centroids[j]
 
         removeMatrixEntry(sim_matrix, i)
         removeMatrixEntry(sim_matrix, j)
-
         addMatrixEntry(sim_matrix, centroids, centroids[i], i)
       else:
         break
 
-    print output % (u, curr_cnt, average_sim, stddev_sim, len(centroids))
+    duration = (time.clock() - start)
+
+    print output % \
+      (u, curr_cnt, average_sim, stddev_sim, len(centroids), duration)
 
     with open(output_file, "a") as f:
       f.write("user: %d\n" % u)

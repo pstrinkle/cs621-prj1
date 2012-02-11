@@ -21,7 +21,7 @@ import calendar
 #import glob
 import twitter
 
-sys.path.append("tweetlib")
+sys.path.append(os.path.join("..", "tweetlib"))
 import TweetXml
 import TweetRequest
 
