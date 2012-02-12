@@ -241,7 +241,7 @@ parameters  :
   for u in users:
     docTfIdf = {}      # similar to docTermFreq, but holds the tf-idf values
     users_tweets = {}
-    output = "%d\t%d\t%.3f\t%.3f\t%d\t%fs"
+    output = "%d\t%d\t%.3f\t%.3f\t%d\t%fm"
     
     start = time.clock()
     
@@ -290,7 +290,7 @@ parameters  :
       else:
         break
 
-    duration = (time.clock() - start)
+    duration = (time.clock() - start) / 60 # for minutes
 
     print output % \
       (u, curr_cnt, average_sim, stddev_sim, len(centroids), duration)
