@@ -121,6 +121,10 @@ def main():
   print "Total Count of Terms: %d" % totalTermCount
   print "Unique Terms: %d" % len(docFreq)
   print "How many Documents: %d" % len(docTermFreq)
+  
+  # ---------------------------------------------------------------------------
+  # Remove singletons -- standard practice.
+  # Skipped with tweets for now...
 
   # Calculate the inverse document frequencies.
   invdocFreq = VectorSpace.calculate_invdf(len(docTermFreq), docFreq)

@@ -131,7 +131,11 @@ def main():
   for day in docTermFreq:
     print "sizeof docTermFreq[%s]: %d" % (str(day), len(docTermFreq[day])) # this is how many unique terms were in that day
     #print docTermFreq[day]
-  
+
+  # ---------------------------------------------------------------------------
+  # Remove singletons -- standard practice.
+  # Skipped with tweets for now...
+
   # Calculate the inverse document frequencies.
   invdocFreq = VectorSpace.calculate_invdf(len(docTermFreq), docFreq)
   
