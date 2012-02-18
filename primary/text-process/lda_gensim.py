@@ -5,13 +5,15 @@ __author__ = 'tri1@umbc.edu'
 # Patrick Trinkle
 # Spring 2012
 #
-# This attempts to convert tweets to the gensim input format.
-#
-# Abandoned.
+# This attempts to process tweets with LDA from the gensim library 
+# implementation.
 #
 
 import sys
+import gensim
 
+sys.path.append(os.path.join("..", "tweetlib"))
+import TweetClean
 
 def usage():
   print "usage: %s <database> <user_id> <input stopwords>" % sys.argv[0]

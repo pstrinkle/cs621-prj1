@@ -110,14 +110,10 @@ def cleanup(tweet, lowercase = True, to_ascii = False):
   # ampersand
   # asterics
   # single-quotes
-  replacements = ['\\', '.', '/', "--", '(', ')', '!', '?', '"', '#', ':', ";", "&", "*"]
+  replacements = ['\\', '.', '/', "--", '(', ')', '!', '?', '"', '#', ':', ";", "&", "*", '^', '>', '<']
   
   for r in replacements:
     newTweet = newTweet.replace(r, ' ')
-
-  # &amp;
-  # &gt;
-  # &lt;
   
   # There could be a few usernames in the tweet...
   user = re.search('(@\S+)', newTweet)
