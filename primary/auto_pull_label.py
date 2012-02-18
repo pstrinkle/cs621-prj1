@@ -246,7 +246,8 @@ parameters  :
     start = time.clock()
     
     for row in c.execute(query_tweets % u):
-      users_tweets[row['id']] = row['text']
+      if row['text'] is not None: # I really don't care about tweets I don't have.
+        users_tweets[row['id']] = row['text']
 
     tweet_cnt += len(users_tweets)
     curr_cnt = len(users_tweets)
@@ -297,6 +298,7 @@ parameters  :
 
     with open(output_file, "a") as f:
       f.write("user: %d\n" % u)
+      # Might be better if I just implement __str__ for Centroids.
       for cen in centroids:
         f.write("%s\n" % centroids[cen].topTerms(10))
       f.write("------------------------------------------------------------\n")

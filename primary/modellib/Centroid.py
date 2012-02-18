@@ -182,7 +182,14 @@ class Centroid:
     Get the length of it!
     """
     return len(self.centroidVector)
-  
+
+  def __str__(self):
+    """
+    Get the string representation.  In this case, it's the name and the top 5
+    terms.
+    """
+    return ""
+
   def topTerms(self, n):
     """
     Returns the n-highest tf-idf terms in the vector.

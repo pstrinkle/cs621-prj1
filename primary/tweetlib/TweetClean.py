@@ -100,17 +100,8 @@ def cleanup(tweet, lowercase = True, to_ascii = False):
   # periods.  Safe to remove only after you've cleared out the URLs
   # excessive forward-slashing
   # emphasis dashes
-  # parentheses
-  # exclamation point
-  # question mark
-  # double-quote
-  # topic tag TODO: Removing this unweighs the term.
-  # colon
-  # semi-colon
-  # ampersand
-  # asterics
-  # single-quotes
-  replacements = ['\\', '.', '/', "--", '(', ')', '!', '?', '"', '#', ':', ";", "&", "*", '^', '>', '<']
+  # topic tag TODO: Removing this unweighs the term. <-- leaving in place for now.
+  replacements = ['\\', '.', '/', "--", '(', ')', '!', '?', '"', ':', ";", "&", "*", '^', '>', '<', '+', '=', '_']
   
   for r in replacements:
     newTweet = newTweet.replace(r, ' ')
@@ -126,8 +117,13 @@ def cleanup(tweet, lowercase = True, to_ascii = False):
   #newTweet = newTweet.replace('-', ' ')  # hyphen (us-1, i-95)
   # XXX: I would like to however, remove -x or x-... can use regex... 
   newTweet = newTweet.replace("'", '') # makes don't -> dont
-  newTweet = newTweet.replace("  ", " ") # extra spaces together
-  # XXX: Have this loop!
+  
+  extraSpace = re.search('(\s{2})', newTweet)
+  
+  while extraSpace != None:
+    newTweet = newTweet.replace(extraSpace.group(1), ' ')
+    extraSpace = re.search('(\s{2})', newTweet)
+
   newTweet = newTweet.strip()
 
   return newTweet
