@@ -21,10 +21,10 @@ import time
 import sqlite3
 import operator
 
-sys.path.append("tweetlib")
+sys.path.append(os.path.join("..", "tweetlib"))
 import TweetClean
 
-sys.path.append("modellib")
+sys.path.append(os.path.join("..", "modellib"))
 import VectorSpace
 import Centroid
 

@@ -1,0 +1,127 @@
+#! /usr/bin/python
+
+__author__ = 'tri1@umbc.edu'
+
+# Patrick Trinkle
+# Spring 2012
+#
+# This attempts to process tweets with LDA from the gensim library 
+# implementation.
+#
+
+import os
+import sys
+import sqlite3
+import logging
+
+#logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+
+from gensim import corpora, models, similarities
+
+sys.path.append(os.path.join("..", "tweetlib"))
+import TweetClean
+
+def usage():
+  print "usage: %s <database> <minimum> <maximum> <stopwords> <output>" % sys.argv[0]
+
+def main():
+
+  # Did they provide the correct args?
+  if len(sys.argv) != 6:
+    usage()
+    sys.exit(-1)
+
+  database_file = sys.argv[1]
+  minimum = int(sys.argv[2])
+  maximum = int(sys.argv[3])
+  #user_id = int(sys.argv[2])
+  stop_file = sys.argv[4]
+  output_file = sys.argv[5]
+
+  if minimum >= maximum:
+    usage()
+    sys.exit(-2)
+
+  kickoff = \
+"""
+-------------------------------------------------------------------
+parameters  :
+  database  : %s
+  minimum   : %d
+  maximum   : %d
+  output    : %s
+  stop      : %s
+-------------------------------------------------------------------
+"""
+
+  print kickoff % (database_file, minimum, maximum, output_file, stop_file) 
+
+  # ---------------------------------------------------------------------------
+  # Pull stop words
+  stopwords = TweetClean.importStopWords(stop_file)
+
+  # ---------------------------------------------------------------------------
+  # Read in the database
+  query_collect = \
+    "select owner from tweets group by owner having count(*) >= %d and count(*) < %d;"
+  query_tweets = "select id, contents as text from tweets where owner = %d;"
+  users_tweets = {}
+
+  conn = sqlite3.connect(database_file)
+  conn.row_factory = sqlite3.Row
+
+  c = conn.cursor()
+  
+  # ---------------------------------------------------------------------------
+  # Search the database file for users.
+  users = []
+
+  for row in c.execute(query_collect % (minimum, maximum)):
+    users.append(row['owner'])
+  
+  # ---------------------------------------------------------------------------
+  # Process those tweets by user set.
+
+  for user_id in users:
+    for row in c.execute(query_tweets % user_id):
+      if row['text'] is not None:
+        users_tweets[row['id']] = TweetClean.cleanup(row['text'], True, True)
+
+    texts = [[word for word in users_tweets[id].split() if word not in stopwords] for id in users_tweets]
+
+    # remove words that appear only once
+    all_tokens = sum(texts, [])
+    tokens_once = set(word for word in set(all_tokens) if all_tokens.count(word) == 1)
+    texts = [[word for word in text if word not in tokens_once] for text in texts]
+
+    dictionary = corpora.Dictionary(texts)
+    dictionary.save('%d.dict' % user_id) # store the dictionary, for future reference
+
+    corpus = [dictionary.doc2bow(text) for text in texts]
+    corpora.MmCorpus.serialize('%d.mm' % user_id, corpus) # store to disk, for later use
+
+    # is this different...
+    corpus = corpora.MmCorpus('%d.mm' % user_id)
+  
+    model = models.ldamodel.LdaModel(corpus, id2word=dictionary, chunksize=100, passes=20, num_topics=100)
+    model.save('%d.lda' % user_id)
+
+    lda = models.ldamodel.LdaModel.load('%d.lda' % user_id)
+
+    #lda.show_topics(topics=1, topn=1, log=False, formatted=True)
+    # Unlike what the documentation might have you believe, you have to pull it
+    # back as a string if you want to use it.
+    topic_strings = lda.show_topics(topics=-1, formatted=True)
+    with open(output_file, "a") as f:
+      f.write("user: %d\n" % user_id)
+      f.write("#topics: %d" % len(topic_strings)) 
+      for topic in topic_strings:
+        f.write("%s\n" % str(topic))
+
+  # ---------------------------------------------------------------------------
+  # Done.
+
+  conn.close()
+
+if __name__ == "__main__":
+  main()
