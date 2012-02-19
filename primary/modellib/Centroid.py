@@ -185,10 +185,13 @@ class Centroid:
 
   def __str__(self):
     """
-    Get the string representation.  In this case, it's the name and the top 5
+    Get the string representation.  In this case, it's the name and the top 10
     terms.
     """
-    return ""
+
+    output = "%s:\n%s" % (self.name, self.topTerms(10))
+
+    return output
 
   def topTerms(self, n):
     """

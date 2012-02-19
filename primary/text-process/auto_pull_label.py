@@ -16,6 +16,7 @@ __author__ = 'tri1@umbc.edu'
 # The tweet centroids are merged if their similarity score is greater than the
 # standard deviation of all similarities in the user's set.
 
+import os
 import sys
 import time
 import sqlite3
