@@ -26,9 +26,9 @@ sys.path.append(os.path.join("..", "tweetlib"))
 import TweetClean
 
 def usage():
-  print "usage: %s <database> <minimum> <maximum> <stopwords> <output>" % sys.argv[0]
+  print "usage: %s <database> <minimum> <maximum> <stopwords> <output_folder>" % sys.argv[0]
 
-def threadMain(database_file, output_file, users, stopwords, start, cnt):
+def threadMain(database_file, output_folder, users, stopwords, start, cnt):
   """
   Process the users in your range!
   
@@ -37,7 +37,7 @@ def threadMain(database_file, output_file, users, stopwords, start, cnt):
   I could use the whole Queue thing... but I don't feel like trying to get that
   to work as well.
   """
-  
+
   query_tweets = "select id, contents as text from tweets where owner = %d;"
   users_tweets = {}
 
@@ -45,7 +45,9 @@ def threadMain(database_file, output_file, users, stopwords, start, cnt):
   conn.row_factory = sqlite3.Row
 
   c = conn.cursor()
-  
+
+  # -------------------------------------------------------------------------
+  # Process this thread's users.
   for j in xrange(start, start + cnt):
     user_id = users[j]
     print "processing: %d" % user_id
@@ -55,25 +57,40 @@ def threadMain(database_file, output_file, users, stopwords, start, cnt):
 
     texts = [[word for word in users_tweets[id].split() if word not in stopwords] for id in users_tweets]
 
+    # -------------------------------------------------------------------------
     # remove words that appear only once
     all_tokens = sum(texts, [])
     tokens_once = set(word for word in set(all_tokens) if all_tokens.count(word) == 1)
     texts = [[word for word in text if word not in tokens_once] for text in texts]
 
     dictionary = corpora.Dictionary(texts)
-    #dictionary.save(os.path.join("lda_out", '%d.dict' % user_id)) # store the dictionary, for future reference
+    # store the dictionary, for future reference
+    #dictionary.save(os.path.join("lda_out", '%d.dict' % user_id))
 
     corpus = [dictionary.doc2bow(text) for text in texts]
-    corpora.MmCorpus.serialize(os.path.join("lda_out", '%d.mm' % user_id), corpus) # store to disk, for later use
+    # store to disk, for later use
+    #corpora.MmCorpus.serialize(
+    #                           os.path.join(output_folder, '%d.mm' % user_id),
+    #                           corpus)
 
+    # -------------------------------------------------------------------------
     # is this different...
-    corpus = corpora.MmCorpus(os.path.join("lda_out", '%d.mm' % user_id))
+    #corpus = corpora.MmCorpus(os.path.join(output_folder, '%d.mm' % user_id))
   
-    lda = models.ldamodel.LdaModel(corpus, id2word=dictionary, chunksize=100, passes=20, num_topics=100)
+    lda = models.ldamodel.LdaModel(
+                                   corpus,
+                                   id2word=dictionary,
+                                   chunksize=100,
+                                   passes=20,
+                                   num_topics=100)
     #lda.save('%d.lda' % user_id)
 
+    # -------------------------------------------------------------------------
     topic_strings = lda.show_topics(topics=-1, formatted=True)
-    with open(output_file, "a") as f:
+    # shit, they share an output_file, so they could interrupt each other.
+    ### so switch to individual files...
+    ###
+    with open(os.path.join(output_folder, "%d.topics" % user_id), "w") as f:
       f.write("user: %d\n#topics: %d\n" % (user_id, len(topic_strings)))
       for topic in topic_strings: # could use .join
         f.write("%s\n" % str(topic))
@@ -93,7 +110,7 @@ def main():
   minimum = int(sys.argv[2])
   maximum = int(sys.argv[3])
   stop_file = sys.argv[4]
-  output_file = sys.argv[5]
+  output_folder = sys.argv[5]
 
   if minimum >= maximum:
     usage()
@@ -111,7 +128,7 @@ parameters  :
 -------------------------------------------------------------------
 """
 
-  print kickoff % (database_file, minimum, maximum, output_file, stop_file) 
+  print kickoff % (database_file, minimum, maximum, output_folder, stop_file) 
 
   # ---------------------------------------------------------------------------
   # Pull stop words
@@ -156,7 +173,7 @@ parameters  :
                          target=threadMain,
                          args=(
                                database_file,
-                               output_file,
+                               output_folder,
                                users,
                                stopwords,
                                start,
