@@ -15,9 +15,13 @@ __author__ = 'tri1@umbc.edu'
 #
 # The tweet centroids are merged if their similarity score is greater than the
 # standard deviation of all similarities in the user's set.
+#
+# The tf-idf library code here is of my own design.  It is fairly standard, 
+# except I don't throw out singletons.  Maybe I should?
 
 import os
 import sys
+import math
 import time
 import sqlite3
 import operator
@@ -57,6 +61,8 @@ def buildDocTfIdf(users_tweets, stopwords):
     # let's make a short list of the words we'll accept.
     pruned = []
 
+    ## @todo: Convert this and the split into something like the following:
+    # pruned = [word for word in users_tweets[id].split(' ') if len(word) > 1 and word not in stopwords]
     for w in words:
       if len(w) > 1 and w not in stopwords:
         pruned.append(w)
