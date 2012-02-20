@@ -55,7 +55,8 @@ def threadMain(database_file, output_folder, users, stopwords, start, cnt):
       if row['text'] is not None:
         users_tweets[row['id']] = TweetClean.cleanup(row['text'], True, True)
 
-    texts = [[word for word in users_tweets[id].split() if word not in stopwords] for id in users_tweets]
+    # only words that are greater than one letter and not in the stopword list.
+    texts = [[word for word in users_tweets[id].split() if word not in stopwords and len(word) > 1] for id in users_tweets]
 
     # -------------------------------------------------------------------------
     # remove words that appear only once

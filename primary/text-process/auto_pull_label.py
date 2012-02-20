@@ -48,24 +48,14 @@ def buildDocTfIdf(users_tweets, stopwords):
   docTfIdf = {}      # similar to docTermFreq, but holds the tf-idf values
 
   for id in users_tweets:
-
-    if users_tweets[id] == None:
-      continue
-
-    users_tweets[id] = TweetClean.cleanup(users_tweets[id], True, True)
-
     # Calculate Term Frequencies for this id/document.
-    # Skip 1 letter words.
-    words = users_tweets[id].split(' ')
-
     # let's make a short list of the words we'll accept.
-    pruned = []
 
-    ## @todo: Convert this and the split into something like the following:
-    # pruned = [word for word in users_tweets[id].split(' ') if len(word) > 1 and word not in stopwords]
-    for w in words:
-      if len(w) > 1 and w not in stopwords:
-        pruned.append(w)
+    # only words that are greater than one letter and not in the stopword list.
+    pruned = [w for w in users_tweets[id].split(' ') if w not in stopwords and len(w) > 1]
+    #for w in words:
+      #if len(w) > 1 and w not in stopwords:
+        #pruned.append(w)
 
     if len(pruned) < 2:
       continue
@@ -183,7 +173,9 @@ def addMatrixEntry(matrix, centroids, new_centroid, name):
       matrix[name][i] = Centroid.similarity(centroids[i], new_centroid)
 
 def threadMain(database_file, output_folder, users, stopwords, start, cnt):
-  
+  """
+  What, what! : )
+  """
   query_tweets = "select id, contents as text from tweets where owner = %d;"
   users_tweets = {}
 
@@ -196,16 +188,15 @@ def threadMain(database_file, output_folder, users, stopwords, start, cnt):
   # Process this thread's users.
   for u in xrange(start, start + cnt):
     user_id = users[u]
-  
     docTfIdf = {}      # similar to docTermFreq, but holds the tf-idf values
     users_tweets = {}
     output = "%d\t%d\t%.3f\t%.3f\t%d\t%fm"
-    
+
     start = time.clock()
-    
+
     for row in c.execute(query_tweets % user_id):
       if row['text'] is not None: # I really don't care about tweets I don't have.
-        users_tweets[row['id']] = row['text']
+        users_tweets[row['id']] = TweetClean.cleanup(row['text'], True, True)
 
     curr_cnt = len(users_tweets)
 
@@ -302,7 +293,6 @@ parameters  :
   # this won't return the 3 columns we care about.
   query_collect = \
     "select owner from tweets group by owner having count(*) >= %d and count(*) < %d;"
-  query_tweets = "select id, contents as text from tweets where owner = %d;"
 
   conn = sqlite3.connect(database_file)
   conn.row_factory = sqlite3.Row

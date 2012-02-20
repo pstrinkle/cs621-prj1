@@ -101,8 +101,11 @@ def cleanup(tweet, lowercase = True, to_ascii = False):
   # excessive forward-slashing
   # emphasis dashes
   # topic tag TODO: Removing this unweighs the term. <-- leaving in place for now.
-  replacements = ['\\', '.', '/', "--", '(', ')', '!', '?', '"', ':', ";", "&", "*", '^', '>', '<', '+', '=', '_']
-  
+  replacements = [
+                  '.', '/', '(', ')', '!', '?', '"', ':', ";", "&", "*", '^', 
+                  '>', '<', '+', '=', '_', ',', '[', ']', '{', '}', '|', 
+                  '\\', "--"]
+
   for r in replacements:
     newTweet = newTweet.replace(r, ' ')
   

@@ -75,8 +75,7 @@ def main():
   print "tweet days: %d" % len(daysTweets)
   gramSize = 3
 
-  days = sorted(daysTweets.keys())
-  for day in days:
+  for day in sorted(daysTweets.keys()):
     daysHisto[day] = {} # initialize the sub-dictionary
 
     # This gives me values, starting at 0, growing by gramSize for length of the tweet.
@@ -91,14 +90,16 @@ def main():
       # wu is a special format that will not screw with whitespace
       wu = "_%s_" % w
       totalTermCount += 1
-      
-      if w not in daysHisto[day]:
-        daysHisto[day][wu] = 0
-      daysHisto[day][wu] += 1
 
-      if wu not in docFreq:
-        docFreq[wu] = 0
-      docFreq[wu] += 1
+      try:
+        daysHisto[day][wu] += 1
+      except KeyError:
+        daysHisto[day][wu] = 1
+
+      try:
+        docFreq[wu] += 1
+      except KeyError:
+        docFreq[wu] = 1
 
   # Calculate the inverse document frequencies.
   invdocFreq = VectorSpace.calculate_invdf(len(daysHisto), docFreq)

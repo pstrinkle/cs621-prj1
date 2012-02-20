@@ -79,8 +79,7 @@ def main():
   print "tweet days: %d" % len(daysTweets)
   gramSize = 3
 
-  days = sorted(daysTweets.keys())
-  for day in days:
+  for day in sorted(daysTweets.keys()):
     daysHisto[day] = {} # initialize the sub-dictionary
     totalDaysTerms = 0  # for normalizing the term frequencies, so days with more tweets don't skew values.
 
@@ -97,13 +96,15 @@ def main():
       wu = "_%s_" % w
       totalDaysTerms += 1
       
-      if w not in daysHisto[day]:
-        daysHisto[day][wu] = 0
-      daysHisto[day][wu] += 1
-      
-      if wu not in docFreq:
-        docFreq[wu] = 0
-      docFreq[wu] += 1
+      try:
+        daysHisto[day][wu] += 1
+      except KeyError:
+        daysHisto[day][wu] = 1
+
+      try:
+        docFreq[wu] += 1
+      except KeyError:
+        docFreq[wu] = 1
 
     # print results to file for day.
     # unsorted

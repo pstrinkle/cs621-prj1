@@ -102,8 +102,7 @@ def main():
     
     # Calculate Term Frequencies for this day/document.
     # Skip 1 letter words.
-    words = daysTweets[day].split(' ')
-    for w in words:
+    for w in daysTweets[day].split(' '):
       if len(w) > 1:
         totalTermCount += 1
         

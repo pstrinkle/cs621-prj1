@@ -87,14 +87,8 @@ def main():
   for id in cleanTweets.keys():
     # Calculate Term Frequencies for this id/document.
     # Skip 1 letter words.
-    words = cleanTweets[id].split(' ')
-
     # let's make a short list of the words we'll accept.
-    pruned = []
-
-    for w in words:
-      if len(w) > 1 and w not in stopwords:
-        pruned.append(w)
+    pruned = [w for w in cleanTweets[id].split(' ') if len(w) > 1 and w not in stopwords]
 
     if len(pruned) < 2:
       continue
