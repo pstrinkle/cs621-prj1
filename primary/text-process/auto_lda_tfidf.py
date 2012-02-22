@@ -57,9 +57,6 @@ def buildDocTfIdf(users_tweets, stopwords):
 
     # only words that are greater than one letter and not in the stopword list.
     pruned = [w for w in users_tweets[id].split(' ') if w not in stopwords and len(w) > 1]
-    #for w in words:
-      #if len(w) > 1 and w not in stopwords:
-        #pruned.append(w)
 
     if len(pruned) < 2:
       continue
@@ -102,11 +99,6 @@ def findMatrixMax(matrix):
   max_j = 0
 
   for i in matrix.keys():
-
-    # sys.stderr.write("why are there no things for %d\n" % i)
-    #if len(matrix[i]) == 0: ## checking each time is slow.
-      #continue
-
     # this should be faster than searching by key on the inner loop.
     #
     # Double-looping keys and checking each took:                     4.50s.
@@ -120,17 +112,6 @@ def findMatrixMax(matrix):
       kvp = max(matrix[i].iteritems(), key=operator.itemgetter(1))
     except ValueError: # if matrix[i] is None, then this moves forward
       continue         # The way I'm doing this, it doesn't have to check each time.
-
-    # is iteritems() faster?
-
-    #print "%s" % str(kvp)
-    #sys.exit(-1)
-
-    #print "max v: %s" % str(sorted_tokens[0][0])
-    #print "key: %s" % str(sorted_tokens[0][1])
-    
-    # Maybe I should store the max value with the array, and then always store
-    # the previous largest, and when i insert or delete...
     
     if kvp[1] > max_val:
       max_val = kvp[1]
@@ -176,35 +157,23 @@ def addMatrixEntry(matrix, centroids, new_centroid, name):
     if i != name:
       matrix[name][i] = Centroid.similarity(centroids[i], new_centroid)
 
-def threadMain(database_file, output_folder, users, stopwords, start, cnt):
+def threadMain(database_file, output_folder, users, users_tweets, stopwords, start, cnt):
   """
   What, what! : )
   """
-  query_tweets = "select id, contents as text from tweets where owner = %d;"
-  users_tweets = {}
-
-  conn = sqlite3.connect(database_file)
-  conn.row_factory = sqlite3.Row
-
-  c = conn.cursor()
 
   # -------------------------------------------------------------------------
   # Process this thread's users.
   for u in xrange(start, start + cnt):
     user_id = users[u]
     docTfIdf = {}      # similar to docTermFreq, but holds the tf-idf values
-    users_tweets = {}
     output = "%d\t%d\t%.3f\t%.3f\t%d\t%fm"
 
     start = time.clock()
 
-    for row in c.execute(query_tweets % user_id):
-      if row['text'] is not None: # I really don't care about tweets I don't have.
-        users_tweets[row['id']] = TweetClean.cleanup(row['text'], True, True)
+    curr_cnt = len(users_tweets[user_id])
 
-    curr_cnt = len(users_tweets)
-
-    docTfIdf = buildDocTfIdf(users_tweets, stopwords)
+    docTfIdf = buildDocTfIdf(users_tweets[user_id], stopwords)
 
     # -------------------------------------------------------------------------
     # Build Centroid List (this step is not actually slow.)
@@ -242,11 +211,6 @@ def threadMain(database_file, output_folder, users, stopwords, start, cnt):
       else:
         break
 
-    duration = (time.clock() - start) / 60 # for minutes
-
-    print output % \
-      (user_id, curr_cnt, average_sim, stddev_sim, len(centroids), duration)
-
     with open(os.path.join(output_folder, "%d.tfidf" % user_id), "w") as f:
       f.write("user: %d\n#topics: %d\n" % (user_id, len(centroids)))
       # Might be better if I just implement __str__ for Centroids.
@@ -261,7 +225,7 @@ def threadMain(database_file, output_folder, users, stopwords, start, cnt):
     # Handle data with gensim LDA modeling code.
     # Use the number of centroids as the topic count input.
     # only words that are greater than one letter and not in the stopword list.
-    texts = [[word for word in users_tweets[id].split() if word not in stopwords and len(word) > 1] for id in users_tweets]
+    texts = [[word for word in users_tweets[user_id][id].split() if word not in stopwords and len(word) > 1] for id in users_tweets[user_id]]
     
     # -------------------------------------------------------------------------
     # remove words that appear only once
@@ -286,7 +250,9 @@ def threadMain(database_file, output_folder, users, stopwords, start, cnt):
       for topic in topic_strings: # could use .join
         f.write("%s\n" % str(topic))
 
-  conn.close()
+    duration = (time.clock() - start) / 60 # for minutes
+
+    print output % (user_id, curr_cnt, average_sim, stddev_sim, centroidCount, duration)
 
 def main():
 
@@ -328,7 +294,10 @@ parameters  :
 
   # this won't return the 3 columns we care about.
   query_collect = \
-    "select owner from tweets group by owner having count(*) >= %d and count(*) < %d;"
+    "select owner from tweets group by owner having count(*) >= %d and count(*) < %d"
+  # "select id, contents as text from tweets where owner = %d;"
+  query_prefect = \
+    "select owner, id, contents as text from tweets where owner in (%s);"
 
   conn = sqlite3.connect(database_file)
   conn.row_factory = sqlite3.Row
@@ -338,11 +307,21 @@ parameters  :
   # ---------------------------------------------------------------------------
   # Search the database file for users.
   users = []
+  users_tweets = {}
 
   start = time.clock()
 
-  for row in c.execute(query_collect % (minimum, maximum)):
+  query = query_prefect % query_collect
+
+  for row in c.execute(query % (minimum, maximum)):
     users.append(row['owner'])
+    if row['text'] is not None:
+      data = TweetClean.cleanup(row['text'], True, True)
+      try:
+        users_tweets[row['owner']][row['id']] = data
+      except KeyError:
+        users_tweets[row['owner']] = {}
+        users_tweets[row['owner']][row['id']] = data
 
   print "query time: %f" % (time.clock() - start)
   print "users: %d\n" % len(users)
@@ -370,6 +349,7 @@ parameters  :
                                database_file,
                                output_folder,
                                users,
+                               users_tweets,
                                stopwords,
                                start,
                                cnt,))
