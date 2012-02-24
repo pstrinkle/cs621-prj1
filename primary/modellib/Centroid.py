@@ -89,7 +89,7 @@ def getSims(centroids):
   
   return sims
 
-def findStd(centroids, short_cut = False, sim_scores = None):
+def findStd(centroids, short_cut=False, sim_scores=None):
   """
   Given a list of Centroids, compute the standard deviation of the 
   similarities.
@@ -107,7 +107,7 @@ def findStd(centroids, short_cut = False, sim_scores = None):
   
   return numpy.std(sims)
 
-def findAvg(centroids, short_cut = False, sim_scores = None):
+def findAvg(centroids, short_cut=False, sim_scores=None):
   """
   Given a list of Centroids, compute the similarity of each pairing and return 
   the average.

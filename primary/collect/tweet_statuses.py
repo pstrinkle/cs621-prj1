@@ -23,7 +23,7 @@ import TweetXml
 import TweetRequest
 
 def usage():
-  usageStr =\
+  usageStr = \
   """
   usage: %s -ts <users_input_filename> <output_folder> <error_log> <kill_file> <success_log> <status_log>
   
@@ -132,7 +132,7 @@ def main():
         my_time = calendar.timegm(time.gmtime())
       
         min_wait = (reset_time - my_time) / 60
-        sec_wait = (reset_time - my_time) - (min_wait *60)
+        sec_wait = (reset_time - my_time) - (min_wait * 60)
         print "forced sleep: %dm:%ds" % (min_wait, sec_wait)
         sys.stdout.flush()
         time.sleep((reset_time - my_time))
@@ -140,7 +140,7 @@ def main():
         time.sleep(6) # 3600 / 350 ~ 10, so 6.
     
       # If this runs overnight, then the pulls will be from the date I kicked off the script.
-      ext = "_%s.xml" % datetime.date.today().isoformat().replace("-","")
+      ext = "_%s.xml" % datetime.date.today().isoformat().replace("-", "")
 
       # Given a since_id we know where to start pulling the future.
       # Given a max_id we know where to start pulling the past. 
@@ -151,7 +151,7 @@ def main():
         if user.max_id != 0:
           statuses = \
             api.GetUserTimeline(
-                                user_id=user.user_id, 
+                                user_id=user.user_id,
                                 since_id=user.since_id,
                                 max_id=user.max_id,
                                 count=200,
@@ -160,7 +160,7 @@ def main():
           # this is the first run.
           statuses = \
             api.GetUserTimeline(
-                                user_id=user.user_id, 
+                                user_id=user.user_id,
                                 since_id=user.since_id,
                                 count=200,
                                 include_entities='true')
@@ -172,7 +172,7 @@ def main():
               # originally the newline was added, but I think this was inadvertently converting it to a string..?
               f.write("\n")
           # I'm fairly certain I can just use [-1] to get the last element.
-          user.max_id = statuses[len(statuses)-1].id
+          user.max_id = statuses[len(statuses) - 1].id
           user.count += len(statuses)
           print "\ttotal: %d retrieved: %d, new max_id: %d" \
             % (statuses[0].user.statuses_count, len(statuses), user.max_id)

@@ -85,7 +85,7 @@ def main():
     #
     for j in range(0, len(daysTweets[day]) - gramSize):
       # this doesn't seem to do the sliding window I was expecting but rather just chunks it.
-      w = daysTweets[day][j:j+gramSize]
+      w = daysTweets[day][j:j + gramSize]
       
       # wu is a special format that will not screw with whitespace
       wu = "_%s_" % w
@@ -113,8 +113,8 @@ def main():
   # Computer cosine similarities between sequential days.
   sorted_days = sorted(daysHisto.keys())
   for i in range(0, len(sorted_days) - 1):
-    print "similarity(%s, %s) = " % (str(sorted_days[i]), str(sorted_days[i+1])),
-    print VectorSpace.cosineCompute(daysHisto[sorted_days[i]], daysHisto[sorted_days[i+1]])
+    print "similarity(%s, %s) = " % (str(sorted_days[i]), str(sorted_days[i + 1])),
+    print VectorSpace.cosineCompute(daysHisto[sorted_days[i]], daysHisto[sorted_days[i + 1]])
 
   # ---------------------------------------------------------------------------
   # Done.

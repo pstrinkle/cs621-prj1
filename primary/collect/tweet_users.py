@@ -73,7 +73,7 @@ def main():
         my_time = calendar.timegm(time.gmtime())
       
         min_wait = (reset_time - my_time) / 60
-        sec_wait = (reset_time - my_time) - (min_wait *60)
+        sec_wait = (reset_time - my_time) - (min_wait * 60)
         print "forced sleep: %dm:%ds" % (min_wait, sec_wait)
         sys.stdout.flush()
         time.sleep((reset_time - my_time))

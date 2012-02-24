@@ -36,7 +36,7 @@ def main():
   
   # collecting certain information can be done more rapidly with grep -rn/wc -l.
   stats = {
-           'user_count' : 0,     # number of users
+           'user_count'     : 0, # number of users
            'user_geo_count' : 0, # number of users with geo tags
            'user_twt_count' : 0, # number of users with tweets (collected)
            'user_frd_count' : 0  # number of users with friends (identified)

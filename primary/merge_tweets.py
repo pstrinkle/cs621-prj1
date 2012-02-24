@@ -31,10 +31,10 @@ def main():
   input_files = []
   
   # starts at one... so we need to take it out of the upper limit?
-  for i in range(1, len(sys.argv)-1):
+  for i in range(1, len(sys.argv) - 1):
     input_files.append(sys.argv[i])
   
-  output_file = sys.argv[len(sys.argv)-1]
+  output_file = sys.argv[len(sys.argv) - 1]
   
   print input_files
   print output_file
@@ -64,7 +64,7 @@ def main():
           sys.stderr.write("non matching line: '%s'" % l)
 
         # so we always have 100 percentage increments.
-        if i % (len(lines)/100) == 0:
+        if i % (len(lines) / 100) == 0:
           print "%f%%" % ((float(i) / len(lines)) * 100)
 
   print "user count:  %d" % len(tweets)

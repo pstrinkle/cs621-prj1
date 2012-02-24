@@ -45,7 +45,7 @@ def haversin(theta):
   
   Return: haversin(theta)
   """
-  h = math.sin(theta/2) * math.sin(theta/2)
+  h = math.sin(theta / 2) * math.sin(theta / 2)
   
   return h
 
@@ -73,8 +73,8 @@ def calculate_distance(coordA, coordB):
   lat1, long1 = coordA
   lat2, long2 = coordB
   
-  dynlat = math.radians(lat2-lat1)
-  dynlong = math.radians(long2-long1)
+  dynlat = math.radians(lat2 - lat1)
+  dynlong = math.radians(long2 - long1)
   
   rlat1 = math.radians(lat1)
   rlat2 = math.radians(lat2)

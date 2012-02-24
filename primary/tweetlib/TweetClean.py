@@ -51,7 +51,7 @@ def extract(tweet):
   
   return (createdRe.group(1), textRe.group(1))
 
-def cleanup(tweet, lowercase = True, to_ascii = False):
+def cleanup(tweet, lowercase=True, to_ascii=False):
   """
   Clean up the string in all the pretty ways.
   
@@ -102,8 +102,8 @@ def cleanup(tweet, lowercase = True, to_ascii = False):
   # emphasis dashes
   # topic tag TODO: Removing this unweighs the term. <-- leaving in place for now.
   replacements = [
-                  '.', '/', '(', ')', '!', '?', '"', ':', ";", "&", "*", '^', 
-                  '>', '<', '+', '=', '_', ',', '[', ']', '{', '}', '|', 
+                  '.', '/', '(', ')', '!', '?', '"', ':', ";", "&", "*", '^',
+                  '>', '<', '+', '=', '_', ',', '[', ']', '{', '}', '|',
                   '\\', "--"]
 
   for r in replacements:

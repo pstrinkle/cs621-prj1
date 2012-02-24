@@ -41,7 +41,7 @@ def main():
 
     with open(file, "r") as f:
       sys.stderr.write(file + "\n")
-      contents = f.read(20*1024)
+      contents = f.read(20 * 1024)
       h = hashlib.sha512(contents).hexdigest()
       
       value = "%s : %d" % (file, os.stat(file).st_size)

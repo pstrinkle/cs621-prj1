@@ -87,7 +87,7 @@ def threadMain(database_file, output_folder, users, stopwords, start, cnt):
     #lda.save('%d.lda' % user_id)
 
     # -------------------------------------------------------------------------
-    topic_strings = lda.show_topics(topics=-1, formatted=True)
+    topic_strings = lda.show_topics(topics= -1, formatted=True)
     # shit, they share an output_file, so they could interrupt each other.
     ### so switch to individual files...
     ###

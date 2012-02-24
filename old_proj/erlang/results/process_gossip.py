@@ -20,7 +20,7 @@ def process_file(path):
 
 	nodeset = {}
 
-	fd = open(sys.argv[1],"r")
+	fd = open(sys.argv[1], "r")
 	file_lines = fd.readlines()
 	fd.close()
 

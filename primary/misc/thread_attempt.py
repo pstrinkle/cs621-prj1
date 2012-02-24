@@ -34,7 +34,7 @@ def main():
     
     start = i * cnt
     
-    if start > len(stuff)-1:
+    if start > len(stuff) - 1:
       break
 
     # not likely still necessary

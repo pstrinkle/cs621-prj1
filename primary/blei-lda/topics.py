@@ -8,7 +8,7 @@
 
 import sys
 
-def print_topics(beta_file, vocab_file, nwords = 25):
+def print_topics(beta_file, vocab_file, nwords=25):
 
     # get the vocabulary
 
@@ -23,7 +23,7 @@ def print_topics(beta_file, vocab_file, nwords = 25):
     for topic in file(beta_file, 'r'):
         print 'topic %03d' % topic_no
         topic = map(float, topic.split())
-        indices.sort(lambda x,y: -cmp(topic[x], topic[y]))
+        indices.sort(lambda x, y:-cmp(topic[x], topic[y]))
         for i in range(nwords):
             print '   %s' % vocab[indices[i]]
         topic_no = topic_no + 1

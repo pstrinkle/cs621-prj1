@@ -62,10 +62,10 @@ def main():
       data = TweetDate.buildDateDayInt(row['created'])
       
       try:
-        dates[uid].apend(data)
+        dates[uid].append(data)
       except KeyError:
         dates[uid] = []
-        dates[uid].apend(data)
+        dates[uid].append(data)
 
   print "query time: %fm" % ((time.clock() - start) / 60)
   print "users: %d\n" % len(users)

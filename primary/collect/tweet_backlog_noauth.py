@@ -25,7 +25,7 @@ import TweetXml
 import TweetRequest
 
 def usage():
-  usageStr =\
+  usageStr = \
   """
   usage: %s (-ts|-both) <users_input_filename> <output_folder> <error_log> <kill_file> <success_log>
   
@@ -128,14 +128,14 @@ def main():
         my_time = calendar.timegm(time.gmtime())
       
         min_wait = (reset_time - my_time) / 60
-        sec_wait = (reset_time - my_time) - (min_wait *60)
+        sec_wait = (reset_time - my_time) - (min_wait * 60)
         print "forced sleep: %dm:%ds" % (min_wait, sec_wait)
         time.sleep((reset_time - my_time))
       else:
         time.sleep(6) # 3600 / 350 ~ 10, so 6.
     
       # If this runs overnight, then the pulls will be from the date I kicked off the script.
-      ext = "_%s.xml" % datetime.date.today().isoformat().replace("-","")
+      ext = "_%s.xml" % datetime.date.today().isoformat().replace("-", "")
 
       # Given a since_id we know where to start pulling the future.
       # Given a max_id we know where to start pulling the past. 
@@ -145,7 +145,7 @@ def main():
         # Get the timeline (and an updated user information view, sans friends)
         statuses = \
           api.GetUserTimeline(
-                              user_id=user.user_id, 
+                              user_id=user.user_id,
                               since_id=user.since_id,
                               max_id=user.max_id,
                               count=200,
@@ -157,7 +157,7 @@ def main():
               f.write(TweetXml.xmlStatus(s))
               # originally the newline was added, but I think this was inadvertently converting it to a string..?
               f.write("\n")
-          user.max_id = statuses[len(statuses)-1].id
+          user.max_id = statuses[len(statuses) - 1].id
           user.count += len(statuses)
           print "\ttotal: %d retrieved: %d, new max_id: %d" \
             % (statuses[0].user.statuses_count, len(statuses), user.max_id)

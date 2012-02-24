@@ -246,7 +246,7 @@ def threadMain(database_file, output_folder, users, users_tweets, stopwords, sta
                                    passes=20,
                                    num_topics=centroidCount)
 
-    topic_strings = lda.show_topics(topics=-1, formatted=True)
+    topic_strings = lda.show_topics(topics= -1, formatted=True)
     
     with open(os.path.join(output_folder, "%d.lda" % user_id), "w") as f:
       f.write("user: %d\n#topics: %d\n" % (user_id, len(topic_strings)))

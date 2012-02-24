@@ -26,7 +26,7 @@ import TweetXml
 import TweetRequest
 
 def usage():
-  usageStr =\
+  usageStr = \
   """
   usage: %s <public requests> <output_tweets.xml> <output_users.xml>
   
@@ -79,7 +79,7 @@ def main():
       reset_time = int(rate_status['reset_time_in_seconds'])
       my_time = calendar.timegm(time.gmtime())
       min_wait = (reset_time - my_time) / 60
-      sec_wait = (reset_time - my_time) - (min_wait *60)
+      sec_wait = (reset_time - my_time) - (min_wait * 60)
       
       print "forced sleep: %dm:%ds" % (min_wait, sec_wait)
       time.sleep((reset_time - my_time) + 60)

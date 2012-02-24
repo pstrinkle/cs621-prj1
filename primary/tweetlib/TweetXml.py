@@ -40,7 +40,7 @@ def double_unescape(value):
   """
   return value.replace(r'\"', '"')
 
-def xmlOut(tag, value, quotes = True):
+def xmlOut(tag, value, quotes=True):
   """
   Build an appropriate xml tagged data unit string.
   
@@ -163,7 +163,7 @@ def xmlUser(user):
   location = ""
 
   if user.location is not None:
-    location = user.location.encode('utf-8').replace("\n","").replace("\r","").strip()
+    location = user.location.encode('utf-8').replace("\n", "").replace("\r", "").strip()
 
   output = "<id>%d</id><screen_name>%s</screen_name><name>%s</name><total_tweets>%s</total_tweets><lang>%s</lang><location>%s</location>" \
     % (uid, sn, name, total_tweets, lang, location)
@@ -285,7 +285,7 @@ class TwitterUser:
   I really should try to just get my data to come out in the final
   format.
   """
-  def __init__(self, user_id, name = "", lang = "", location = "", friends = "", screen_name = "", totaltweets = 0, private = False):
+  def __init__(self, user_id, name="", lang="", location="", friends="", screen_name="", totaltweets=0, private=False):
     """
     Input: 
       user_id is an int
@@ -370,7 +370,7 @@ class TwitterUser:
     
     if len(tweet_ids) > 0:
       # If the created stops being quoted, this will need to be updated.
-      t_info = re.search("<created>(.+?)</created><id>(\d+?)</id>", self.tweets[tweet_ids[len(tweet_ids)-1]])
+      t_info = re.search("<created>(.+?)</created><id>(\d+?)</id>", self.tweets[tweet_ids[len(tweet_ids) - 1]])
       if t_info:
         t_created = t_info.group(1)
         t_id = int(t_info.group(2))
@@ -424,7 +424,7 @@ class TwitterUser:
     
     return outStr
   
-  def addTweets(self, new_tweets = []):
+  def addTweets(self, new_tweets=[]):
     """
     Tweets in xml format.
     """
@@ -447,12 +447,12 @@ class TwitterUser:
       sys.stderr.write("\n")
       sys.exit(-1)
 
-  def addFriends(self, new_friends = []):
+  def addFriends(self, new_friends=[]):
     for friend in new_friends:
       if friend not in self.friends:
         self.friends.append(friend)
   
-  def addFriendsStr(self, new_friends = ""):
+  def addFriendsStr(self, new_friends=""):
     """
     id1, id2, id3, id4, ..., idn string!
     """
@@ -463,7 +463,7 @@ class TwitterUser:
           if int(fid) not in self.friends:
             self.friends.append(int(fid))
 
-def TweetFromXml(user_id, tweet = ""):
+def TweetFromXml(user_id, tweet=""):
   """
   Given what we so far have in the database this works.
   
@@ -530,7 +530,7 @@ def TweetFromXml(user_id, tweet = ""):
 
   return twt
 
-def UserFromXml(xml = ""):
+def UserFromXml(xml=""):
   """
   Given what we so far have in the database this works.
   

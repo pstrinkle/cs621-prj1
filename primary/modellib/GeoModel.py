@@ -108,8 +108,8 @@ class LocationBundle:
     data = {} # 'Mon', 'Tue', 'Wed', ...
     
     for day in self.weekDays:
-      data[day] = {0:0,  1:0,  2:0,  3:0,  4:0,  5:0,
-                   6:0,  7:0,  8:0,  9:0, 10:0, 11:0,
+      data[day] = {0:0, 1:0, 2:0, 3:0, 4:0, 5:0,
+                   6:0, 7:0, 8:0, 9:0, 10:0, 11:0,
                   12:0, 13:0, 14:0, 15:0, 16:0, 17:0,
                   18:0, 19:0, 20:0, 21:0, 22:0, 23:0}
       
@@ -149,8 +149,8 @@ class LocationBundle:
     data = {} # 'Sun', 'Mon', 'Tue', ...
     
     for day in self.weekDays:
-      data[day] = {0:0,  1:0,  2:0,  3:0,  4:0,  5:0,
-                   6:0,  7:0,  8:0,  9:0, 10:0, 11:0,
+      data[day] = {0:0, 1:0, 2:0, 3:0, 4:0, 5:0,
+                   6:0, 7:0, 8:0, 9:0, 10:0, 11:0,
                   12:0, 13:0, 14:0, 15:0, 16:0, 17:0,
                   18:0, 19:0, 20:0, 21:0, 22:0, 23:0}
       
@@ -175,7 +175,7 @@ class LocationBundle:
 
     return out
   
-  def dumpLatLongCount(self, normalize = 0.0):
+  def dumpLatLongCount(self, normalize=0.0):
     """
     Dumps the Long,Lat,Count for using with gnuplot.  This doesn't yet filter by year or month.
     
@@ -197,7 +197,7 @@ class LocationBundle:
 
     return out
 
-  def byYearData(self, year = 0):
+  def byYearData(self, year=0):
     """
     Attempts to dump the time and place information, well just time and occurrence count.
     

@@ -306,7 +306,7 @@ def newList(input):
 def fixHeader(input):
   x = find_headers.findall(input)
   # We know it's divisible by two because they are on both sides
-  header_lvl = (len(x)/2) - 1
+  header_lvl = (len(x) / 2) - 1
 
   header = re.search(r"=+(.*?)=+", input)
   if header:

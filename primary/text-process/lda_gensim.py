@@ -80,7 +80,7 @@ def main():
   #lda.show_topics(topics=1, topn=1, log=False, formatted=True)
   # Unlike what the documentation might have you believe, you have to pull it
   # back as a string if you want to use it.
-  topic_strings = lda.show_topics(topics=-1, formatted=True)
+  topic_strings = lda.show_topics(topics= -1, formatted=True)
   print "#topics: %d" % len(topic_strings)
   for topic in topic_strings:
     print topic

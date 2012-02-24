@@ -18,7 +18,7 @@ access_token_key = '187244615-s3gCVJNg9TZJPlIEW7yFKHYPXi2xf3lpQnv9uDNV'
 access_token_secret = 'Hig5HYmDqv7j7cM4LxZExpXKcKfWs1Xb5sWRU24Bg5E'
 
 class RequestTuple:
-  def __init__(self, user_id, since_id = 0, max_id = 0):
+  def __init__(self, user_id, since_id=0, max_id=0):
     self.user_id = user_id
     self.since_id = since_id
     self.max_id = max_id

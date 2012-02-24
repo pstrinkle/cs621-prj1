@@ -90,7 +90,7 @@ def main():
     #
     for j in range(0, len(daysTweets[day]), gramSize):
       # this doesn't seem to do the sliding window I was expecting but rather just chunks it.
-      w = daysTweets[day][j:j+gramSize]
+      w = daysTweets[day][j:j + gramSize]
       
       # wu is a special format that will not screw with whitespace
       wu = "_%s_" % w

@@ -9,7 +9,7 @@ __author__ = 'tri1@umbc.edu'
 #
 # Currently implemented for words, Bigram model.
 
-def build_matrix(inputString, invalids = ""):
+def build_matrix(inputString, invalids=""):
   """
   Given a string, build a matrix of occurrences of pairs of terms.
   
@@ -33,8 +33,8 @@ def build_matrix(inputString, invalids = ""):
       words.remove(word)
   
   # -1 here because we extend each step by +1
-  for i in xrange(0, len(words)-1):
-    term = words[i] + "_" + words[i+1]
+  for i in xrange(0, len(words) - 1):
+    term = words[i] + "_" + words[i + 1]
     try:
       termMatrix[term] += 1
     except KeyError:
