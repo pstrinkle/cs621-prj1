@@ -93,11 +93,8 @@ def dumpMatrix(term_dict, tfidf_dict):
 
   output = ""
 
-  sorted_docs = tfidf_dict.keys()
-  sorted_docs.sort()
-  
-  sorted_terms = term_dict.keys()
-  sorted_terms.sort()
+  sorted_docs = sorted(tfidf_dict.keys())  
+  sorted_terms = sorted(term_dict.keys())
   
   # Print Matrix!
   output += "term weight space matrix!\n"

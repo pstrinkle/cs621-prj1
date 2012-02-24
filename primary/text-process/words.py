@@ -151,8 +151,8 @@ def main():
 
   # Sort the lists by decreasing value and dump the information.
   # TODO: Upgrade this to print the top 15-20 or so.
-  sorted_keys = docTfIdf.keys()
-  sorted_keys.sort()
+  sorted_keys = sorted(docTfIdf.keys())
+
   print "token:weight"
   for day in sorted_keys:
     print str(day) + ":---"

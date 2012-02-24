@@ -155,7 +155,7 @@ def xmlUser(user):
   if user.protected == True:
     return output
   
-  id = user.id
+  uid = user.id
   name = user.name.encode('utf-8')
   lang = user.lang.encode('utf-8')
   sn = user.screen_name.encode('utf-8')
@@ -166,7 +166,7 @@ def xmlUser(user):
     location = user.location.encode('utf-8').replace("\n","").replace("\r","").strip()
 
   output = "<id>%d</id><screen_name>%s</screen_name><name>%s</name><total_tweets>%s</total_tweets><lang>%s</lang><location>%s</location>" \
-    % (id, sn, name, total_tweets, lang, location)
+    % (uid, sn, name, total_tweets, lang, location)
   
   for c in invalid_chars:
     output = output.replace(c, "")
@@ -366,8 +366,7 @@ class TwitterUser:
     # Maybe I should make them a dictionary key'd by id and then just use the id to sort... 
     # but really if I recall Twitter announced the ids were no longer going to be necessarily
     # sequential.
-    tweet_ids = self.tweets.keys()
-    tweet_ids.sort()
+    tweet_ids = sorted(self.tweets.keys())
     
     if len(tweet_ids) > 0:
       # If the created stops being quoted, this will need to be updated.
@@ -439,9 +438,9 @@ class TwitterUser:
     """
     t_info = re.search("<id>(\d+?)</id>", new_tweet)
     if t_info:
-      id = int(t_info.group(1))
-      if id not in self.tweets:
-        self.tweets[id] = new_tweet
+      tid = int(t_info.group(1))
+      if tid not in self.tweets:
+        self.tweets[tid] = new_tweet
     else:
       sys.stderr.write("invalid tweet!\n")
       sys.stderr.write(new_tweet)

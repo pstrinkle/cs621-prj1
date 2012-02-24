@@ -185,15 +185,15 @@ class LocationBundle:
     This does what I want.
     """
     
-    out = "# long lat count\n"
+    out = "# longitude lat count\n"
     
     for loc in self.locations:
       m = re.search("\[(.+?),(.+?)\]", loc)
       if m:
         lat = float(m.group(1)) + normalize
-        long = float(m.group(2)) + normalize
+        longitude = float(m.group(2)) + normalize
         cnt = self.locations[loc]
-        out += "%f %f %d\n" % (long, lat, cnt)
+        out += "%f %f %d\n" % (longitude, lat, cnt)
 
     return out
 
@@ -217,7 +217,7 @@ class LocationBundle:
           for item in self.days[day][event]:
             eventsForYear[event].append(item)
   
-  def dumpCentroidDistanceOccurrence(self, sorted=False):
+  def dumpCentroidDistanceOccurrence(self, sortOut=False):
     """
     The x-axis is distance from centroid (origin).
     The y-axis is the # occurrences.
@@ -229,25 +229,25 @@ class LocationBundle:
     
     out = "# dist count\n"
     
-    if sorted == True:
+    if sortOut == True:
       data = {}
     
     for loc in self.locations:
       m = re.search("\[(.+?),(.+?)\]", loc)
       if m:
         lat = float(m.group(1))
-        long = float(m.group(2))
+        longitude = float(m.group(2))
         cnt = self.locations[loc]
         
-        dist = g.calculate_distance(self.centroid, [lat, long])
+        dist = g.calculate_distance(self.centroid, [lat, longitude])
         
-        if sorted == True:
+        if sortOut == True:
           # the distances should be unique, because the points are...
           data["%f" % dist] = cnt
         else:
           out += "%f %d\n" % (dist, cnt)
     
-    if sorted == True:
+    if sortOut == True:
       dpoints = data.keys()
       dpoints.sort() # sorts as a string, : (
       
@@ -262,7 +262,7 @@ class LocationBundle:
     """
     total = 0.0
     count = 0
-    locals = []
+    llocals = []
     
     # for each weekday
     for day in self.days:
@@ -270,12 +270,12 @@ class LocationBundle:
       for timestamp in self.days[day]:
         # for each location for that timestamp
         for local in self.days[day][timestamp]:
-          locals.append(local)
+          llocals.append(local)
     
-    for i in range(len(locals)):
-      for j in range(len(locals)):
+    for i in range(len(llocals)):
+      for j in range(len(llocals)):
         if i != j:
-          dist = g.calculate_distance(locals[i], locals[j])
+          dist = g.calculate_distance(llocals[i], llocals[j])
           total += dist
           count += 1
     
@@ -290,8 +290,8 @@ class LocationBundle:
     """
     Calculate the maximum distance between all pairs of coordinates --> (km, mi)
     """
-    max = 0.0
-    locals = []
+    maxVal = 0.0
+    llocals = []
     
     # for each weekday
     for day in self.days:
@@ -299,42 +299,42 @@ class LocationBundle:
       for timestamp in self.days[day]:
         # for each location for that timestamp
         for local in self.days[day][timestamp]:
-          locals.append(local)
+          llocals.append(local)
     
-    for i in range(len(locals)):
-      for j in range(len(locals)):
+    for i in range(len(llocals)):
+      for j in range(len(llocals)):
         if i != j:
-          dist = g.calculate_distance(locals[i], locals[j])
-          #print "%s -> %s: %.2fmi" % (locals[i], locals[j], g.km_to_mi(dist))
-          if dist > max:
-            max = dist
+          dist = g.calculate_distance(llocals[i], llocals[j])
+          #print "%s -> %s: %.2fmi" % (llocals[i], llocals[j], g.km_to_mi(dist))
+          if dist > maxVal:
+            maxVal = dist
     
-    #print locals
-    #print "maximum distance: %f.2km (%.2fmi)" % (max, g.km_to_mi(max))
+    #print llocals
+    #print "maximum distance: %f.2km (%.2fmi)" % (maxVal, g.km_to_mi(maxVal))
     
-    return (max, g.km_to_mi(max))
+    return (maxVal, g.km_to_mi(maxVal))
 
   def buildCentroid(self):
     """
     This builds the centroid for all their locations.
     """
     
-    sum = 0
+    sumVal = 0
     pos = [0.0, 0.0]
     
     for loc in self.locations:
       m = re.search("\[(.+?),(.+?)\]", loc)
       if m:
         lat = float(m.group(1))
-        long = float(m.group(2))
+        longitude = float(m.group(2))
         cnt = self.locations[loc]
         
         pos[0] += cnt * lat
-        pos[1] += cnt * long
-        sum += cnt
+        pos[1] += cnt * longitude
+        sumVal += cnt
     
-    self.centroid[0] = pos[0] / sum
-    self.centroid[1] = pos[1] / sum
+    self.centroid[0] = pos[0] / sumVal
+    self.centroid[1] = pos[1] / sumVal
     
     self.centroided = True
 

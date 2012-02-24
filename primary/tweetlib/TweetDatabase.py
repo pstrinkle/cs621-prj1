@@ -13,9 +13,7 @@ __author__ = 'tri1@umbc.edu'
 #c.execute('''create table s_tweets (id integer primary key, owner integer, created text, reply_to_user integer, reply_to_tweet integer, geo text, place_name text, place_box text, source text, contents text)''')
 
 import re
-import os
-import codecs
-import TweetXml
+import sys
 
 def tweet_insert(user_id, tweet):
   """

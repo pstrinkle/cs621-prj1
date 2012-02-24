@@ -210,7 +210,7 @@ def within_box(box, point):
   
   # These are lat, long
   lat = point[0]
-  long = point[1]
+  longitude = point[1]
   
   #print "%f,%f  --- %f,%f  " % (upper_left[1], upper_left[0], upper_right[1], upper_right[0])
   #print "|              |  "
@@ -219,7 +219,7 @@ def within_box(box, point):
   if lat > upper_left[1] or lat < lower_left[1]:
     return False
   
-  if long > upper_right[0] or long < upper_left[0]:
+  if longitude > upper_right[0] or longitude < upper_left[0]:
     return False
   
   return True
