@@ -2,10 +2,11 @@
 
 __author__ = 'tri1@umbc.edu'
 
-# Patrick Trinkle
+##
+# @author: Patrick Trinkle
 # Spring 2012
 #
-# This script is meant to encompass: tweets_by_user, pull_from_database, and
+# @summary: This script is meant to encompass: tweets_by_user, pull_from_database, and
 # cluster_words.
 #
 # This will find the users from the specified database with at least X tweets
@@ -53,9 +54,6 @@ def buildDocTfIdf(users_tweets, stopwords):
 
     # only words that are greater than one letter and not in the stopword list.
     pruned = [w for w in users_tweets[id].split(' ') if w not in stopwords and len(w) > 1]
-    #for w in words:
-      #if len(w) > 1 and w not in stopwords:
-        #pruned.append(w)
 
     if len(pruned) < 2:
       continue
@@ -98,11 +96,6 @@ def findMatrixMax(matrix):
   max_j = 0
 
   for i in matrix.keys():
-
-    # sys.stderr.write("why are there no things for %d\n" % i)
-    #if len(matrix[i]) == 0: ## checking each time is slow.
-      #continue
-
     # this should be faster than searching by key on the inner loop.
     #
     # Double-looping keys and checking each took:                     4.50s.
@@ -116,14 +109,6 @@ def findMatrixMax(matrix):
       kvp = max(matrix[i].iteritems(), key=operator.itemgetter(1))
     except ValueError: # if matrix[i] is None, then this moves forward
       continue         # The way I'm doing this, it doesn't have to check each time.
-
-    # is iteritems() faster?
-
-    #print "%s" % str(kvp)
-    #sys.exit(-1)
-
-    #print "max v: %s" % str(sorted_tokens[0][0])
-    #print "key: %s" % str(sorted_tokens[0][1])
     
     # Maybe I should store the max value with the array, and then always store
     # the previous largest, and when i insert or delete...
@@ -317,7 +302,7 @@ parameters  :
   # Process those tweets by user set.
 
   print "usr\tcnt\tavg\tstd\tend\tdur"
-  
+
   cnt = int(math.ceil((float(len(users)) / cpus)))
   remains = len(users)
   threads = []

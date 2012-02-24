@@ -113,6 +113,9 @@ def findMatrixMax(matrix):
     except ValueError: # if matrix[i] is None, then this moves forward
       continue         # The way I'm doing this, it doesn't have to check each time.
     
+    # Maybe I should store the max value with the array, and then always store
+    # the previous largest, and when i insert or delete...
+    
     if kvp[1] > max_val:
       max_val = kvp[1]
       max_i = i
@@ -252,7 +255,8 @@ def threadMain(database_file, output_folder, users, users_tweets, stopwords, sta
 
     duration = (time.clock() - start) / 60 # for minutes
 
-    print output % (user_id, curr_cnt, average_sim, stddev_sim, centroidCount, duration)
+    print output % \
+      (user_id, curr_cnt, average_sim, stddev_sim, centroidCount, duration)
 
 def main():
 
@@ -303,6 +307,8 @@ parameters  :
   conn.row_factory = sqlite3.Row
 
   c = conn.cursor()
+  
+  print "#cpus: %d" % cpus
 
   # ---------------------------------------------------------------------------
   # Search the database file for users.
@@ -314,16 +320,18 @@ parameters  :
   query = query_prefect % query_collect
 
   for row in c.execute(query % (minimum, maximum)):
-    users.append(row['owner'])
+    uid = row['owner']
+    if uid not in users:
+      users.append(uid)
     if row['text'] is not None:
       data = TweetClean.cleanup(row['text'], True, True)
       try:
-        users_tweets[row['owner']][row['id']] = data
+        users_tweets[uid][row['id']] = data
       except KeyError:
-        users_tweets[row['owner']] = {}
-        users_tweets[row['owner']][row['id']] = data
+        users_tweets[uid] = {}
+        users_tweets[uid][row['id']] = data
 
-  print "query time: %f" % (time.clock() - start)
+  print "query time: %fm" % ((time.clock() - start) / 60)
   print "users: %d\n" % len(users)
 
   conn.close()
@@ -332,7 +340,7 @@ parameters  :
   # Process those tweets by user set.
 
   print "usr\tcnt\tavg\tstd\tend\tdur"
-  
+
   cnt = int(math.ceil((float(len(users)) / cpus)))
   remains = len(users)
   threads = []
@@ -342,6 +350,8 @@ parameters  :
 
     if cnt > remains:
       cnt = remains
+
+    print "launching thread: %d, %d" % (start, cnt)
 
     t = threading.Thread(
                          target=threadMain,
