@@ -15,6 +15,7 @@ import os
 import sys
 import time
 import sqlite3
+import calendar
 
 sys.path.append(os.path.join("..", "tweetlib"))
 import TweetDate
@@ -48,7 +49,9 @@ def main():
   # ---------------------------------------------------------------------------
   # Search the database file for users.
   users = []
-  dates = {}
+  dates = set()
+  oldest = 20991231
+  newest = 19990101
 
   start = time.clock()
 
@@ -58,18 +61,24 @@ def main():
     uid = row['owner']
     if uid not in users:
       users.append(uid)
+
     if row['created'] is not None:
       data = TweetDate.buildDateDayInt(row['created'])
+      dates.add(data)
       
-      try:
-        dates[uid].append(data)
-      except KeyError:
-        dates[uid] = []
-        dates[uid].append(data)
+      if data < oldest:
+        oldest = data
+      if data > newest:
+        newest = data
+
+  # So, I could get the distinct, max, and min from the sql query itself; and
+  # the counts... lol
+  # calendar.monthrange(2009, 02)
 
   print "query time: %fm" % ((time.clock() - start) / 60)
   print "users: %d\n" % len(users)
-  print dates
+  for uid in dates:
+    print dates[uid]
   
   conn.close()
 

@@ -63,7 +63,10 @@ def main():
     # Do some cleanup
     newTweet = TweetClean.cleanup(info[1])
     
-    rawOccurrenceModel = LanguageModel.update_matrix(rawOccurrenceModel, LanguageModel.build_matrix(newTweet, "-&"))
+    rawOccurrenceModel = \
+      LanguageModel.update_matrix(
+                                  rawOccurrenceModel,
+                                  LanguageModel.build_matrix(newTweet, "-&"))
 
   # ---------------------------------------------------------------------------
   # Debug, Dump the Raw Occurrences (not finalized)

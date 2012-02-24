@@ -27,15 +27,9 @@ def output(parameter, folder, id, guy):
   total = len(guy)
     
   # more occurrences, than distinct locations.
-  if distinct > 0:# and total > float(distinct) * 1.5:
-    #md = guy.maximumDistance()
-    #ad = guy.averageDistance()
+  if distinct > 0:
 
     print "id: %d\ncoords: %d\ndistinct: %d" % (id, len(guy), len(guy.locations))
-    #print "centroid: %s\n" % guy.centroid
-    #print "%s\n" % guy.locations
-    #guy.dumpTimePlace()
-    #guy.byYearData(2011)
       
     if parameter == options[0]:
       with open(os.path.join(folder, "%d_geo_total.data" % id), "w") as f:    
@@ -51,8 +45,6 @@ def output(parameter, folder, id, guy):
         guy.buildCentroid()
         f.write(guy.dumpCentroidDistanceOccurrence(False))
 
-    #print "maximum distance: %.2fkm, %.2fmi" % (md[0], md[1])
-    #print "average distance: %.2fkm, %.2fmi" % (ad[0], ad[1])
     print "-"*80
 
 def usage():
