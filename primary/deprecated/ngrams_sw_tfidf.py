@@ -15,6 +15,7 @@ __author__ = 'tri1@umbc.edu'
 #
 # TODO: Add command line parameters.
 #
+# @warning: Have not looked at this in a while; it isn't maintained.
 
 import os
 import sys
@@ -30,7 +31,7 @@ def usage():
 
 def main():
 
-  totalTermCount = 0 # total count of all terms
+  docLength = 0 # total count of all terms
   daysTweets = {}    # dictionary of the tweets by date as integer
   invdocFreq = {}    # dictionary of the inverse document frequencies
   docFreq = {}       # dictionary of document frequencies
@@ -74,6 +75,7 @@ def main():
   # Process the collected tweets
   print "tweet days: %d" % len(daysTweets)
   gramSize = 3
+  docLength = {}
 
   for day in sorted(daysTweets.keys()):
     daysHisto[day] = {} # initialize the sub-dictionary
@@ -89,7 +91,10 @@ def main():
       
       # wu is a special format that will not screw with whitespace
       wu = "_%s_" % w
-      totalTermCount += 1
+      try:
+        docLength[day] += 1
+      except:
+        docLength[day] = 1
 
       try:
         daysHisto[day][wu] += 1
@@ -105,7 +110,7 @@ def main():
   invdocFreq = VectorSpace.calculate_invdf(len(daysHisto), docFreq)
 
   # Calculate the tf-idf values.
-  daysHisto = VectorSpace.calculate_tfidf(totalTermCount, daysHisto, invdocFreq)
+  daysHisto = VectorSpace.calculate_tfidf(docLength, daysHisto, invdocFreq)
 
   # Dump the matrix.
   print VectorSpace.dumpMatrix(docFreq, daysHisto) + "\n"

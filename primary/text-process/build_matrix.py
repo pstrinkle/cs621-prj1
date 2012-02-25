@@ -13,6 +13,9 @@ import sqlite3
 sys.path.append(os.path.join("..", "tweetlib"))
 import TweetClean
 
+sys.path.append(os.path.join("..", "modellib"))
+import VectorSpace
+
 def usage():
   print "%s <database_file> <minimum> <maximum> <stop_file> <output>" % sys.argv[0]
 
@@ -81,14 +84,14 @@ parameters  :
 
   # ---------------------------------------------------------------------------
   # Convert to a documents into one document per user.
-  
+
   docperuser = {} # array representing all the tweets for each user.
-  
+
   for user_id in user_tweets:
     docperuser[user_id] = "".join(user_tweets[user_id])
-    
-  tfidf, dictionary = VectorSpace.buildDocTfIdf(docperuser, stopwords)
-  
+
+  tfidf, dictionary = VectorSpace.buildDocTfIdf(docperuser, stopwords, True)
+
   # Dump the matrix.
   with open(output_file, "w") as f:
     f.write(VectorSpace.dumpMatrix(dictionary, tfidf) + "\n")

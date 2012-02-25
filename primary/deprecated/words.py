@@ -33,7 +33,7 @@ def main():
   # Weirdly in Python, you have free access to globals from within main().
 
   hourlyInterval = 0 # are we building hourly or daily histograms?
-  totalTermCount = 0 # total count of all terms
+  docLength = 0      # total count of all terms
   daysTweets = {}    # dictionary of the tweets by date as integer
                      # dictionary of the tweets by date-hour as integer
                      
@@ -97,6 +97,9 @@ def main():
   # ---------------------------------------------------------------------------
   # Process the collected tweets
   print "tweet days: %d" % len(daysTweets)
+  
+  docLength = {}
+  
   for day in daysTweets.keys():
     docTermFreq[day] = {} # Prepare the dictionary for that document.
     
@@ -104,7 +107,10 @@ def main():
     # Skip 1 letter words.
     for w in daysTweets[day].split(' '):
       if len(w) > 1:
-        totalTermCount += 1
+        try:
+          docLength[day] += 1
+        except KeyError:
+          docLength[day] = 1
         
         try:
           docTermFreq[day][w] += 1
@@ -123,7 +129,7 @@ def main():
   # Dump how many days of tweets we collected.
   # For each day of tweets, dump how many unique terms were identified by space splitting.
   #
-  print "sizeof documents: %d" % totalTermCount
+  print "sizeof documents: %s" % docLength
   print "sizeof docFreq: %d" % len(docFreq)         # this is how many unique terms
   print "sizeof docTermFreq: %d" % len(docTermFreq) # this is how many days
 
@@ -139,10 +145,10 @@ def main():
   invdocFreq = VectorSpace.calculate_invdf(len(docTermFreq), docFreq)
   
   # Calculate the tf-idf values.
-  docTfIdf = VectorSpace.calculate_tfidf(totalTermCount, docTermFreq, invdocFreq)
+  docTfIdf = VectorSpace.calculate_tfidf(docLength, docTermFreq, invdocFreq)
 
   # Recap of everything we have stored.
-  # totalTermCount is the total count of all terms
+  # docLength      is the total count of all terms
   # daysTweets     is the dictionary of the tweets by date as integer
   # docFreq        is the dictionary of in how many documents the "word" appears
   # invdocFreq     is the dictionary of the inverse document frequencies

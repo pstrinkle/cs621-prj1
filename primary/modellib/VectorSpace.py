@@ -33,11 +33,11 @@ def calculate_invdf(docCount, docFreq):
 
   return invdocFreq
 
-def calculate_tfidf(totalTermCount, docTermFreq, invDocFreq):
+def calculate_tfidf(docLength, docTermFreq, invDocFreq):
   """
   Calculate the tf-idf values.
   
-  Input: totalTermCount := total frequency (not distinct count)
+  Input: docLength := total frequency (not distinct count), key'd on doc id
          docTermFreq := dictionary of term frequencies, key'd on document, then
                         key'd by term
          invDocFreq := dictionary of inverse document frequencies, key'd on 
@@ -60,7 +60,7 @@ def calculate_tfidf(totalTermCount, docTermFreq, invDocFreq):
     docTfIdf[doc] = {} # Prepare the dictionary for that document.
     for w in docTermFreq[doc]:
       docTfIdf[doc][w] = \
-        (float(docTermFreq[doc][w]) / totalTermCount) * invDocFreq[w]
+        (float(docTermFreq[doc][w]) / docLength[doc]) * invDocFreq[w]
 
   return docTfIdf
 
@@ -117,21 +117,25 @@ def dumpMatrix(term_dict, tfidf_dict):
 
   return output
 
-def buildDocTfIdf(documents, stopwords):
+def buildDocTfIdf(documents, stopwords, remove_singletons=False):
   """
-  Note: This doesn't remove singletons from the dictionary of terms.
+  Note: This doesn't remove singletons from the dictionary of terms, unless you 
+  say otherwise.  With tweets there is certain value in not removing singletons.
   
   Input:
     documents := a dictionary of documents, by an docId value.
+    stopwords := a list of stopwords.
+    remove_singletons := boolean value of whether we should remove stop words.
+  
     
   Returns:
     document tf-idf vectors.
     term counts
   """
 
-  totalTermCount = 0 # total count of all terms
-  docFreq = {}       # dictionary of in how many documents the "word" appears
-  docTermFreq = {}   # dictionary of term frequencies by date as integer
+  docLength = {} # total count of all terms, keyed on document
+  docFreq = {}        # dictionary of in how many documents the "word" appears
+  docTermFreq = {}    # dictionary of term frequencies by date as integer
 
   for docId in documents:
     # Calculate Term Frequencies for this docId/document.
@@ -145,7 +149,10 @@ def buildDocTfIdf(documents, stopwords):
 
     docTermFreq[docId] = {} # Prepare the dictionary for that document.
 
-    totalTermCount += len(pruned)
+    try:
+      docLength[docId] += len(pruned)
+    except KeyError:
+      docLength[docId] = len(pruned)
 
     for w in pruned:
       try:
@@ -160,6 +167,17 @@ def buildDocTfIdf(documents, stopwords):
       except KeyError:
         docFreq[w] = 1
 
+  if remove_singletons:
+    singles = [w for w in docFreq.keys() if docFreq[w] == 1]
+    # could use map() function to delete terms from singles
+    for docId in docTermFreq:
+      for s in singles:
+        try:
+          del docTermFreq[docId][s]
+          docLength[docId] -= 1 # only subtracts if the deletion worked
+        except KeyError:
+          pass
+      
   # Calculate the inverse document frequencies.
   # dictionary of the inverse document frequencies
   invdocFreq = calculate_invdf(len(docTermFreq), docFreq)
@@ -167,7 +185,7 @@ def buildDocTfIdf(documents, stopwords):
   # Calculate the tf-idf values.
   # similar to docTermFreq, but holds the tf-idf values
   docTfIdf = calculate_tfidf(
-                             totalTermCount,
+                             docLength,
                              docTermFreq,
                              invdocFreq)
 

@@ -21,6 +21,7 @@ __author__ = 'tri1@umbc.edu'
 #  library you also must update auto_pull_label.py.
 #
 # @warning: Fairly inefficient.  Take a look at auto_pull_label.py
+# @warning: Does not look correct.
 
 import os
 import sys
@@ -40,7 +41,6 @@ def usage():
 
 def main():
 
-  totalTermCount = 0 # total count of all terms
   cleanTweets = {}   # dictionary of the tweets by id as integer
 
   docFreq = {}       # dictionary of in how many documents the "word" appears
@@ -82,6 +82,8 @@ def main():
     # Add this tweet to the collection of clean ones.
     cleanTweets[info[0]] = TweetClean.cleanup(info[1], True, True)
 
+  docLength = {}
+
   # ---------------------------------------------------------------------------
   # Process the collected tweets
   for id in cleanTweets.keys():
@@ -96,7 +98,10 @@ def main():
     docTermFreq[id] = {} # Prepare the dictionary for that document.
     
     for w in pruned:
-      totalTermCount += 1
+      try:
+        docLength[id] += 1
+      except KeyError:
+        docLength[id] = 1
 
       try:
         docTermFreq[id][w] += 1
@@ -112,7 +117,7 @@ def main():
 
   # ---------------------------------------------------------------------------
   # Dump how many unique terms were identified by spacing splitting.
-  print "Total Count of Terms: %d" % totalTermCount
+  print "Total Count of Terms: %s" % docLength
   print "Unique Terms: %d" % len(docFreq)
   print "How many Documents: %d" % len(docTermFreq)
   
@@ -124,11 +129,11 @@ def main():
   invdocFreq = VectorSpace.calculate_invdf(len(docTermFreq), docFreq)
 
   # Calculate the tf-idf values.
-  docTfIdf = VectorSpace.calculate_tfidf(totalTermCount, docTermFreq, invdocFreq)
+  docTfIdf = VectorSpace.calculate_tfidf(docLength, docTermFreq, invdocFreq)
 
   # ---------------------------------------------------------------------------
   # Recap of everything we have stored.
-  # totalTermCount is the total count of all terms
+  # docLength is the total count of all terms
   # cleanTweets    is the dictionary of the tweets by id as string
   # docFreq        is the dictionary of in how many documents the "word" appears
   # invdocFreq     is the dictionary of the inverse document frequencies
@@ -154,6 +159,7 @@ def main():
   while len(centroids) > 1:
     i, j, sim = Centroid.findMax(centroids)
 
+    # @warning: This is fairly crap.
     if sim >= threshold:
       centroids[i].addVector(centroids[j].name, centroids[j].vectorCnt, centroids[j].centroidVector)
       del centroids[j]
