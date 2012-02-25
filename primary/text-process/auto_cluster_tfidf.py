@@ -68,10 +68,10 @@ def threadMain(database_file, output_folder, users, stopwords, start, cnt):
 
     curr_cnt = len(users_tweets)
 
-    docTfIdf, ignore = vectorspace.buildDocTfIdf(users_tweets, stopwords)
+    docTfIdf, ignore = vectorspace.import_stopwords(users_tweets, stopwords)
 
     # -------------------------------------------------------------------------
-    centroids = centroid.clusterDocuments(docTfIdf)
+    centroids = centroid.cluster_documents(docTfIdf)
 
     duration = (time.clock() - start) / 60 # for minutes
 
@@ -82,7 +82,7 @@ def threadMain(database_file, output_folder, users, stopwords, start, cnt):
       f.write("user: %d\n#topics: %d\n" % (user_id, len(centroids)))
       # Might be better if I just implement __str__ for Centroids.
       for cen in centroids:
-        f.write("%s\n" % centroids[cen].topTerms(10))
+        f.write("%s\n" % centroids[cen].top_terms(10))
       f.write("------------------------------------------------------------\n")
 
   conn.close()
@@ -109,7 +109,7 @@ def main():
     sys.exit(-2)
 
   # Pull stop words
-  stopwords = tweetclean.importStopWords(stop_file)
+  stopwords = tweetclean.import_stopwords(stop_file)
 
   kickoff = \
 """

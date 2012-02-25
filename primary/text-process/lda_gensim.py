@@ -37,7 +37,7 @@ def main():
 
   # ---------------------------------------------------------------------------
   # Pull stop words
-  stopwords = tweetclean.importStopWords(stop_file)
+  stopwords = tweetclean.import_stopwords(stop_file)
 
   # ---------------------------------------------------------------------------
   # Read in the database

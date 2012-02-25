@@ -74,6 +74,8 @@ def main():
   
   conn.close()
 
+  print "query time: %fm" % ((time.clock() - start) / 60)
+
   # So, I could get the distinct, max, and min from the sql query itself; and
   # the counts... lol
   # calendar.monthrange(2009, 02)
@@ -84,10 +86,10 @@ def main():
   endYear = tweetdate.getYearFromInt(newest)
   endMonth = tweetdate.getMonthFromInt(newest)
 
-  print "query time: %fm" % ((time.clock() - start) / 60)
   print "users: %d\n" % len(users)
-  for uid in dates:
-    print dates[uid]
+  print "start: %s%s:%s%s" % (startYear, startMonth, endYear, endMonth)
+  #for uid in dates:
+    #print dates[uid]
 
   # ---------------------------------------------------------------------------
   # Done.

@@ -10,18 +10,18 @@ __author__ = 'tri1@umbc.edu'
 #
 # Currently implemented for words, Bigram model.
 
-def build_matrix(inputString, invalids=""):
+def build_matrix(document, invalids=""):
   """
   Given a string, build a matrix of occurrences of pairs of terms.
   
-  Input: inputString := string you want to parse
+  Input: document := string you want to parse
          invalids := string pieces to remove, as single characters in a string
   Output: matrix of occurrences {'termA + "_" + termB' => int}
   
   The matrix is built as a dictionary, key'd by the paired terms. 
   """
   termMatrix = {}
-  words = inputString.split(' ')
+  words = document.split(' ')
   
   while ' ' in words:
     words.remove(' ')
@@ -43,24 +43,24 @@ def build_matrix(inputString, invalids=""):
   
   return termMatrix
 
-def update_matrix(currentMatrix, updateMatrix):
+def update_matrix(current_matrix, update_matrix):
   """
   Given a current matrix and an update matrix, update it!
   
-  Input: currentMatrix := current matrix of occurrences
-         updateMatrix := update matrix of occurrences
+  Input: current_matrix := current matrix of occurrences
+         update_matrix := update matrix of occurrences
 
   Output: updated matrix
   
   This should be used in tandem with build_matrix()
   """
-  for k, v in updateMatrix.items():
+  for k, v in update_matrix.items():
     try:
-      currentMatrix[k] += v
+      current_matrix[k] += v
     except KeyError:
-      currentMatrix[k] = v
+      current_matrix[k] = v
 
-  return currentMatrix
+  return current_matrix
 
 class LanguageStore:
   """
@@ -70,10 +70,15 @@ class LanguageStore:
   Currently only works on Bigrams. (pairs of words)
   """
 
-  def __init__(self, initial_document=None):
+  def __init__(self, initial_document=None, invalids=None):
     self.matrix = None
     self.stats = None
-    self.invalids = None
+    self.invalids = invalids
+    
+    if initial_document is not None:
+      self.matrix = build_matrix(initial_document, invalids)
+      
+      # build statistics.
   
   def get_probability(self, seq_bow=""):
     """

@@ -39,7 +39,7 @@ def main():
     sys.exit(-2)
 
   # Pull stop words
-  stopwords = tweetclean.importStopWords(stop_file)
+  stopwords = tweetclean.import_stopwords(stop_file)
 
   kickoff = \
 """
@@ -90,11 +90,11 @@ parameters  :
   for user_id in user_tweets:
     docperuser[user_id] = "".join(user_tweets[user_id])
 
-  tfidf, dictionary = vectorspace.buildDocTfIdf(docperuser, stopwords, True)
+  tfidf, dictionary = vectorspace.build_doc_tfIdf(docperuser, stopwords, True)
 
   # Dump the matrix.
   with open(output_file, "w") as f:
-    f.write(vectorspace.dumpMatrix(dictionary, tfidf) + "\n")
+    f.write(vectorspace.dump_matrix(dictionary, tfidf) + "\n")
 
   # ---------------------------------------------------------------------------
   # Done.

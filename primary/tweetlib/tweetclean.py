@@ -10,7 +10,7 @@ __author__ = 'tri1@umbc.edu'
 
 import re
 
-def importStopWords(location):
+def import_stopwords(location):
   """
   Given a file location, read in the stop words.
   """

@@ -87,15 +87,10 @@ def main():
         users.append(tweetrequest.RequestTuple(int(onlyid.group(1))))
   
   print "users to pull: %d" % len(users)
-  
-  # open error log:
-  err = open(file_errors, "w")
-  
-  # open success log:
-  fin = open(file_fin, "w")
-  
-  # open status log:
-  sta = open(file_sta, "w")
+
+  err = open(file_errors, "w") # open error log
+  fin = open(file_fin, "w") # open success log
+  sta = open(file_sta, "w") # open status log
 
   # ---------------------------------------------------------------------------
   # For each user in the users input file.

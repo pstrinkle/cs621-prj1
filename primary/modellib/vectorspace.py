@@ -51,7 +51,7 @@ def calculate_tfidf(docLength, docTermFreq, invDocFreq):
   # term in the whole collection of documents.
   
   td-idf =
-    (term count / count of all terms) 
+    (term count / count of all terms in document) 
       * log(document count / in how many documents)
   """
 
@@ -79,9 +79,38 @@ def cosine_compute(vectorA, vectorB):
   
   return dotproduct
 
+def dump_raw_matrix(term_dict, tfidf_dict):
+  """
+  Dump a complete term space matrix of tf-idf values.
+
+  The printout should look something like:
+
+  w1,  w2,  w3,  wN
+  w1,  w2,  w3,  wN
+  w1,  w2,  w3,  wN
+  
+  Which is an NxM matrix.  It will be a sparse matrix for most cases.
+  """
+
+  output = ""
+  
+  sorted_docs = sorted(tfidf_dict.keys())  
+  sorted_terms = sorted(term_dict.keys())
+  
+  # Print Term Rows
+  for t in sorted_terms:
+    for d in sorted_docs:
+      if t in tfidf_dict[d]:
+        output += str(tfidf_dict[d][t]) + ","
+      else:
+        output += str(0.0) + ","
+    output += "\n"
+
+  return output
+
 def dump_matrix(term_dict, tfidf_dict):
   """
-  Dump a complete term space matrix of td-idf values.
+  Dump a complete term space matrix of tf-idf values.
   
   The printout should look something like:
   terms,day1,day2,day3,...,dayN
@@ -134,9 +163,9 @@ def build_doc_tfIdf(documents, stopwords, remove_singletons=False):
     term counts
   """
 
-  docLength = {} # total count of all terms, keyed on document
-  docFreq = {}        # dictionary of in how many documents the "word" appears
-  docTermFreq = {}    # dictionary of term frequencies by date as integer
+  docLength = {}   # total count of all terms, keyed on document
+  docFreq = {}     # dictionary of in how many documents the "word" appears
+  docTermFreq = {} # dictionary of term frequencies by date as integer
 
   for docId in documents:
     # Calculate Term Frequencies for this docId/document.

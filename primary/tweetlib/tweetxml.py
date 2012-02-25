@@ -39,7 +39,7 @@ def double_unescape(value):
   """
   return value.replace(r'\"', '"')
 
-def xmlOut(tag, value, quotes=True):
+def xml_out(tag, value, quotes=True):
   """
   Build an appropriate xml tagged data unit string.
   
@@ -92,42 +92,42 @@ def xmlOut(tag, value, quotes=True):
 
   return xmlStr
 
-def statusStrFromDict(status):
+def status_str_from_dict(status):
   
   statusAsStr = u"<user_id>%d</user_id>" % status["user"]["id"]
 
   statusAsStr += "<tweet>"
 
-  statusAsStr += xmlOut("created", status["created_at"], False)
-  statusAsStr += xmlOut("id", status["id"], False)
+  statusAsStr += xml_out("created", status["created_at"], False)
+  statusAsStr += xml_out("id", status["id"], False)
   
   #if status["in_reply_to_screen_name"] is not None: 
-  #  statusAsStr += tx.xmlOut("in_reply_to_screen_name", status["in_reply_to_screen_name"], True)
+  #  statusAsStr += tx.xml_out("in_reply_to_screen_name", status["in_reply_to_screen_name"], True)
     
   if status["in_reply_to_status_id"] is not None:
-    statusAsStr += xmlOut("in_reply_to_status_id", status["in_reply_to_status_id"], False)
+    statusAsStr += xml_out("in_reply_to_status_id", status["in_reply_to_status_id"], False)
     
   if status["in_reply_to_user_id"] is not None:
-    statusAsStr += xmlOut("in_reply_to_user_id", status["in_reply_to_user_id"], False)
+    statusAsStr += xml_out("in_reply_to_user_id", status["in_reply_to_user_id"], False)
 
   if status["geo"] is not None:
     coordinates = status["geo"]["coordinates"]
     pointStr = "%f, %f" % (coordinates[0], coordinates[1])
     # I copied and pasted the list in order into maps.google.com and it worked perfectly!
-    statusAsStr += xmlOut("geo", pointStr, False)
+    statusAsStr += xml_out("geo", pointStr, False)
   
   if status["place"] is not None:
     if "full_name" in status["place"].keys():
       fname = "%s" % status["place"]["full_name"]
-      statusAsStr += xmlOut("place_name", fname, False)
+      statusAsStr += xml_out("place_name", fname, False)
     
     if "bounding_box" in status["place"].keys() and status["place"]["bounding_box"] is not None:
       if "coordinates" in status["place"]["bounding_box"].keys():
         bbox = "%s" % status["place"]["bounding_box"]["coordinates"]
-        statusAsStr += xmlOut("place_box", bbox, False)
+        statusAsStr += xml_out("place_box", bbox, False)
 
-  statusAsStr += xmlOut("source", status["source"], False)
-  statusAsStr += xmlOut("text", status["text"], False)
+  statusAsStr += xml_out("source", status["source"], False)
+  statusAsStr += xml_out("text", status["text"], False)
   
   statusAsStr += "</tweet>"
   
@@ -138,7 +138,7 @@ def statusStrFromDict(status):
 
   return statusAsStr
 
-def xmlUser(user):
+def xml_user(user):
   """
   Given a user object, build a string from their more immediate details.
   
@@ -174,7 +174,7 @@ def xmlUser(user):
   
   return output
 
-def xmlStatus(status):
+def xml_status(status):
   """
   Given a twitter status object, build an XML representation.
   
@@ -210,39 +210,39 @@ def xmlStatus(status):
 
   statusAsStr = "<tweet>"
 
-  statusAsStr += xmlOut("created", status.created_at, False)
-  statusAsStr += xmlOut("id", status.id, False)
+  statusAsStr += xml_out("created", status.created_at, False)
+  statusAsStr += xml_out("id", status.id, False)
 
   # used to also dump reply_to_screen_name here.
   
   if status.in_reply_to_status_id is not None:
-    statusAsStr += xmlOut("in_reply_to_status_id", status.in_reply_to_status_id, False)
+    statusAsStr += xml_out("in_reply_to_status_id", status.in_reply_to_status_id, False)
     
   if status.in_reply_to_user_id is not None:
-    statusAsStr += xmlOut("in_reply_to_user_id", status.in_reply_to_user_id, False)
+    statusAsStr += xml_out("in_reply_to_user_id", status.in_reply_to_user_id, False)
 
   # TODO: add the hashtag stuff in.
   #if status.hashtags is not None:
-  #  statusAsStr += xmlOut("hashtags", status.hashtags, False)
+  #  statusAsStr += xml_out("hashtags", status.hashtags, False)
 
   if status.geo is not None:
     coordinates = status.geo["coordinates"]
     pointStr = "%f, %f" % (coordinates[0], coordinates[1])
     # I copied and pasted the list in order into maps.google.com and it worked perfectly!
-    statusAsStr += xmlOut("geo", pointStr, False)
+    statusAsStr += xml_out("geo", pointStr, False)
   
   if status.place is not None:
     if "full_name" in status.place.keys():
       fname = "%s" % status.place["full_name"]
-      statusAsStr += xmlOut("place_name", fname, False)
+      statusAsStr += xml_out("place_name", fname, False)
     
     if "bounding_box" in status.place.keys() and status.place["bounding_box"] is not None:
       if "coordinates" in status.place["bounding_box"].keys():
         bbox = "%s" % status.place["bounding_box"]["coordinates"]
-        statusAsStr += xmlOut("place_box", bbox, False)
+        statusAsStr += xml_out("place_box", bbox, False)
 
-  statusAsStr += xmlOut("source", status.source, False)
-  statusAsStr += xmlOut("text", status.text, False)
+  statusAsStr += xml_out("source", status.source, False)
+  statusAsStr += xml_out("text", status.text, False)
   
   statusAsStr += "</tweet>"
   
@@ -324,7 +324,7 @@ class TwitterUser:
   def __len__(self):
     return len(self.tweets)
 
-  def unicodeTweets(self):
+  def unicode_tweets(self):
     outStr = u''
     for tweet_id in self.tweets:
       outStr += "<user_id>%s</user_id>" % str(self.user_id)
@@ -332,7 +332,7 @@ class TwitterUser:
       outStr += "\n"
     return outStr
 
-  def toUnicodeStr(self):
+  def to_unicodestr(self):
     """
     Output the TwitterUser in the XML format:
     <user>
@@ -383,11 +383,11 @@ class TwitterUser:
       t_old_id = ""
     
     outStr = unicode("<user>\n", 'utf-8')
-    outStr += "\t%s\n" % xmlOut("id", self.user_id, False)
-    outStr += "\t%s\n" % xmlOut("screen_name", self.screen_name, False)
-    outStr += "\t%s\n" % xmlOut("name", self.name, False)
-    outStr += "\t%s\n" % xmlOut("lang", self.lang, False)
-    outStr += "\t%s\n" % xmlOut("location", self.location, False)
+    outStr += "\t%s\n" % xml_out("id", self.user_id, False)
+    outStr += "\t%s\n" % xml_out("screen_name", self.screen_name, False)
+    outStr += "\t%s\n" % xml_out("name", self.name, False)
+    outStr += "\t%s\n" % xml_out("lang", self.lang, False)
+    outStr += "\t%s\n" % xml_out("location", self.location, False)
 
     # need to sort and print friends list appropriately
     if len(self.friends) > 0:
@@ -401,12 +401,12 @@ class TwitterUser:
     else:
       outStr += "\t<friends />\n"
   
-    outStr += "\t%s\n" % xmlOut("total_retrieved", len(self.tweets), False)
-    outStr += "\t%s\n" % xmlOut("total_tweets", self.total_tweets, False)
-    outStr += "\t%s\n" % xmlOut("last_pulled", "", False)
-    outStr += "\t%s\n" % xmlOut("last_date", t_created, False)
-    outStr += "\t%s\n" % xmlOut("last_since_id", t_id, False)
-    outStr += "\t%s\n" % xmlOut("oldest_id", t_old_id, False)
+    outStr += "\t%s\n" % xml_out("total_retrieved", len(self.tweets), False)
+    outStr += "\t%s\n" % xml_out("total_tweets", self.total_tweets, False)
+    outStr += "\t%s\n" % xml_out("last_pulled", "", False)
+    outStr += "\t%s\n" % xml_out("last_date", t_created, False)
+    outStr += "\t%s\n" % xml_out("last_since_id", t_id, False)
+    outStr += "\t%s\n" % xml_out("oldest_id", t_old_id, False)
 
     if len(self.tweets) > 0:
       outStr += "\t<tweets>\n"
@@ -423,15 +423,15 @@ class TwitterUser:
     
     return outStr
   
-  def addTweets(self, new_tweets=[]):
+  def add_tweets(self, new_tweets=[]):
     """
     Tweets in xml format.
     """
     for new_tweet in new_tweets:
       #print new_tweet
-      self.addTweet(new_tweet)
+      self.add_tweet(new_tweet)
 
-  def addTweet(self, new_tweet):
+  def add_tweet(self, new_tweet):
     """
     Tweet in xml format.
     """
@@ -446,7 +446,7 @@ class TwitterUser:
       sys.stderr.write("\n")
       sys.exit(-1)
 
-  def addFriends(self, new_friends=[]):
+  def add_friends(self, new_friends=[]):
     for friend in new_friends:
       if friend not in self.friends:
         self.friends.append(friend)
@@ -462,7 +462,7 @@ class TwitterUser:
           if int(fid) not in self.friends:
             self.friends.append(int(fid))
 
-def TweetFromXml(user_id, tweet=""):
+def tweet_from_xml(user_id, tweet=""):
   """
   Given what we so far have in the database this works.
   
@@ -529,7 +529,7 @@ def TweetFromXml(user_id, tweet=""):
 
   return twt
 
-def UserFromXml(xml=""):
+def user_from_xml(xml=""):
   """
   Given what we so far have in the database this works.
   
