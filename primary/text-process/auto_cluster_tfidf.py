@@ -33,8 +33,8 @@ sys.path.append(os.path.join("..", "tweetlib"))
 import TweetClean
 
 sys.path.append(os.path.join("..", "modellib"))
-import VectorSpace
-import Centroid
+import vectorspace
+import centroid
 
 def usage():
   print "usage: %s <sqlite_db> <minimum> <maximum> <stopwords> <output_folder>" \
@@ -68,10 +68,10 @@ def threadMain(database_file, output_folder, users, stopwords, start, cnt):
 
     curr_cnt = len(users_tweets)
 
-    docTfIdf, ignore = VectorSpace.buildDocTfIdf(users_tweets, stopwords)
+    docTfIdf, ignore = vectorspace.buildDocTfIdf(users_tweets, stopwords)
 
     # -------------------------------------------------------------------------
-    centroids = Centroid.clusterDocuments(docTfIdf)
+    centroids = centroid.clusterDocuments(docTfIdf)
 
     duration = (time.clock() - start) / 60 # for minutes
 

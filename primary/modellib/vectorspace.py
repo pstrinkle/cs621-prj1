@@ -4,6 +4,7 @@ __author__ = 'tri1@umbc.edu'
 
 # Patrick Trinkle
 # Summer 2011
+# Spring 2012
 #
 # This handles the vector space model stuff.
 #
@@ -64,7 +65,7 @@ def calculate_tfidf(docLength, docTermFreq, invDocFreq):
 
   return docTfIdf
 
-def cosineCompute(vectorA, vectorB):
+def cosine_compute(vectorA, vectorB):
   """
   Compute the cosine similarity of two normalized vectors.
   vectorA and vectorB are dictionaries, where the key is the term and the value
@@ -78,7 +79,7 @@ def cosineCompute(vectorA, vectorB):
   
   return dotproduct
 
-def dumpMatrix(term_dict, tfidf_dict):
+def dump_matrix(term_dict, tfidf_dict):
   """
   Dump a complete term space matrix of td-idf values.
   
@@ -117,7 +118,7 @@ def dumpMatrix(term_dict, tfidf_dict):
 
   return output
 
-def buildDocTfIdf(documents, stopwords, remove_singletons=False):
+def build_doc_tfIdf(documents, stopwords, remove_singletons=False):
   """
   Note: This doesn't remove singletons from the dictionary of terms, unless you 
   say otherwise.  With tweets there is certain value in not removing singletons.

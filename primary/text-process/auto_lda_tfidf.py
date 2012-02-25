@@ -36,8 +36,8 @@ sys.path.append(os.path.join("..", "tweetlib"))
 import TweetClean
 
 sys.path.append(os.path.join("..", "modellib"))
-import VectorSpace
-import Centroid
+import vectorspace
+import centroid
 
 def usage():
   print "usage: %s <sqlite_db> <minimum> <maximum> <stopwords> <output_folder>" \
@@ -59,11 +59,11 @@ def threadMain(database_file, output_folder, users, users_tweets, stopwords, sta
 
     curr_cnt = len(users_tweets[user_id])
 
-    docTfIdf, ignore = VectorSpace.buildDocTfIdf(users_tweets[user_id], stopwords)
+    docTfIdf, ignore = vectorspace.buildDocTfIdf(users_tweets[user_id], stopwords)
 
     # -------------------------------------------------------------------------
     # Build Centroid List (this step is not actually slow.)
-    centroids = Centroid.clusterDocuments(docTfIdf)
+    centroids = centroid.clusterDocuments(docTfIdf)
 
     with open(os.path.join(output_folder, "%d.tfidf" % user_id), "w") as f:
       f.write("user: %d\n#topics: %d\n" % (user_id, len(centroids)))

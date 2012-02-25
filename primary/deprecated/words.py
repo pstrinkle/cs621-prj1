@@ -24,7 +24,7 @@ sys.path.append(os.path.join("..", "tweetlib"))
 sys.path.append(os.path.join("..", "modellib"))
 import TweetClean
 import TweetDate
-import VectorSpace
+import vectorspace
 
 def usage():
   print "usage: %s (daily|hourly) <input file> <out:matrix file> <out:similarity file>" % sys.argv[0]
@@ -142,10 +142,10 @@ def main():
   # Skipped with tweets for now...
 
   # Calculate the inverse document frequencies.
-  invdocFreq = VectorSpace.calculate_invdf(len(docTermFreq), docFreq)
+  invdocFreq = vectorspace.calculate_invdf(len(docTermFreq), docFreq)
   
   # Calculate the tf-idf values.
-  docTfIdf = VectorSpace.calculate_tfidf(docLength, docTermFreq, invdocFreq)
+  docTfIdf = vectorspace.calculate_tfidf(docLength, docTermFreq, invdocFreq)
 
   # Recap of everything we have stored.
   # docLength      is the total count of all terms
@@ -171,7 +171,7 @@ def main():
 
   # Dump the matrix.
   with open(sys.argv[3], "w") as f:
-    f.write(VectorSpace.dumpMatrix(docFreq, docTfIdf) + "\n")
+    f.write(vectorspace.dumpMatrix(docFreq, docTfIdf) + "\n")
 
   # Computer cosine similarities between sequential days.
   sorted_days = sorted(docTfIdf.keys())
@@ -179,7 +179,7 @@ def main():
     # -1 because each goes +1
     for i in xrange(0, len(sorted_days) - 1):
       f.write("similarity(%s, %s) = " % (str(sorted_days[i]), str(sorted_days[i + 1])))
-      f.write(str(VectorSpace.cosineCompute(docTfIdf[sorted_days[i]], docTfIdf[sorted_days[i + 1]])) + "\n")
+      f.write(str(vectorspace.cosineCompute(docTfIdf[sorted_days[i]], docTfIdf[sorted_days[i + 1]])) + "\n")
 
   # ---------------------------------------------------------------------------
   # Done.

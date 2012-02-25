@@ -16,9 +16,10 @@ import codecs
 import datetime
 
 sys.path.append("tweetlib")
-sys.path.append("modellib")
-import GeoModel as gm
 import TweetDatabase as td
+
+sys.path.append("modellib")
+import geomodel as gm
 
 options = ("-llc", "-wdh", "-wdh3", "-cdo")
 

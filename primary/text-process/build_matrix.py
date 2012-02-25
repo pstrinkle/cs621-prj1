@@ -14,7 +14,7 @@ sys.path.append(os.path.join("..", "tweetlib"))
 import TweetClean
 
 sys.path.append(os.path.join("..", "modellib"))
-import VectorSpace
+import vectorspace
 
 def usage():
   print "%s <database_file> <minimum> <maximum> <stop_file> <output>" % sys.argv[0]
@@ -90,11 +90,11 @@ parameters  :
   for user_id in user_tweets:
     docperuser[user_id] = "".join(user_tweets[user_id])
 
-  tfidf, dictionary = VectorSpace.buildDocTfIdf(docperuser, stopwords, True)
+  tfidf, dictionary = vectorspace.buildDocTfIdf(docperuser, stopwords, True)
 
   # Dump the matrix.
   with open(output_file, "w") as f:
-    f.write(VectorSpace.dumpMatrix(dictionary, tfidf) + "\n")
+    f.write(vectorspace.dumpMatrix(dictionary, tfidf) + "\n")
 
   # ---------------------------------------------------------------------------
   # Done.

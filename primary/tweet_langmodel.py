@@ -13,10 +13,11 @@ import os
 import sys
 
 sys.path.append("tweetlib")
-sys.path.append("modellib")
 import TweetDate
 import TweetClean
-import LanguageModel
+
+sys.path.append("modellib")
+import languagemodel
 
 def usage():
   print "usage: %s (daily|hourly) <input file> <out:matrix file>" % sys.argv[0]
@@ -64,9 +65,9 @@ def main():
     newTweet = TweetClean.cleanup(info[1])
     
     rawOccurrenceModel = \
-      LanguageModel.update_matrix(
+      languagemodel.update_matrix(
                                   rawOccurrenceModel,
-                                  LanguageModel.build_matrix(newTweet, "-&"))
+                                  languagemodel.build_matrix(newTweet, "-&"))
 
   # ---------------------------------------------------------------------------
   # Debug, Dump the Raw Occurrences (not finalized)

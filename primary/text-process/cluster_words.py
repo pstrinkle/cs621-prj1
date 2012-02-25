@@ -30,8 +30,8 @@ import codecs
 sys.path.append(os.path.join("..", "tweetlib"))
 sys.path.append(os.path.join("..", "modellib"))
 import TweetClean
-import VectorSpace
-import Centroid
+import vectorspace
+import centroid
 
 def usage():
   """
@@ -126,10 +126,10 @@ def main():
   # Skipped with tweets for now...
 
   # Calculate the inverse document frequencies.
-  invdocFreq = VectorSpace.calculate_invdf(len(docTermFreq), docFreq)
+  invdocFreq = vectorspace.calculate_invdf(len(docTermFreq), docFreq)
 
   # Calculate the tf-idf values.
-  docTfIdf = VectorSpace.calculate_tfidf(docLength, docTermFreq, invdocFreq)
+  docTfIdf = vectorspace.calculate_tfidf(docLength, docTermFreq, invdocFreq)
 
   # ---------------------------------------------------------------------------
   # Recap of everything we have stored.
@@ -145,10 +145,10 @@ def main():
   centroids = []
 
   for doc, vec in docTfIdf.iteritems():
-    centroids.append(Centroid.Centroid(str(doc), vec))
+    centroids.append(centroid.Centroid(str(doc), vec))
 
-  average_sim = Centroid.findAvg(centroids)
-  stddev_sim = Centroid.findStd(centroids)
+  average_sim = centroid.findAvg(centroids)
+  stddev_sim = centroid.findStd(centroids)
   
   print "mean: %.10f\tstd: %.10f" % (average_sim, stddev_sim)
   
@@ -157,7 +157,7 @@ def main():
   threshold = stddev_sim
 
   while len(centroids) > 1:
-    i, j, sim = Centroid.findMax(centroids)
+    i, j, sim = centroid.findMax(centroids)
 
     # @warning: This is fairly crap.
     if sim >= threshold:
@@ -172,7 +172,7 @@ def main():
   print "std(centroids): %.10f" % stddev_sim
   
   for cen in centroids:
-    print Centroid.topTerms(cen, 10)
+    print centroid.topTerms(cen, 10)
 
   # ---------------------------------------------------------------------------
   # Done.

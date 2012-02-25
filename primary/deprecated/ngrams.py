@@ -23,7 +23,7 @@ sys.path.append(os.path.join("..", "tweetlib"))
 sys.path.append(os.path.join("..", "modellib"))
 import TweetDate
 import TweetClean
-import VectorSpace
+import vectorspace
 
 def usage():
   print "usage: %s <input file>" % sys.argv[0]
@@ -119,7 +119,7 @@ def main():
   # to wait until all processing is complete.
 
   # Dump the matrix.
-  print VectorSpace.dumpMatrix(docFreq, daysHisto) + "\n"
+  print vectorspace.dumpMatrix(docFreq, daysHisto) + "\n"
 
   # ---------------------------------------------------------------------------
   # Done.

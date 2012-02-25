@@ -34,7 +34,7 @@ def similarity(a, b):
 
   return float(dotproduct / (lengthA * lengthB))
 
-def getSimMatrix(centroids):
+def get_sim_matrix(centroids):
   """
   Given a list of Centroids, compute the similarity score between each
   and return a matrix, matrix[i][j] = 0.000... as a dictionary of dictionaries.
@@ -61,7 +61,7 @@ def getSimMatrix(centroids):
 
   return matrix
 
-def getSimsFromMatrix(matrix):
+def get_sims_from_matrix(matrix):
   """
   Given a matrix of similarity values, covert to a straight list.
   """
@@ -74,7 +74,7 @@ def getSimsFromMatrix(matrix):
   
   return sims
 
-def getSims(centroids):
+def get_sims(centroids):
   """
   Given a list of Centroids, compute the similarity score between all 
   pairs and return the list.  This can be fed into findAvg(), findStd().
@@ -175,7 +175,7 @@ class Centroid:
     self.vectorCnt = 0
     self.centroidVector = {}
     self.length = 0.00
-    self.addVector(name, 1, dv)
+    self.add_vector(name, 1, dv)
 
   def __len__(self):
     """
@@ -189,11 +189,11 @@ class Centroid:
     terms.
     """
 
-    output = "%s:\n%s" % (self.name, self.topTerms(10))
+    output = "%s:\n%s" % (self.name, self.top_terms(10))
 
     return output
 
-  def topTerms(self, n):
+  def top_terms(self, n):
     """
     Returns the n-highest tf-idf terms in the vector.
     
@@ -216,15 +216,15 @@ class Centroid:
 
     return top_terms
 
-  def addCentroid(self, newCen):
+  def add_centroid(self, new_cen):
     """
     This merges in the new centroid.
     
     newCent := the centroid object to add.
     """
-    self.addVector(newCen.name, newCen.vectorCnt, newCen.centroidVector)
+    self.add_vector(new_cen.name, new_cen.vectorCnt, new_cen.centroidVector)
 
-  def addVector(self, docName, addCnt, newDocVec):
+  def add_vector(self, docName, addCnt, newDocVec):
     """
     This averages in the new vector.
     
@@ -280,7 +280,7 @@ class Centroid:
     # calculate magnitude
     self.length = math.sqrt(self.length)
 
-def findMatrixMax(matrix):
+def find_matrix_max(matrix):
   """
   This provides the outer and inner key and the value, of the maximum value.
   """
@@ -305,7 +305,7 @@ def findMatrixMax(matrix):
 
   return (max_i, max_j, max_val)
 
-def removeMatrixEntry(matrix, key):
+def remove_matrix_entry(matrix, key):
   """
   This removes any matrix key entries, outer and inner.
   """
@@ -323,7 +323,7 @@ def removeMatrixEntry(matrix, key):
     except KeyError:
       continue
 
-def addMatrixEntry(matrix, centroids, new_centroid, name):
+def add_matrix_entry(matrix, centroids, new_centroid, name):
   """
   Add this entry and comparisons to the matrix, the key to use is name.
   
@@ -340,9 +340,9 @@ def addMatrixEntry(matrix, centroids, new_centroid, name):
 
   for i in matrix.keys():
     if i != name:
-      matrix[name][i] = Centroid.similarity(centroids[i], new_centroid)
+      matrix[name][i] = similarity(centroids[i], new_centroid)
 
-def clusterDocuments(documents, thresholdStr="std"):
+def cluster_documents(documents, thresholdStr="std"):
   """
   Given a dictionary of documents, where the key is some unique (preferably)
   id value.  Create a centroid representation of each, and then merge the
@@ -356,35 +356,35 @@ def clusterDocuments(documents, thresholdStr="std"):
   arbitrary_name = 0
 
   for doc, vec in documents.iteritems():
-    centroids[arbitrary_name] = Centroid.Centroid(str(doc), vec) 
+    centroids[arbitrary_name] = Centroid(str(doc), vec) 
     arbitrary_name += 1
 
   # The size of sim_matrix is: (num_centroids^2 / 2) - (num_centroids / 2)
   # -- verified, my code does this correctly. : )
 
-  sim_matrix = Centroid.getSimMatrix(centroids)
-  initial_similarities = Centroid.getSimsFromMatrix(sim_matrix)
+  sim_matrix = get_sim_matrix(centroids)
+  initial_similarities = get_sims_from_matrix(sim_matrix)
   
   if thresholdStr == "std":
-    threshold = Centroid.findStd(centroids, True, initial_similarities)
+    threshold = findStd(centroids, True, initial_similarities)
   elif thresholdStr == "avg":
-    threshold = Centroid.findAvg(centroids, True, initial_similarities)
+    threshold = findAvg(centroids, True, initial_similarities)
   else:
     return None
 
   # -------------------------------------------------------------------------
   # Merge centroids
   while len(centroids) > 1:
-    i, j, sim = findMatrixMax(sim_matrix)
+    i, j, sim = find_matrix_max(sim_matrix)
 
     if sim >= threshold:
         
-      centroids[i].addCentroid(centroids[j])
+      centroids[i].add_centroid(centroids[j])
       del centroids[j]
 
-      removeMatrixEntry(sim_matrix, i)
-      removeMatrixEntry(sim_matrix, j)
-      addMatrixEntry(sim_matrix, centroids, centroids[i], i)
+      remove_matrix_entry(sim_matrix, i)
+      remove_matrix_entry(sim_matrix, j)
+      add_matrix_entry(sim_matrix, centroids, centroids[i], i)
     else:
       break
   

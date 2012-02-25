@@ -11,7 +11,11 @@ __author__ = 'tri1@umbc.edu'
 # Currently somewhat stupidly handled.
 
 import re
-import Geo as g
+import os
+import sys
+import geo as g
+
+sys.path.append(os.path.join("..", "tweetlib"))
 import TweetDate as td
 
 class LocationBundle:
@@ -54,7 +58,7 @@ class LocationBundle:
     """
     return self.count
 
-  def addTweet(self, time_string, coord_string):
+  def add_tweet(self, time_string, coord_string):
     """
     time_string := Fri Jan 21 09:28:12 +0000 2011
     coord_string := lat, long
@@ -81,7 +85,7 @@ class LocationBundle:
 
       #print self.days
     
-  def dumpTimePlace(self):
+  def dump_timeplace(self):
     """
     Dumps the time and place information.
     
@@ -96,7 +100,7 @@ class LocationBundle:
       for event in events:
         print "%d: %s" % (event, self.days[day][event])
 
-  def dumpWeekDayHourly3d(self):
+  def dump_weekdayhourly3d(self):
     """
     Each data set in the output file represents a line in 3d, where its position
     on the z axis is the day of the week.
@@ -139,7 +143,7 @@ class LocationBundle:
 
     return out
 
-  def dumpWeekDayHourly(self):
+  def dump_weekdayhourly(self):
     """
     """
     
@@ -175,7 +179,7 @@ class LocationBundle:
 
     return out
   
-  def dumpLatLongCount(self, normalize=0.0):
+  def dump_latlong_count(self, normalize=0.0):
     """
     Dumps the Long,Lat,Count for using with gnuplot.  This doesn't yet filter by year or month.
     
@@ -197,7 +201,7 @@ class LocationBundle:
 
     return out
 
-  def byYearData(self, year=0):
+  def by_year_data(self, year=0):
     """
     Attempts to dump the time and place information, well just time and occurrence count.
     
@@ -217,19 +221,19 @@ class LocationBundle:
           for item in self.days[day][event]:
             eventsForYear[event].append(item)
   
-  def dumpCentroidDistanceOccurrence(self, sortOut=False):
+  def dump_centroiddistance_occurrence(self, sort_output=False):
     """
     The x-axis is distance from centroid (origin).
     The y-axis is the # occurrences.
     """
     
     if self.centroided == False:
-      self.buildCentroid()
+      self.build_centroid()
       self.centroided = True
     
     out = "# dist count\n"
     
-    if sortOut == True:
+    if sort_output == True:
       data = {}
     
     for loc in self.locations:
@@ -241,13 +245,13 @@ class LocationBundle:
         
         dist = g.calculate_distance(self.centroid, [lat, longitude])
         
-        if sortOut == True:
+        if sort_output == True:
           # the distances should be unique, because the points are...
           data["%f" % dist] = cnt
         else:
           out += "%f %d\n" % (dist, cnt)
     
-    if sortOut == True:
+    if sort_output == True:
       dpoints = data.keys()
       dpoints.sort() # sorts as a string, : (
       
@@ -256,7 +260,7 @@ class LocationBundle:
     
     return out
   
-  def averageDistance(self):
+  def average_distance(self):
     """
     Calculate the average distance between all pairs of coordinates (where i != j) --> (km, mi)
     """
@@ -286,7 +290,7 @@ class LocationBundle:
 
     return (avg, g.km_to_mi(avg))
   
-  def maximumDistance(self):
+  def maximum_distance(self):
     """
     Calculate the maximum distance between all pairs of coordinates --> (km, mi)
     """
@@ -314,7 +318,7 @@ class LocationBundle:
     
     return (maxVal, g.km_to_mi(maxVal))
 
-  def buildCentroid(self):
+  def build_centroid(self):
     """
     This builds the centroid for all their locations.
     """
@@ -338,7 +342,7 @@ class LocationBundle:
     
     self.centroided = True
 
-  def buildCentroids(self):
+  def build_centroids(self):
     """
     Return an array of centroids
     
