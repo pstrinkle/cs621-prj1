@@ -176,6 +176,7 @@ class TweetTime:
     Input:
       timedate := "Fri Jan 21 09:28:12 +0000 2011"
     """
+    self.strrep = timedate
     self.weekdayVal = 0
     self.weekdayStr = ""
     self.monthStr = ""
@@ -204,6 +205,8 @@ class TweetTime:
       self.minute = int(day.group(5))
       self.second = int(day.group(6))
       self.year = int(day.group(7))
-      
+
+  def __str__(self):
+    return self.strrep
       
     

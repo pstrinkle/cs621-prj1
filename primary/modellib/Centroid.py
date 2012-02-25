@@ -279,4 +279,113 @@ class Centroid:
 
     # calculate magnitude
     self.length = math.sqrt(self.length)
+
+def findMatrixMax(matrix):
+  """
+  This provides the outer and inner key and the value, of the maximum value.
+  """
+
+  max_val = 0.0
+  max_i = 0
+  max_j = 0
+
+  for i in matrix.keys():
+    try:
+      kvp = max(matrix[i].iteritems(), key=operator.itemgetter(1))
+    except ValueError:
+      continue
     
+    # Maybe I should store the max value with the array, and then always store
+    # the previous largest, and when i insert or delete...
+    
+    if kvp[1] > max_val:
+      max_val = kvp[1]
+      max_i = i
+      max_j = kvp[0]
+
+  return (max_i, max_j, max_val)
+
+def removeMatrixEntry(matrix, key):
+  """
+  This removes any matrix key entries, outer and inner.
+  """
+
+  try:
+    del matrix[key]
+  except KeyError:
+    print "deleting matrix[%s]" % str(key)
+    print "%s" % matrix.keys()
+    raise Exception
+
+  for i in matrix.keys():
+    try:
+      del matrix[i][key]
+    except KeyError:
+      continue
+
+def addMatrixEntry(matrix, centroids, new_centroid, name):
+  """
+  Add this entry and comparisons to the matrix, the key to use is name.
+  
+  Really just need to matrix[name] = {}, then for i in matrix.keys() where not
+  name, compare and add.
+  
+  Please remove before you add, otherwise there can be noise in the data.
+  """
+
+  if name in matrix:
+    print "enabling matrix[%s] <-- already there!" % str(name)
+
+  matrix[name] = {}
+
+  for i in matrix.keys():
+    if i != name:
+      matrix[name][i] = Centroid.similarity(centroids[i], new_centroid)
+
+def clusterDocuments(documents, thresholdStr="std"):
+  """
+  Given a dictionary of documents, where the key is some unique (preferably)
+  id value.  Create a centroid representation of each, and then merge the
+  centroids by their similarity scores.
+  
+  documents := dictionary of documents in tf-idf vectors.
+  thresholdStr := either "std" or "avg" to set the threshold.
+  """
+  
+  centroids = {}
+  arbitrary_name = 0
+
+  for doc, vec in documents.iteritems():
+    centroids[arbitrary_name] = Centroid.Centroid(str(doc), vec) 
+    arbitrary_name += 1
+
+  # The size of sim_matrix is: (num_centroids^2 / 2) - (num_centroids / 2)
+  # -- verified, my code does this correctly. : )
+
+  sim_matrix = Centroid.getSimMatrix(centroids)
+  initial_similarities = Centroid.getSimsFromMatrix(sim_matrix)
+  
+  if thresholdStr == "std":
+    threshold = Centroid.findStd(centroids, True, initial_similarities)
+  elif thresholdStr == "avg":
+    threshold = Centroid.findAvg(centroids, True, initial_similarities)
+  else:
+    return None
+
+  # -------------------------------------------------------------------------
+  # Merge centroids
+  while len(centroids) > 1:
+    i, j, sim = findMatrixMax(sim_matrix)
+
+    if sim >= threshold:
+        
+      centroids[i].addCentroid(centroids[j])
+      del centroids[j]
+
+      removeMatrixEntry(sim_matrix, i)
+      removeMatrixEntry(sim_matrix, j)
+      addMatrixEntry(sim_matrix, centroids, centroids[i], i)
+    else:
+      break
+  
+  return centroids

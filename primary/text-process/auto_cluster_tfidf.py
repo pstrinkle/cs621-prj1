@@ -6,8 +6,8 @@ __author__ = 'tri1@umbc.edu'
 # @author: Patrick Trinkle
 # Spring 2012
 #
-# @summary: This script is meant to encompass: tweets_by_user, pull_from_database, and
-# cluster_words.
+# @summary: This script is meant to encompass: tweets_by_user, 
+# pull_from_database, and cluster_words.
 #
 # This will find the users from the specified database with at least X tweets
 # in the database.  It will then pull those tweets one user at a time and then
@@ -40,123 +40,6 @@ def usage():
   print "usage: %s <sqlite_db> <minimum> <maximum> <stopwords> <output_folder>" \
     % sys.argv[0]
 
-def buildDocTfIdf(users_tweets, stopwords):
-
-  totalTermCount = 0 # total count of all terms
-  docFreq = {}       # dictionary of in how many documents the "word" appears
-  invdocFreq = {}    # dictionary of the inverse document frequencies
-  docTermFreq = {}   # dictionary of term frequencies by date as integer
-  docTfIdf = {}      # similar to docTermFreq, but holds the tf-idf values
-
-  for id in users_tweets:
-    # Calculate Term Frequencies for this id/document.
-    # let's make a short list of the words we'll accept.
-
-    # only words that are greater than one letter and not in the stopword list.
-    pruned = [w for w in users_tweets[id].split(' ') if w not in stopwords and len(w) > 1]
-
-    if len(pruned) < 2:
-      continue
-
-    docTermFreq[id] = {} # Prepare the dictionary for that document.
-
-    totalTermCount += len(pruned)
-
-    for w in pruned:
-      try:
-        docTermFreq[id][w] += 1
-      except KeyError:
-        docTermFreq[id][w] = 1
-
-    # Contribute to the document frequencies.
-    for w in docTermFreq[id]:
-      try:
-        docFreq[w] += 1
-      except KeyError:
-        docFreq[w] = 1
-
-  # Calculate the inverse document frequencies.
-  invdocFreq = VectorSpace.calculate_invdf(len(docTermFreq), docFreq)
-
-  # Calculate the tf-idf values.
-  docTfIdf = VectorSpace.calculate_tfidf(
-                                         totalTermCount,
-                                         docTermFreq,
-                                         invdocFreq)
-
-  return docTfIdf
-
-def findMatrixMax(matrix):
-  """
-  This provides the outer and inner key and the value, of the maximum value.
-  """
-
-  max_val = 0.0
-  max_i = 0
-  max_j = 0
-
-  for i in matrix.keys():
-    # this should be faster than searching by key on the inner loop.
-    #
-    # Double-looping keys and checking each took:                     4.50s.
-    # Single-looping keys and building sorted list in 3 steps took: 122.00s.
-    # " performing custom sort (w/ iteritems()):                      9.33s.
-    # " (w/ items()):                                                58.33s.
-    # Single-looping keys and max() operator instead of sort:         2.35s
-    # " (w/o the length check):                                       2.22s
-
-    try:
-      kvp = max(matrix[i].iteritems(), key=operator.itemgetter(1))
-    except ValueError: # if matrix[i] is None, then this moves forward
-      continue         # The way I'm doing this, it doesn't have to check each time.
-    
-    # Maybe I should store the max value with the array, and then always store
-    # the previous largest, and when i insert or delete...
-    
-    if kvp[1] > max_val:
-      max_val = kvp[1]
-      max_i = i
-      max_j = kvp[0]
-
-  return (max_i, max_j, max_val)
-
-def removeMatrixEntry(matrix, key):
-  """
-  This removes any matrix key entries, outer and inner.
-  """
-
-  try:
-    del matrix[key]
-  except KeyError:
-    print "deleting matrix[%s]" % str(key)
-    print "%s" % matrix.keys()
-    raise Exception
-
-  for i in matrix.keys():
-    try:
-      del matrix[i][key]
-    except KeyError:
-      continue
-
-def addMatrixEntry(matrix, centroids, new_centroid, name):
-  """
-  Add this entry and comparisons to the matrix, the key to use is name.
-  
-  Really just need to matrix[name] = {}, then for i in matrix.keys() where not
-  name, compare and add.
-  
-  Please remove before you add, otherwise there can be noise in the data.
-  """
-
-  if name in matrix:
-    print "enabling matrix[%s] <-- already there!" % str(name)
-
-  matrix[name] = {}
-
-  for i in matrix.keys():
-    if i != name:
-      matrix[name][i] = Centroid.similarity(centroids[i], new_centroid)
-
 def threadMain(database_file, output_folder, users, stopwords, start, cnt):
   """
   What, what! : )
@@ -185,43 +68,10 @@ def threadMain(database_file, output_folder, users, stopwords, start, cnt):
 
     curr_cnt = len(users_tweets)
 
-    docTfIdf = buildDocTfIdf(users_tweets, stopwords)
+    docTfIdf = VectorSpace.buildDocTfIdf(users_tweets, stopwords)
 
     # -------------------------------------------------------------------------
-    # Build Centroid List (this step is not actually slow.)
-    centroids = {}
-    arbitrary_name = 0
-
-    for doc, vec in docTfIdf.iteritems():
-      centroids[arbitrary_name] = Centroid.Centroid(str(doc), vec) 
-      arbitrary_name += 1
-
-    # The size of sim_matrix is: (num_centroids^2 / 2) - (num_centroids / 2)
-    # -- verified, my code does this correctly. : )
-
-    sim_matrix = Centroid.getSimMatrix(centroids)
-    initial_similarities = Centroid.getSimsFromMatrix(sim_matrix)
-    average_sim = Centroid.findAvg(centroids, True, initial_similarities)
-    stddev_sim = Centroid.findStd(centroids, True, initial_similarities)
-
-    # Merge centroids by highest similarity of at least threshold  
-    threshold = stddev_sim
-
-    # -------------------------------------------------------------------------
-    # Merge centroids
-    while len(centroids) > 1:
-      i, j, sim = findMatrixMax(sim_matrix)
-
-      if sim >= threshold:
-        
-        centroids[i].addCentroid(centroids[j])
-        del centroids[j]
-
-        removeMatrixEntry(sim_matrix, i)
-        removeMatrixEntry(sim_matrix, j)
-        addMatrixEntry(sim_matrix, centroids, centroids[i], i)
-      else:
-        break
+    centroids = Centroid.clusterDocuments(docTfIdf)
 
     duration = (time.clock() - start) / 60 # for minutes
 
