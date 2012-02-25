@@ -88,14 +88,14 @@ def calculate_distance(coordA, coordB):
   
   return d
 
-def calculate_area(box, lat=0, long=1):
+def calculate_area(box, lat=0, longitude=1):
   """
   Given a rectangle of GPS coordinates in the Twitter format used with all
   other box functions.  Calculate the area in square kilometers.
   
   Input: box  := rectangle for area calculation.
          lat  := index of the latitude value within a coordinate
-         long := index of the longitude value within a coordinate
+         longitude := index of the longitude value within a coordinate
   
   Return: area in square kilometers.
   """
@@ -105,16 +105,16 @@ def calculate_area(box, lat=0, long=1):
   #print "%f,%f  --- %f,%f  " % (lower_left[1], lower_left[0], lower_right[1], lower_right[0])
   
   lower_left = box[0]
-  lower_right = box[1]
+  #lower_right = box[1]
   upper_right = box[2]
   upper_left = box[3]
   
-  vert = calculate_distance((upper_left[lat], upper_left[long]), (lower_left[lat], lower_left[long]))
-  horz = calculate_distance((upper_left[lat], upper_left[long]), (upper_right[lat], upper_right[long]))
+  vert = calculate_distance((upper_left[lat], upper_left[longitude]), (lower_left[lat], lower_left[longitude]))
+  horz = calculate_distance((upper_left[lat], upper_left[longitude]), (upper_right[lat], upper_right[longitude]))
   
   return vert * horz
 
-def merge_box(boxA, boxB, lat=0, long=1):
+def merge_box(boxA, boxB, lat=0, longitude=1):
   """
   Given two rectangles of Twitter GPS coordinates, merge the boxes into the encompassing
   rectangle.
@@ -122,7 +122,7 @@ def merge_box(boxA, boxB, lat=0, long=1):
   Input: boxA := rectangle of GPS coordinates.
          boxB := rectangle of GPS coordinates.
          lat  := index of the latitude value within a coordinate
-         long := index of the longitude value within a coordinate
+         longitude := index of the longitude value within a coordinate
   
   Return: Encompassing box.
   """
@@ -131,12 +131,12 @@ def merge_box(boxA, boxB, lat=0, long=1):
     return None
   
   lower_leftA = boxA[0]
-  lower_rightA = boxA[1]
+  #lower_rightA = boxA[1]
   upper_rightA = boxA[2]
   upper_leftA = boxA[3]
 
   lower_leftB = boxB[0]
-  lower_rightB = boxB[1]
+  #lower_rightB = boxB[1]
   upper_rightB = boxB[2]
   upper_leftB = boxB[3]
   
@@ -164,19 +164,19 @@ def merge_box(boxA, boxB, lat=0, long=1):
   upper_left = [left_long, maxlat]
   
   #print "box a:"
-  #print "%f,%f  --- %f,%f  " % (upper_leftA[lat], upper_leftA[long], upper_rightA[lat], upper_rightA[long])
+  #print "%f,%f  --- %f,%f  " % (upper_leftA[lat], upper_leftA[longitude], upper_rightA[lat], upper_rightA[longitude])
   #print "|              |  "
-  #print "%f,%f  --- %f,%f  " % (lower_leftA[lat], lower_leftA[long], lower_rightA[lat], lower_rightA[long])
+  #print "%f,%f  --- %f,%f  " % (lower_leftA[lat], lower_leftA[longitude], lower_rightA[lat], lower_rightA[longitude])
   
   #print "box b:"
-  #print "%f,%f  --- %f,%f  " % (upper_leftB[lat], upper_leftB[long], upper_rightB[lat], upper_rightB[long])
+  #print "%f,%f  --- %f,%f  " % (upper_leftB[lat], upper_leftB[longitude], upper_rightB[lat], upper_rightB[longitude])
   #print "|              |  "
-  #print "%f,%f  --- %f,%f  " % (lower_leftB[lat], lower_leftB[long], lower_rightB[lat], lower_rightB[long])
+  #print "%f,%f  --- %f,%f  " % (lower_leftB[lat], lower_leftB[longitude], lower_rightB[lat], lower_rightB[longitude])
   
   #print "merged:"
-  #print "%f,%f  --- %f,%f  " % (upper_left[lat], upper_left[long], upper_right[lat], upper_right[long])
+  #print "%f,%f  --- %f,%f  " % (upper_left[lat], upper_left[longitude], upper_right[lat], upper_right[longitude])
   #print "|              |  "
-  #print "%f,%f  --- %f,%f  " % (lower_left[lat], lower_left[long], lower_right[lat], lower_right[long])
+  #print "%f,%f  --- %f,%f  " % (lower_left[lat], lower_left[longitude], lower_right[lat], lower_right[longitude])
     
   return lower_left, lower_right, upper_right, upper_left
 
@@ -204,7 +204,7 @@ def within_box(box, point):
   
   # These are long, lat
   lower_left = box[0]
-  lower_right = box[1]
+  #lower_right = box[1]
   upper_right = box[2]
   upper_left = box[3]
   

@@ -8,6 +8,7 @@ __author__ = 'tri1@umbc.edu'
 # This handles all the collect_XXX scripts requests, etc...
 #
 
+import sys
 import twitter
 import urllib2 # for the exception
 import httplib # for the exception

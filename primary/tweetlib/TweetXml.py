@@ -11,7 +11,6 @@ __author__ = 'tri1@umbc.edu'
 import re
 import sys
 import string
-import twitter
 
 # I convert these characters to nothing--I just remove them.  Strangely they are crap
 # and somehow show up.
