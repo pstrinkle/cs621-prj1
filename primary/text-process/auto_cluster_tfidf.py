@@ -58,31 +58,31 @@ def threadMain(database_file, output_folder, users, stopwords, start, cnt):
     user_id = users[u]
     docTfIdf = {}      # similar to docTermFreq, but holds the tf-idf values
     users_tweets = {}
-    output = "%d\t%d\t%.3f\t%.3f\t%d\t%fm"
+    output = "%d\t%d\t%d\t%fm"
 
     start = time.clock()
 
     for row in c.execute(query_tweets % user_id):
-      if row['text'] is not None: # I really don't care about tweets I don't have.
+      if row['text'] is not None:
         users_tweets[row['id']] = tweetclean.cleanup(row['text'], True, True)
 
     curr_cnt = len(users_tweets)
 
-    docTfIdf, ignore = vectorspace.import_stopwords(users_tweets, stopwords)
+    docTfIdf, ignore = vectorspace.build_doc_tfIdf(users_tweets, stopwords)
 
     # -------------------------------------------------------------------------
     centroids = centroid.cluster_documents(docTfIdf)
 
     duration = (time.clock() - start) / 60 # for minutes
 
-    print output % \
-      (user_id, curr_cnt, average_sim, stddev_sim, len(centroids), duration)
+    print output % (user_id, curr_cnt, len(centroids), duration)
 
     with open(os.path.join(output_folder, "%d.topics" % user_id), "w") as f:
       f.write("user: %d\n#topics: %d\n" % (user_id, len(centroids)))
       # Might be better if I just implement __str__ for Centroids.
       for cen in centroids:
-        f.write("%s\n" % centroids[cen].top_terms(10))
+        #f.write("%s\n" % centroids[cen].top_terms(10))
+        f.write("%s\n" % str(centroids[cen]))
       f.write("------------------------------------------------------------\n")
 
   conn.close()
@@ -151,7 +151,7 @@ parameters  :
   # ---------------------------------------------------------------------------
   # Process those tweets by user set.
 
-  print "usr\tcnt\tavg\tstd\tend\tdur"
+  print "usr\tcnt\tend\tdur"
 
   cnt = int(math.ceil((float(len(users)) / cpus)))
   remains = len(users)
