@@ -18,7 +18,7 @@ import string
 import codecs
 
 sys.path.append("tweetlib")
-import TweetXml
+import tweetxml
 
 def usage():
   print "usage: %s <starting_file> <folder of friend files> <output_file>" % sys.argv[0]
@@ -53,7 +53,7 @@ def main():
       location = usr.group(4)
       
       if id not in users_list:
-        users_list[id] = TweetXml.TwitterUser(id, name, lang, location)
+        users_list[id] = tweetxml.TwitterUser(id, name, lang, location)
     else:
       print "invalid line!"
 
@@ -69,7 +69,7 @@ def main():
       id = int(usr.group(1))
       
       if id not in users_list:
-        users_list[id] = TweetXml.TwitterUser(id)
+        users_list[id] = tweetxml.TwitterUser(id)
       
       sub_list = []
       
@@ -88,7 +88,7 @@ def main():
             
             if fid not in users_list:
               # def __init__(self, user_id, name = "", lang = "", location = "", friends = ""):
-              users_list[fid] = TweetXml.TwitterUser(nusr.group(1), name, lang, location, "", screen_name, totaltweets)
+              users_list[fid] = tweetxml.TwitterUser(nusr.group(1), name, lang, location, "", screen_name, totaltweets)
             
             if fid not in sub_list:
               sub_list.append(fid)
@@ -103,12 +103,12 @@ def main():
     for u in users_list:
       
       output = u''
-      output += TweetXml.xmlOut("id", users_list[u].user_id, False)
-      output += TweetXml.xmlOut("screen_name", users_list[u].screen_name, False)
-      output += TweetXml.xmlOut("name", users_list[u].name, False)
-      output += TweetXml.xmlOut("total_tweets", users_list[u].total_tweets, False)
-      output += TweetXml.xmlOut("lang", users_list[u].lang, False)
-      output += TweetXml.xmlOut("location", users_list[u].location, False)        
+      output += tweetxml.xmlOut("id", users_list[u].user_id, False)
+      output += tweetxml.xmlOut("screen_name", users_list[u].screen_name, False)
+      output += tweetxml.xmlOut("name", users_list[u].name, False)
+      output += tweetxml.xmlOut("total_tweets", users_list[u].total_tweets, False)
+      output += tweetxml.xmlOut("lang", users_list[u].lang, False)
+      output += tweetxml.xmlOut("location", users_list[u].location, False)        
       output += "<friends>"
       
       users_list[u].friends.sort()

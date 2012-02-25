@@ -15,7 +15,7 @@ import sqlite3
 import datetime
 
 sys.path.append("tweetlib")
-import TweetDatabase as td
+import tweetdatabase as td
 
 def addPlaces(current_places, location):
   """

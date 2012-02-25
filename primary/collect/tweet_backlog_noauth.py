@@ -21,8 +21,8 @@ import urllib2 # for the exception
 import httplib # for the exception
 
 sys.path.append(os.path.join("..", "tweetlib"))
-import TweetXml
-import TweetRequest
+import tweetxml
+import tweetrequest
 
 def usage():
   usageStr = \
@@ -87,9 +87,9 @@ def main():
         # miss some.
         #
         # Ugh.  I need to get some work done on this.
-        users.append(TweetRequest.RequestTuple(int(urs.group(1)), 0, int(urs.group(3))))
+        users.append(tweetrequest.RequestTuple(int(urs.group(1)), 0, int(urs.group(3))))
       elif onlyid and onlyid.group(1) not in users:
-        users.append(TweetRequest.RequestTuple(int(onlyid.group(1))))
+        users.append(tweetrequest.RequestTuple(int(onlyid.group(1))))
   
   print "users to pull: %d" % len(users)
   
@@ -119,7 +119,7 @@ def main():
         break
     
       # Do we need to wait?
-      rate_status = TweetRequest.getRateStatus(api)
+      rate_status = tweetrequest.getRateStatus(api)
       remains = rate_status['remaining_hits']
     
       if remains < 1:
@@ -154,7 +154,7 @@ def main():
         if len(statuses) > 0:
           with codecs.open(os.path.join(folder_output, str(user) + ext), "a", 'utf-8') as f:
             for s in statuses:
-              f.write(TweetXml.xmlStatus(s))
+              f.write(tweetxml.xmlStatus(s))
               # originally the newline was added, but I think this was inadvertently converting it to a string..?
               f.write("\n")
           user.max_id = statuses[len(statuses) - 1].id

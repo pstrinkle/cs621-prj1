@@ -11,7 +11,7 @@ import sys
 import sqlite3
 
 sys.path.append(os.path.join("..", "tweetlib"))
-import TweetClean
+import tweetclean
 
 sys.path.append(os.path.join("..", "modellib"))
 import vectorspace
@@ -39,7 +39,7 @@ def main():
     sys.exit(-2)
 
   # Pull stop words
-  stopwords = TweetClean.importStopWords(stop_file)
+  stopwords = tweetclean.importStopWords(stop_file)
 
   kickoff = \
 """
@@ -73,7 +73,7 @@ parameters  :
   
   for row in c.execute(query % (minimum, maximum)):
     if row['text'] is not None:
-      data = TweetClean.cleanup(row['text'], True, True)
+      data = tweetclean.cleanup(row['text'], True, True)
       try:
         user_tweets[row['owner']].append(data)
       except KeyError:

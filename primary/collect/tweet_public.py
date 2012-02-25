@@ -22,8 +22,8 @@ import calendar
 import twitter
 
 sys.path.append(os.path.join("..", "tweetlib"))
-import TweetXml
-import TweetRequest
+import tweetxml
+import tweetrequest
 
 def usage():
   usageStr = \
@@ -54,22 +54,22 @@ def main():
   # I built my own application thing and have my own oauth stuff.
   #
   api = twitter.Api(
-                    consumer_key=TweetRequest.consumer_key,
-                    consumer_secret=TweetRequest.consumer_secret,
-                    access_token_key=TweetRequest.access_token_key,
-                    access_token_secret=TweetRequest.access_token_secret)
+                    consumer_key=tweetrequest.consumer_key,
+                    consumer_secret=tweetrequest.consumer_secret,
+                    access_token_key=tweetrequest.access_token_key,
+                    access_token_secret=tweetrequest.access_token_secret)
 
 
   # ---------------------------------------------------------------------------
   # Collect Tweets.
 
   tweets_collected = []
-  rate_status = TweetRequest.getRateStatus(api)
+  rate_status = tweetrequest.getRateStatus(api)
   
   publicCnt = 0
   
   while publicCnt < publicRequest:
-    rate_status = TweetRequest.getRateStatus(api)
+    rate_status = tweetrequest.getRateStatus(api)
     print "publicCnt: %d" % publicCnt
     remains = rate_status['remaining_hits']
     print "remains: %d" % remains

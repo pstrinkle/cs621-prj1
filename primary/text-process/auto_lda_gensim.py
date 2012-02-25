@@ -23,7 +23,7 @@ import multiprocessing
 from gensim import corpora, models, similarities
 
 sys.path.append(os.path.join("..", "tweetlib"))
-import TweetClean
+import tweetclean
 
 def usage():
   print "usage: %s <database> <minimum> <maximum> <stopwords> <output_folder>" % sys.argv[0]
@@ -53,7 +53,7 @@ def threadMain(database_file, output_folder, users, stopwords, start, cnt):
     print "processing: %d" % user_id
     for row in c.execute(query_tweets % user_id):
       if row['text'] is not None:
-        users_tweets[row['id']] = TweetClean.cleanup(row['text'], True, True)
+        users_tweets[row['id']] = tweetclean.cleanup(row['text'], True, True)
 
     # only words that are greater than one letter and not in the stopword list.
     texts = [[word for word in users_tweets[id].split() if word not in stopwords and len(word) > 1] for id in users_tweets]
@@ -133,7 +133,7 @@ parameters  :
 
   # ---------------------------------------------------------------------------
   # Pull stop words
-  stopwords = TweetClean.importStopWords(stop_file)
+  stopwords = tweetclean.importStopWords(stop_file)
 
   # ---------------------------------------------------------------------------
   # Read in the database

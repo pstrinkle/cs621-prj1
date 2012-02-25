@@ -15,7 +15,7 @@ import socket
 import tweetstream
 
 sys.path.append(os.path.join("..", "tweetlib"))
-import TweetXml as tx
+import tweetxml as tx
 
 def usage():
   print "usage: %s <count> <output file> <kill_file>" % sys.argv[0]

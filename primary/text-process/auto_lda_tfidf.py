@@ -33,7 +33,7 @@ import multiprocessing
 from gensim import corpora, models, similarities
 
 sys.path.append(os.path.join("..", "tweetlib"))
-import TweetClean
+import tweetclean
 
 sys.path.append(os.path.join("..", "modellib"))
 import vectorspace
@@ -131,7 +131,7 @@ def main():
     sys.exit(-2)
 
   # Pull stop words
-  stopwords = TweetClean.importStopWords(stop_file)
+  stopwords = tweetclean.importStopWords(stop_file)
 
   kickoff = \
 """
@@ -175,7 +175,7 @@ parameters  :
     if uid not in users:
       users.append(uid)
     if row['text'] is not None:
-      data = TweetClean.cleanup(row['text'], True, True)
+      data = tweetclean.cleanup(row['text'], True, True)
       try:
         users_tweets[uid][row['id']] = data
       except KeyError:

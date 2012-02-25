@@ -16,7 +16,7 @@ import codecs
 import datetime
 
 sys.path.append("tweetlib")
-import TweetDatabase as td
+import tweetdatabase as td
 
 sys.path.append("modellib")
 import geomodel as gm

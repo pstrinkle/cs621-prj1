@@ -24,8 +24,8 @@ import sys
 import sqlite3
 
 sys.path.append("tweetlib")
-import TweetDate
-import TweetClean
+import tweetdate
+import tweetclean
 
 def getIndx(vocab, term):
   """
@@ -56,7 +56,7 @@ def main():
 
   # ---------------------------------------------------------------------------
   # Pull stop words
-  stopwords = TweetClean.importStopWords(stop_file)
+  stopwords = tweetclean.importStopWords(stop_file)
 
   # ---------------------------------------------------------------------------
   # Read in the database
@@ -91,7 +91,7 @@ def main():
       if users_tweets[id] == None: # this happens, lol.
         continue
 
-      users_tweets[id] = TweetClean.cleanup(users_tweets[id], True, True)
+      users_tweets[id] = tweetclean.cleanup(users_tweets[id], True, True)
     
       # Calculate Term Frequencies for this id/document.
       # Skip 1 letter words.

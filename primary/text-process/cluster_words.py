@@ -29,7 +29,7 @@ import codecs
 
 sys.path.append(os.path.join("..", "tweetlib"))
 sys.path.append(os.path.join("..", "modellib"))
-import TweetClean
+import tweetclean
 import vectorspace
 import centroid
 
@@ -74,13 +74,13 @@ def main():
     #
     # So, we'll just append to the end of the string for the dictionary
     # entry.
-    info = TweetClean.extract_id(i)
+    info = tweetclean.extract_id(i)
     if info == None:
       sys.stderr.write("Invalid tweet hit\n")
       sys.exit(-1)
 
     # Add this tweet to the collection of clean ones.
-    cleanTweets[info[0]] = TweetClean.cleanup(info[1], True, True)
+    cleanTweets[info[0]] = tweetclean.cleanup(info[1], True, True)
 
   docLength = {}
 

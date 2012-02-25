@@ -14,7 +14,7 @@ import os
 import re
 import sys
 import datetime
-import TweetDatabase as td
+import tweetdatabase as td
 
 def usage():
   sys.stderr.write("usage: %s <user_list> <database_folder>\n" % sys.argv[0])

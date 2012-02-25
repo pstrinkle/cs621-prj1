@@ -15,7 +15,7 @@ import sys
 import codecs
 
 sys.path.append("tweetlib")
-import TweetDatabase as td
+import tweetdatabase as td
 
 def usage():
   print "usage: %s <database_folder> <output_file>" % sys.argv[0]

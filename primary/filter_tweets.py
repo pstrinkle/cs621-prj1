@@ -17,8 +17,8 @@ import codecs
 import sqlite3
 
 sys.path.append("tweetlib")
-import TweetDatabase as td
-import TweetXml
+import tweetdatabase as td
+import tweetxml
 
 def usage():
   print "usage: %s <sqlite_db> <excludes_list> (-all N|-nf N|-nt N|-gt N|-mint N M|-maxt N M)" % sys.argv[0]
@@ -97,7 +97,7 @@ def main():
     if output_sofar > user_val and user_val != 0:
       break
     if row['owner'] not in excludes:
-      print "%s" % TweetXml.output(row['owner'], row['min(id)'], row['max(id)'])
+      print "%s" % tweetxml.output(row['owner'], row['min(id)'], row['max(id)'])
       output_sofar += 1
 
   # ---------------------------------------------------------------------------

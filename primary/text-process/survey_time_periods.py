@@ -18,7 +18,7 @@ import sqlite3
 import calendar
 
 sys.path.append(os.path.join("..", "tweetlib"))
-import TweetDate
+import tweetdate
 
 def usage():
   print "%s <database_file> <minimum> <maximum> <output>" % sys.argv[0]
@@ -64,7 +64,7 @@ def main():
       users.append(uid)
 
     if row['created'] is not None:
-      data = TweetDate.buildDateDayInt(row['created'])
+      data = tweetdate.buildDateDayInt(row['created'])
       dates.add(data)
       
       if data < oldest:
@@ -78,11 +78,11 @@ def main():
   # the counts... lol
   # calendar.monthrange(2009, 02)
   
-  startYear = TweetDate.getYearFromInt(oldest)
-  startMonth = TweetDate.getMonthFromInt(oldest)
+  startYear = tweetdate.getYearFromInt(oldest)
+  startMonth = tweetdate.getMonthFromInt(oldest)
 
-  endYear = TweetDate.getYearFromInt(newest)
-  endMonth = TweetDate.getMonthFromInt(newest)
+  endYear = tweetdate.getYearFromInt(newest)
+  endMonth = tweetdate.getMonthFromInt(newest)
 
   print "query time: %fm" % ((time.clock() - start) / 60)
   print "users: %d\n" % len(users)

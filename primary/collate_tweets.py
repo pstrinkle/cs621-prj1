@@ -17,7 +17,7 @@ import glob
 import codecs
 
 sys.path.append("tweetlib")
-import TweetXml
+import tweetxml
 
 def usage():
   print "usage: %s <folder of xml files> <output_file>" % sys.argv[0]
@@ -44,7 +44,7 @@ def main():
       user_id = int(user.group(1))
 
       if user_id not in users_tweets:
-        users_tweets[user_id] = TweetXml.TwitterUser(user_id)
+        users_tweets[user_id] = tweetxml.TwitterUser(user_id)
       
       tweets = []
       

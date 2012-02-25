@@ -96,7 +96,7 @@ def tweet_insert(user_id, tweet):
 
 def user_insert(user):
   """
-  Build the user insert list from the TweetXml User.
+  Build the user insert list from the tweetxml User.
   """
   friend_list = None
   screen_name = None

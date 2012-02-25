@@ -18,8 +18,8 @@ import sqlite3
 import datetime
 
 sys.path.append("tweetlib")
-import TweetXml as tx
-import TweetDatabase as td
+import tweetxml as tx
+import tweetdatabase as td
 
 def usage():
   sys.stderr.write("usage: %s <stream|main> <input_file> <sqlite_db>\n" % sys.argv[0])

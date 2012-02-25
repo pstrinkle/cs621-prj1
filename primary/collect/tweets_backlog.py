@@ -19,8 +19,8 @@ import twitter
 import codecs
 
 sys.path.append(os.path.join("..", "tweetlib"))
-import TweetXml
-import TweetRequest
+import tweetxml
+import tweetrequest
 
 def usage():
   usageStr = \
@@ -49,10 +49,10 @@ def main():
   # I built my own application thing and have my own oauth stuff.
   #
   api = twitter.Api(
-                    consumer_key=TweetRequest.consumer_key,
-                    consumer_secret=TweetRequest.consumer_secret,
-                    access_token_key=TweetRequest.access_token_key,
-                    access_token_secret=TweetRequest.access_token_secret)
+                    consumer_key=tweetrequest.consumer_key,
+                    consumer_secret=tweetrequest.consumer_secret,
+                    access_token_key=tweetrequest.access_token_key,
+                    access_token_secret=tweetrequest.access_token_secret)
 
   users = []
   
@@ -81,9 +81,9 @@ def main():
       onlyid = re.search("<id>(\d+?)</id>", i)
       if urs and urs.group(1) not in users:
         # since_id is 0 here because we want to start at a point in the past and walk backwards.
-        users.append(TweetRequest.RequestTuple(int(urs.group(1)), 0, int(urs.group(3))))
+        users.append(tweetrequest.RequestTuple(int(urs.group(1)), 0, int(urs.group(3))))
       elif onlyid and onlyid.group(1) not in users:
-        users.append(TweetRequest.RequestTuple(int(onlyid.group(1))))
+        users.append(tweetrequest.RequestTuple(int(onlyid.group(1))))
   
   print "users to pull: %d" % len(users)
   
@@ -113,7 +113,7 @@ def main():
         break
     
       # Do we need to wait?
-      rate_status = TweetRequest.getRateStatus(api)
+      rate_status = tweetrequest.getRateStatus(api)
       remains = rate_status['remaining_hits']
     
       if remains < 1:
@@ -149,7 +149,7 @@ def main():
         if len(statuses) > 0:
           with codecs.open(os.path.join(folder_output, str(user) + ext), "a", 'utf-8') as f:
             for s in statuses:
-              f.write(TweetXml.xmlStatus(s))
+              f.write(tweetxml.xmlStatus(s))
               # originally the newline was added, but I think this was inadvertently converting it to a string..?
               f.write("\n")
           user.max_id = statuses[len(statuses) - 1].id

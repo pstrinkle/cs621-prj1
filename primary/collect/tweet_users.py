@@ -18,7 +18,7 @@ import urllib2 # for the exception
 import httplib # for the exception
 
 sys.path.append(os.path.join("..", "tweetlib"))
-import TweetXml
+import tweetxml
 
 def usage():
   print "usage: %s <input file name> <known friends> <output filename>" % sys.argv[0]
@@ -34,10 +34,10 @@ def main():
     sys.exit(-1)
 
   api = twitter.Api(
-                    consumer_key=TweetRequest.consumer_key,
-                    consumer_secret=TweetRequest.consumer_secret,
-                    access_token_key=TweetRequest.access_token_key,
-                    access_token_secret=TweetRequest.access_token_secret)
+                    consumer_key=tweetrequest.consumer_key,
+                    consumer_secret=tweetrequest.consumer_secret,
+                    access_token_key=tweetrequest.access_token_key,
+                    access_token_secret=tweetrequest.access_token_secret)
 
   input_users = []
   new_users = []
@@ -64,7 +64,7 @@ def main():
       print user # this is basically a progress counter so I know where to kick it off next time.
       
       # Do we need to wait?
-      rate_status = TweetRequest.getRateStatus(api)
+      rate_status = tweetrequest.getRateStatus(api)
       remains = rate_status['remaining_hits']
     
       if remains < 1:
@@ -87,7 +87,7 @@ def main():
           if u not in input_users and u not in new_users:              
             if u.lang.encode('utf-8') == "en":
               new_users.append(u.id)
-              f.write(TweetXml.getUser(u) + "\n")
+              f.write(tweetxml.getUser(u) + "\n")
               # non english language user.  
       remaining = api.GetRateLimitStatus()['remaining_hits']
       if remaining == 0:

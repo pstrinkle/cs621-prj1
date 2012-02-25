@@ -21,8 +21,8 @@ import sys
 
 sys.path.append(os.path.join("..", "tweetlib"))
 sys.path.append(os.path.join("..", "modellib"))
-import TweetDate
-import TweetClean
+import tweetdate
+import tweetclean
 import vectorspace
 
 def usage():
@@ -50,16 +50,16 @@ def main():
   # ---------------------------------------------------------------------------
   # Process tweets
   for i in tweets:
-    info = TweetClean.extract(i)
+    info = tweetclean.extract(i)
     if info == None:
       sys.exit(-1)
     
     # Build day string
     # This needs to return -1 on error, so I'll need to test it.
-    date = TweetDate.buildDateInt(info[0])
+    date = tweetdate.buildDateInt(info[0])
 
     # Do some cleanup
-    newTweet = TweetClean.cleanup(info[1])
+    newTweet = tweetclean.cleanup(info[1])
 
     # Add this tweet to the collective tweet for the day.
     if date in daysTweets:

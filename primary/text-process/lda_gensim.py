@@ -19,7 +19,7 @@ logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=lo
 from gensim import corpora, models, similarities
 
 sys.path.append(os.path.join("..", "tweetlib"))
-import TweetClean
+import tweetclean
 
 def usage():
   print "usage: %s <database> <user_id> <input stopwords>" % sys.argv[0]
@@ -37,7 +37,7 @@ def main():
 
   # ---------------------------------------------------------------------------
   # Pull stop words
-  stopwords = TweetClean.importStopWords(stop_file)
+  stopwords = tweetclean.importStopWords(stop_file)
 
   # ---------------------------------------------------------------------------
   # Read in the database
@@ -51,7 +51,7 @@ def main():
 
   for row in c.execute(query_tweets % user_id):
     if row['text'] is not None:
-      users_tweets[row['id']] = TweetClean.cleanup(row['text'], True, True)
+      users_tweets[row['id']] = tweetclean.cleanup(row['text'], True, True)
 
   conn.close()
 

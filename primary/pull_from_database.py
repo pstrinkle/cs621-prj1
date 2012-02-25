@@ -16,7 +16,7 @@ import codecs
 import sqlite3
 
 sys.path.append("tweetlib")
-import TweetDatabase as td
+import tweetdatabase as td
 
 output_name = ""
 

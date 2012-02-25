@@ -16,7 +16,7 @@ import sys
 import geo as g
 
 sys.path.append(os.path.join("..", "tweetlib"))
-import TweetDate as td
+import tweetdate as td
 
 class LocationBundle:
   """

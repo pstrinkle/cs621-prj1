@@ -30,7 +30,7 @@ import threading
 import multiprocessing
 
 sys.path.append(os.path.join("..", "tweetlib"))
-import TweetClean
+import tweetclean
 
 sys.path.append(os.path.join("..", "modellib"))
 import vectorspace
@@ -64,7 +64,7 @@ def threadMain(database_file, output_folder, users, stopwords, start, cnt):
 
     for row in c.execute(query_tweets % user_id):
       if row['text'] is not None: # I really don't care about tweets I don't have.
-        users_tweets[row['id']] = TweetClean.cleanup(row['text'], True, True)
+        users_tweets[row['id']] = tweetclean.cleanup(row['text'], True, True)
 
     curr_cnt = len(users_tweets)
 
@@ -109,7 +109,7 @@ def main():
     sys.exit(-2)
 
   # Pull stop words
-  stopwords = TweetClean.importStopWords(stop_file)
+  stopwords = tweetclean.importStopWords(stop_file)
 
   kickoff = \
 """

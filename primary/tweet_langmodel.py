@@ -13,8 +13,8 @@ import os
 import sys
 
 sys.path.append("tweetlib")
-import TweetDate
-import TweetClean
+import tweetdate
+import tweetclean
 
 sys.path.append("modellib")
 import languagemodel
@@ -50,19 +50,19 @@ def main():
   # ---------------------------------------------------------------------------
   # Process tweets
   for i in tweets:
-    info = TweetClean.extract(i)
+    info = tweetclean.extract(i)
     if info == None:
       sys.exit(-1)
 
     # Build day string
     # This needs to return -1 on error, so I'll need to test it.
     if hourlyInterval:
-      date = TweetDate.buildDateInt(info[0])
+      date = tweetdate.buildDateInt(info[0])
     else:
-      date = TweetDate.buildDateDayInt(info[0])
+      date = tweetdate.buildDateDayInt(info[0])
 
     # Do some cleanup
-    newTweet = TweetClean.cleanup(info[1])
+    newTweet = tweetclean.cleanup(info[1])
     
     rawOccurrenceModel = \
       languagemodel.update_matrix(

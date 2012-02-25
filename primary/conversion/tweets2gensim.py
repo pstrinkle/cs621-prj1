@@ -29,7 +29,7 @@ def main():
   
   # ---------------------------------------------------------------------------
   # Pull stop words
-  stopwords = TweetClean.importStopWords(stop_file)
+  stopwords = tweetclean.importStopWords(stop_file)
 
   # ---------------------------------------------------------------------------
   # Read in the database
