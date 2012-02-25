@@ -122,49 +122,53 @@ def buildDocTfIdf(documents, stopwords):
   Note: This doesn't remove singletons from the dictionary of terms.
   
   Input:
-    documents := a dictionary of documents, by an id value.
+    documents := a dictionary of documents, by an docId value.
+    
+  Returns:
+    document tf-idf vectors.
+    term counts
   """
 
   totalTermCount = 0 # total count of all terms
   docFreq = {}       # dictionary of in how many documents the "word" appears
-  invdocFreq = {}    # dictionary of the inverse document frequencies
   docTermFreq = {}   # dictionary of term frequencies by date as integer
-  docTfIdf = {}      # similar to docTermFreq, but holds the tf-idf values
 
-  for id in documents:
-    # Calculate Term Frequencies for this id/document.
+  for docId in documents:
+    # Calculate Term Frequencies for this docId/document.
     # let's make a short list of the words we'll accept.
 
     # only words that are greater than one letter and not in the stopword list.
-    pruned = [w for w in documents[id].split(' ') if w not in stopwords and len(w) > 1]
+    pruned = [w for w in documents[docId].split(' ') if w not in stopwords and len(w) > 1]
 
     if len(pruned) < 2:
       continue
 
-    docTermFreq[id] = {} # Prepare the dictionary for that document.
+    docTermFreq[docId] = {} # Prepare the dictionary for that document.
 
     totalTermCount += len(pruned)
 
     for w in pruned:
       try:
-        docTermFreq[id][w] += 1
+        docTermFreq[docId][w] += 1
       except KeyError:
-        docTermFreq[id][w] = 1
+        docTermFreq[docId][w] = 1
 
     # Contribute to the document frequencies.
-    for w in docTermFreq[id]:
+    for w in docTermFreq[docId]:
       try:
         docFreq[w] += 1
       except KeyError:
         docFreq[w] = 1
 
   # Calculate the inverse document frequencies.
-  invdocFreq = VectorSpace.calculate_invdf(len(docTermFreq), docFreq)
+  # dictionary of the inverse document frequencies
+  invdocFreq = calculate_invdf(len(docTermFreq), docFreq)
 
   # Calculate the tf-idf values.
-  docTfIdf = VectorSpace.calculate_tfidf(
-                                         totalTermCount,
-                                         docTermFreq,
-                                         invdocFreq)
+  # similar to docTermFreq, but holds the tf-idf values
+  docTfIdf = calculate_tfidf(
+                             totalTermCount,
+                             docTermFreq,
+                             invdocFreq)
 
-  return docTfIdf
+  return docTfIdf, docFreq

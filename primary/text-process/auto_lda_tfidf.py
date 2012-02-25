@@ -59,7 +59,7 @@ def threadMain(database_file, output_folder, users, users_tweets, stopwords, sta
 
     curr_cnt = len(users_tweets[user_id])
 
-    docTfIdf = VectorSpace.buildDocTfIdf(users_tweets[user_id], stopwords)
+    docTfIdf, ignore = VectorSpace.buildDocTfIdf(users_tweets[user_id], stopwords)
 
     # -------------------------------------------------------------------------
     # Build Centroid List (this step is not actually slow.)
@@ -151,7 +151,7 @@ parameters  :
   query_collect = \
     "select owner from tweets group by owner having count(*) >= %d and count(*) < %d"
   # "select id, contents as text from tweets where owner = %d;"
-  query_prefect = \
+  query_prefetch = \
     "select owner, id, contents as text from tweets where owner in (%s);"
 
   conn = sqlite3.connect(database_file)
@@ -168,7 +168,7 @@ parameters  :
 
   start = time.clock()
 
-  query = query_prefect % query_collect
+  query = query_prefetch % query_collect
 
   for row in c.execute(query % (minimum, maximum)):
     uid = row['owner']

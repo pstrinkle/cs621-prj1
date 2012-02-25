@@ -38,8 +38,10 @@ def main():
   query_collect = \
     "select owner from tweets group by owner having count(*) >= %d and count(*) < %d"
   # "select id, contents as text from tweets where owner = %d;"
-  query_prefect = \
+  query_prefetch = \
     "select owner, created from tweets where owner in (%s);"
+
+  query = query_prefetch % query_collect
 
   conn = sqlite3.connect(database_file)
   conn.row_factory = sqlite3.Row
@@ -55,8 +57,7 @@ def main():
 
   start = time.clock()
 
-  query = query_prefect % query_collect
-
+  # XXX: This doesn't yet do what I want.
   for row in c.execute(query % (minimum, maximum)):
     uid = row['owner']
     if uid not in users:
@@ -70,6 +71,8 @@ def main():
         oldest = data
       if data > newest:
         newest = data
+  
+  conn.close()
 
   # So, I could get the distinct, max, and min from the sql query itself; and
   # the counts... lol
@@ -85,8 +88,6 @@ def main():
   print "users: %d\n" % len(users)
   for uid in dates:
     print dates[uid]
-  
-  conn.close()
 
   # ---------------------------------------------------------------------------
   # Done.
