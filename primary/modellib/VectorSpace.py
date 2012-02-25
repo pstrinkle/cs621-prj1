@@ -190,3 +190,12 @@ def buildDocTfIdf(documents, stopwords, remove_singletons=False):
                              invdocFreq)
 
   return docTfIdf, docFreq
+
+class DocumentStore:
+  """
+  In the future it may become useful to store information about the documents.
+  
+  So that the model an be updated.
+  """
+  def __init__(self, name):
+    self.name = name

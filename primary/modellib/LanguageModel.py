@@ -4,6 +4,7 @@ __author__ = 'tri1@umbc.edu'
 
 # Patrick Trinkle
 # Summer 2011
+# Spring 2012
 #
 # This handles the language model stuff.
 #
@@ -60,3 +61,32 @@ def update_matrix(currentMatrix, updateMatrix):
       currentMatrix[k] = v
 
   return currentMatrix
+
+class LanguageStore:
+  """
+  Store the language model, this includes raw data and stats to allow for
+  updating.
+  
+  Currently only works on Bigrams. (pairs of words)
+  """
+
+  def __init__(self, initial_document=None):
+    self.matrix = None
+    self.stats = None
+    self.invalids = None
+  
+  def get_probability(self, seq_bow=""):
+    """
+    Given a document as a list of words in sequence, return the probability
+    of such a sentence given the current state of the model.
+    """
+    
+    return None
+  
+  def update_model(self, seq_bow=""):
+    """
+    Add this document to the data used by the model to blah, blah, blah
+    """
+    
+    
+
