@@ -36,19 +36,19 @@ def similarity(centroid_a, centroid_b):
 
 def get_sim_matrix(centroids):
     """
-  Given a list of Centroids, compute the similarity score between each
-  and return a matrix, matrix[i][j] = 0.000... as a dictionary of dictionaries.
+    Given a list of Centroids, compute the similarity score between each and 
+    return a matrix, matrix[i][j] = 0.000... as a dictionary of dictionaries.
 
-  This function could easily work on a list of them... except then the list 
-  would be const, because any manipulation of the centroid list would invalidate
-   the matrix.
+    This function could easily work on a list of them... except then the list 
+    would be const, because any manipulation of the centroid list would 
+    invalidate the matrix.
 
-  XXX: There has to be a cleaner way, since the innermost part of the loop is
-  identical...
+    XXX: There has to be a cleaner way, since the innermost part of the loop is
+    identical...
 
-  XXX: Also, since 4x5 will have the same value as 5x4... I only need to think
-  about the lower left triangle of values -- see program where i handle this 
-  correctly. 
+    XXX: Also, since 4x5 will have the same value as 5x4... I only need to 
+    think about the lower left triangle of values -- see program where i handle 
+    this correctly. 
     """
 
     matrix = {}
@@ -75,8 +75,8 @@ def get_sims_from_matrix(matrix):
 
 def get_sims(centroids):
     """
-  Given a list of Centroids, compute the similarity score between all 
-  pairs and return the list.  This can be fed into findAvg(), findStd().
+    Given a list of Centroids, compute the similarity score between all pairs 
+    and return the list.  This can be fed into findAvg(), findStd().
     """
 
     sims = []
@@ -90,8 +90,8 @@ def get_sims(centroids):
 
 def findStd(centroids, short_cut=False, sim_scores=None):
     """
-  Given a list of Centroids, compute the standard deviation of the 
-  similarities.
+    Given a list of Centroids, compute the standard deviation of the 
+    similarities.
     """
   
     if short_cut:
@@ -108,13 +108,13 @@ def findStd(centroids, short_cut=False, sim_scores=None):
 
 def findAvg(centroids, short_cut=False, sim_scores=None):
     """
-  Given a list of Centroids, compute the similarity of each pairing and return 
-  the average.
+    Given a list of Centroids, compute the similarity of each pairing and 
+    return the average.
   
-  If short_cut is True, it'll use sim_scores as the input instead of calculating
-   the scores.
+    If short_cut is True, it'll use sim_scores as the input instead of 
+    calculating the scores.
   
-  This can only work on the early perfect version of the centroid list.
+    This can only work on the early perfect version of the centroid list.
     """
     total_sim = 0.0
     total_comparisons = 0
@@ -138,9 +138,9 @@ def findAvg(centroids, short_cut=False, sim_scores=None):
 
 def findMax(centroids):
     """
-  Given a list of Centroids, compute the similarity of each pairing and return 
-  the pair with the highest similarity, and their similarity score--so i don't 
-  have to re-compute.
+    Given a list of Centroids, compute the similarity of each pairing and 
+    return the pair with the highest similarity, and their similarity score--so
+    i don't have to re-compute.
     """
     max_sim = 0.0
     max_i = 0
@@ -159,9 +159,9 @@ def findMax(centroids):
 
 class Centroid:
     """
-  This data structure represents an average of documents in a vector space.
+    This data structure represents an average of documents in a vector space.
   
-  Amusingly, modeled directly after a C# class I wrote for a class I took.
+    Amusingly, modeled directly after a C# class I wrote for a class I took.
     """
   
     def __init__(self, name, dv):
@@ -182,7 +182,8 @@ class Centroid:
 
     def __str__(self):
         """
-        Get the string representation.  In this case, it's the name and the top 25 terms.
+        Get the string representation.  In this case, it's the name and the top
+        25 terms.
         """
 
         return "%s:\n%s" % (self.name, self.top_terms(25))
@@ -275,7 +276,9 @@ class Centroid:
         self.length = math.sqrt(self.length)
 
 def find_matrix_max(matrix):
-    """This provides the outer and inner key and the value, of the maximum value."""
+    """
+    This provides the outer and inner key and the value, of the maximum value.
+    """
 
     max_val = 0.0
     max_i = 0
@@ -315,12 +318,12 @@ def remove_matrix_entry(matrix, key):
 
 def add_matrix_entry(matrix, centroids, new_centroid, name):
     """
-  Add this entry and comparisons to the matrix, the key to use is name.
+    Add this entry and comparisons to the matrix, the key to use is name.
   
-  Really just need to matrix[name] = {}, then for i in matrix.keys() where not
-  name, compare and add.
+    Really just need to matrix[name] = {}, then for i in matrix.keys() where 
+    not name, compare and add.
   
-  Please remove before you add, otherwise there can be noise in the data.
+    Please remove before you add, otherwise there can be noise in the data.
     """
 
     if name in matrix:
@@ -334,12 +337,12 @@ def add_matrix_entry(matrix, centroids, new_centroid, name):
 
 def cluster_documents(documents, threshold_str="std"):
     """
-  Given a dictionary of documents, where the key is some unique (preferably)
-  id value.  Create a centroid representation of each, and then merge the
-  centroids by their similarity scores.
+    Given a dictionary of documents, where the key is some unique (preferably)
+    id value.  Create a centroid representation of each, and then merge the
+    centroids by their similarity scores.
   
-  documents := dictionary of documents in tf-idf vectors.
-  threshold_str := either "std" or "avg" to set the threshold.
+    documents := dictionary of documents in tf-idf vectors.
+    threshold_str := either "std" or "avg" to set the threshold.
     """
   
     centroids = {}
