@@ -12,68 +12,70 @@ __author__ = 'tri1@umbc.edu'
 
 import math
 
-def calculate_invdf(docCount, docFreq):
+def calculate_invdf(doc_count, doc_freq):
     """
     Calculate the inverse document frequencies.
   
-    The inverse document frequency is how many documents there are divided by in 
-    how many documents the term appears.
+    The inverse document frequency is how many documents there are divided by 
+    in how many documents the term appears.
   
-    Input: docCount := number of documents
-        docFreq := dictionary of document frequencies, key'd by term
+    Input: doc_count := number of documents
+        doc_freq := dictionary of document frequencies, key'd by term
   
-    Output: invdocFreq := dictionary of inverse document frequencies, key'd by 
+    Output: invdoc_freq := dictionary of inverse document frequencies, key'd by 
                         term
   
     idf = log(document count / in how many documents)
     """
   
-    invdocFreq = {}
+    invdoc_freq = {}
   
-    for term in docFreq:
-        invdocFreq[term] = math.log10(float(docCount) / docFreq[term])
+    for term in doc_freq:
+        invdoc_freq[term] = math.log10(float(doc_count) / doc_freq[term])
 
-    return invdocFreq
+    return invdoc_freq
 
-def calculate_tfidf(docLength, docTermFreq, invDocFreq):
+def calculate_tfidf(doc_length, doc_termfreq, invdoc_freq):
     """
     Calculate the tf-idf values.
   
-    Input: docLength := total frequency (not distinct count), key'd on doc id
-         docTermFreq := dictionary of term frequencies, key'd on document, then
-                        key'd by term
-         invDocFreq := dictionary of inverse document frequencies, key'd on 
-                       term.
+    Input: doc_length := total frequency (not distinct count), key'd on doc id
+         doc_termfreq := dictionary of term frequencies, key'd on document, 
+                         then key'd by term.
+         invdoc_freq := dictionary of inverse document frequencies, key'd on 
+                        term.
          
-    Output: docTfIdf := dictionary of tf-idf values, key'd on document
+    Output: doc_tfidf := dictionary of tf-idf values, key'd on document
   
     A high weight in tf-idf is reached by a high term frequency (in the given 
     document) and a low document frequency of the
     # term in the whole collection of documents.
   
-    td-idf = (term count / count of all terms in document)  * log(document count / in how many documents)
+    td-idf = 
+        (term count / count of all terms in document) 
+            * log(document count / in how many documents)
     """
 
-    docTfIdf = {}
+    doc_tfidf = {}
 
-    for doc in docTermFreq.keys():
-        docTfIdf[doc] = {} # Prepare the dictionary for that document.
-        for w in docTermFreq[doc]:
-            docTfIdf[doc][w] = (float(docTermFreq[doc][w]) / docLength[doc]) * invDocFreq[w]
+    for doc in doc_termfreq.keys():
+        doc_tfidf[doc] = {} # Prepare the dictionary for that document.
+        for w in doc_termfreq[doc]:
+            doc_tfidf[doc][w] = (float(doc_termfreq[doc][w]) / doc_length[doc]) * invdoc_freq[w]
 
-    return docTfIdf
+    return doc_tfidf
 
-def cosine_compute(vectorA, vectorB):
+def cosine_compute(vector_a, vector_b):
     """
     Compute the cosine similarity of two normalized vectors.
-    vectorA and vectorB are dictionaries, where the key is the term and the value
+    vector_a and vector_b are dictionaries, where the key is the term and the value
     is the tf-idf.
     """
     dotproduct = 0.0
   
-    for k in vectorA.keys():
-        if k in vectorB.keys():
-            dotproduct += vectorA[k] * vectorB[k]
+    for k in vector_a.keys():
+        if k in vector_b.keys():
+            dotproduct += vector_a[k] * vector_b[k]
   
     return dotproduct
 
@@ -93,7 +95,7 @@ def dump_raw_matrix(term_dict, tfidf_dict):
     output = ""
   
     sorted_docs = sorted(tfidf_dict.keys())  
-    sorted_terms = sorted(term_dict.keys())
+    sorted_terms = sorted(term_dict)
   
     # Print Term Rows
     for t in sorted_terms:
@@ -122,7 +124,7 @@ def dump_matrix(term_dict, tfidf_dict):
     output = ""
 
     sorted_docs = sorted(tfidf_dict.keys())  
-    sorted_terms = sorted(term_dict.keys())
+    sorted_terms = sorted(term_dict)
   
     # Print Matrix!
     output += "term weight space matrix!\n"
@@ -147,73 +149,86 @@ def dump_matrix(term_dict, tfidf_dict):
 
 def build_doc_tfIdf(documents, stopwords, remove_singletons=False):
     """
-    Note: This doesn't remove singletons from the dictionary of terms, unless you 
-    say otherwise.  With tweets there is certain value in not removing singletons.
+    Note: This doesn't remove singletons from the dictionary of terms, unless 
+    you say otherwise.  With tweets there is certain value in not removing 
+    singletons.
   
     Input:
-        documents := a dictionary of documents, by an docId value.
+        documents := a dictionary of documents, by an doc_id value.
         stopwords := a list of stopwords.
-        remove_singletons := boolean value of whether we should remove stop words.
+        remove_singletons := boolean value of whether we should remove stop 
+                             words.
 
     Returns:
         document tf-idf vectors.
         term counts
     """
+    
+    if len(documents) == 1:
+        print "WARNING: Computing on 1 document means all will be singletons."
 
-    docLength = {}   # total count of all terms, keyed on document
-    docFreq = {}     # dictionary of in how many documents the "word" appears
-    docTermFreq = {} # dictionary of term frequencies by date as integer
+    doc_length = {}   # total count of all terms, keyed on document
+    doc_freq = {}     # dictionary of in how many documents the "word" appears
+    doc_termfreq = {} # dictionary of term frequencies by date as integer
 
-    for docId in documents:
-        # Calculate Term Frequencies for this docId/document.
+    for doc_id in documents:
+        # Calculate Term Frequencies for this doc_id/document.
         # let's make a short list of the words we'll accept.
 
         # only words that are greater than one letter and not in the stopword list.
-        pruned = [w for w in documents[docId].split(' ') if w not in stopwords and len(w) > 1]
+        pruned = [w for w in documents[doc_id].split(' ') if w not in stopwords and len(w) > 1]
 
         if len(pruned) < 2:
             continue
 
-        docTermFreq[docId] = {} # Prepare the dictionary for that document.
+        doc_termfreq[doc_id] = {} # Prepare the dictionary for that document.
 
         try:
-            docLength[docId] += len(pruned)
+            doc_length[doc_id] += len(pruned)
         except KeyError:
-            docLength[docId] = len(pruned)
+            doc_length[doc_id] = len(pruned)
 
         for w in pruned:
             try:
-                docTermFreq[docId][w] += 1
+                doc_termfreq[doc_id][w] += 1
             except KeyError:
-                docTermFreq[docId][w] = 1
+                doc_termfreq[doc_id][w] = 1
 
         # Contribute to the document frequencies.
-        for w in docTermFreq[docId]:
+        for w in doc_termfreq[doc_id]:
             try:
-                docFreq[w] += 1
+                doc_freq[w] += 1
             except KeyError:
-                docFreq[w] = 1
+                doc_freq[w] = 1
 
     if remove_singletons:
-        singles = [w for w in docFreq.keys() if docFreq[w] == 1]
+        singles = [w for w in doc_freq.keys() if doc_freq[w] == 1]
         # could use map() function to delete terms from singles
-        for docId in docTermFreq:
+        for doc_id in doc_termfreq:
             for s in singles:
                 try:
-                    del docTermFreq[docId][s]
-                    docLength[docId] -= 1 # only subtracts if the deletion worked
+                    del doc_termfreq[doc_id][s]
+                    doc_length[doc_id] -= 1 # only subtracts if the deletion worked
                 except KeyError:
                     pass
+
+    # XXX: Debug; for some reason my tf-idf's are all coming back 0's.
+    print "document frequency: %s" % doc_freq
+    print "term frequency per document: %s" % doc_termfreq
       
     # Calculate the inverse document frequencies.
     # dictionary of the inverse document frequencies
-    invdocFreq = calculate_invdf(len(docTermFreq), docFreq)
+    invdoc_freq = calculate_invdf(len(doc_termfreq), doc_freq)
+    
+    print "inverse document frequency: %s" % invdoc_freq
 
     # Calculate the tf-idf values.
-    # similar to docTermFreq, but holds the tf-idf values
-    docTfIdf = calculate_tfidf(docLength, docTermFreq, invdocFreq)
+    # similar to doc_termfreq, but holds the tf-idf values
+    doc_tfidf = calculate_tfidf(doc_length, doc_termfreq, invdoc_freq)
+    
+    print "tf-idf per document: %s" % doc_tfidf
 
-    return docTfIdf, docFreq
+    return doc_tfidf, doc_freq
 
 class DocumentStore:
     """
