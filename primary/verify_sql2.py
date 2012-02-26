@@ -22,71 +22,71 @@ import tweetxml as tx
 import tweetdatabase as td
 
 def usage():
-  sys.stderr.write("usage: %s <stream|main> <input_file> <sqlite_db>\n" % sys.argv[0])
+    sys.stderr.write("usage: %s <stream|main> <input_file> <sqlite_db>\n" % sys.argv[0])
 
 def main():
 
-  # ---------------------------------------------------------------------------
-  # Did they provide the correct args?
-  if len(sys.argv) != 4:
-    usage()
-    sys.exit(-1)
+    # ---------------------------------------------------------------------------
+    # Did they provide the correct args?
+    if len(sys.argv) != 4:
+        usage()
+        sys.exit(-1)
 
-  startTime = datetime.datetime.now()
+    startTime = datetime.datetime.now()
 
-  type = sys.argv[1]
-  input_file = sys.argv[2]
-  database_file = sys.argv[3]
+    type = sys.argv[1]
+    input_file = sys.argv[2]
+    database_file = sys.argv[3]
 
-  if type == "stream":
-    tweetTbl = "s_tweets"
-  elif type == "main":
-    tweetTbl = "tweets"
-  else:
-    usage()
-    sys.exit(-1)
+    if type == "stream":
+        tweetTbl = "s_tweets"
+    elif type == "main":
+        tweetTbl = "tweets"
+    else:
+        usage()
+        sys.exit(-1)
 
-  # This test is just running to see how big the database file gets when it's just users.
-  conn = sqlite3.connect(database_file)
-  conn.row_factory = sqlite3.Row
+    # This test is just running to see how big the database file gets when it's just users.
+    conn = sqlite3.connect(database_file)
+    conn.row_factory = sqlite3.Row
 
-  c = conn.cursor()
+    c = conn.cursor()
 
-  # ---------------------------------------------------------------------------
-  # Read in the database files and write out the giant database file.    
-  with codecs.open(input_file, "r", "utf-8") as f:
-    for tweet in f:
-      i = re.search("<user_id>(\d+?)</user_id>.+?<id>(\d+?)</id>", tweet)
-      if i:
-        user_id = int(i.group(1))
-        
-        print user_id
-        twt_id = int(i.group(2))
-        c.execute("select * from %s where id = ?" % tweetTbl, (twt_id,))
+    # ---------------------------------------------------------------------------
+    # Read in the database files and write out the giant database file.    
+    with codecs.open(input_file, "r", "utf-8") as f:
+        for tweet in f:
+            i = re.search("<user_id>(\d+?)</user_id>.+?<id>(\d+?)</id>", tweet)
+            if i:
+                user_id = int(i.group(1))
+                
+                print user_id
+                twt_id = int(i.group(2))
+                c.execute("select * from %s where id = ?" % tweetTbl, (twt_id,))
 
-        row = c.fetchone()
+                row = c.fetchone()
 
-        if row == None:
-          sys.stderr.write("missing tweet id %d\n" % twt_id)
-          conn.close()
-          sys.exit(-1)
+                if row == None:
+                    sys.stderr.write("missing tweet id %d\n" % twt_id)
+                    conn.close()
+                    sys.exit(-1)
 
-        if not td.compare_tweets(tx.TweetFromXml(user_id, tweet), td.DbTweet(row)):
-          sys.stderr.write("non-match, argh on tweet id %d!\n" % twt_id)
-          conn.close()
-          sys.exit(-1)
-      else:
-        print "ugh"
+                if not td.compare_tweets(tx.TweetFromXml(user_id, tweet), td.DbTweet(row)):
+                    sys.stderr.write("non-match, argh on tweet id %d!\n" % twt_id)
+                    conn.close()
+                    sys.exit(-1)
+            else:
+                print "ugh"
 
-  # ---------------------------------------------------------------------------
-  # Close it down.
-  conn.close()
+    # ---------------------------------------------------------------------------
+    # Close it down.
+    conn.close()
 
-  # ---------------------------------------------------------------------------
-  # Done.
+    # ---------------------------------------------------------------------------
+    # Done.
 
-  print "total runtime: ",
-  print (datetime.datetime.now() - startTime)
+    print "total runtime: ",
+    print (datetime.datetime.now() - startTime)
 
 if __name__ == "__main__":
-  main()
+    main()

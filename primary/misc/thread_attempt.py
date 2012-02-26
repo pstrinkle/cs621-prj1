@@ -11,51 +11,51 @@ import threading
 import multiprocessing
 
 def whatsit(start, cnt):
-  #print "start: %d cnt %d" % (start, cnt)
-  time.sleep(5)
+    #print "start: %d cnt %d" % (start, cnt)
+    time.sleep(5)
 
 def main():
-  cpus = multiprocessing.cpu_count()
+    cpus = multiprocessing.cpu_count()
 
-  stuff = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    stuff = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
-  threads = []
+    threads = []
 
-  cnt = int(math.ceil((float(len(stuff)) / cpus)))
+    cnt = int(math.ceil((float(len(stuff)) / cpus)))
 
-  print "len :  %d" % len(stuff)
-  print "cpus:  %d" % cpus
-  print "count: %d" % cnt
-  #if len(stuff) % 2: print "isodd"
-  
-  remains = len(stuff)
-
-  for i in range(0, cpus):
+    print "len :  %d" % len(stuff)
+    print "cpus:  %d" % cpus
+    print "count: %d" % cnt
+    #if len(stuff) % 2: print "isodd"
     
-    start = i * cnt
-    
-    if start > len(stuff) - 1:
-      break
+    remains = len(stuff)
 
-    # not likely still necessary
-    #if len(stuff) % 2 and i == cpus-1:
-      #cnt += 1
+    for i in range(0, cpus):
+        
+        start = i * cnt
+        
+        if start > len(stuff) - 1:
+            break
 
-    if cnt > remains:
-      cnt = remains
+        # not likely still necessary
+        #if len(stuff) % 2 and i == cpus-1:
+            #cnt += 1
 
-    print "process: "
-    for j in range(start, start + cnt):
-      print "%d\t" % stuff[j]
+        if cnt > remains:
+            cnt = remains
 
-    #t = threading.Thread(target=whatsit,args=(start, cnt,))
-    #threads.append(t)
-    #t.start()
-    
-    remains -= cnt
+        print "process: "
+        for j in range(start, start + cnt):
+            print "%d\t" % stuff[j]
 
-  #for t in threads:
-    #t.join()
+        #t = threading.Thread(target=whatsit,args=(start, cnt,))
+        #threads.append(t)
+        #t.start()
+        
+        remains -= cnt
+
+    #for t in threads:
+        #t.join()
 
 if __name__ == "__main__":
-  main()
+    main()

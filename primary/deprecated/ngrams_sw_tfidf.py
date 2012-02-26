@@ -27,103 +27,103 @@ import tweetclean
 import vectorspace
 
 def usage():
-  print "usage: %s <input file>" % sys.argv[0]
+    print "usage: %s <input file>" % sys.argv[0]
 
 def main():
 
-  docLength = 0 # total count of all terms
-  daysTweets = {}    # dictionary of the tweets by date as integer
-  invdocFreq = {}    # dictionary of the inverse document frequencies
-  docFreq = {}       # dictionary of document frequencies
-  daysHisto = {}     # dictionary of the n-grams by date as integer
+    docLength = 0 # total count of all terms
+    daysTweets = {}    # dictionary of the tweets by date as integer
+    invdocFreq = {}    # dictionary of the inverse document frequencies
+    docFreq = {}       # dictionary of document frequencies
+    daysHisto = {}     # dictionary of the n-grams by date as integer
 
-  # Did they provide the correct args?
-  if len(sys.argv) != 2:
-    usage()
-    sys.exit(-1)
+    # Did they provide the correct args?
+    if len(sys.argv) != 2:
+        usage()
+        sys.exit(-1)
 
-  # Pull lines
-  with open(sys.argv[1], "r") as f:
-    tweets = f.readlines()
+    # Pull lines
+    with open(sys.argv[1], "r") as f:
+        tweets = f.readlines()
 
-  print "tweets: %d" % len(tweets)
+    print "tweets: %d" % len(tweets)
 
-  # ---------------------------------------------------------------------------
-  # Process tweets
-  for i in tweets:
-    info = tweetclean.extract(i)
-    if info == None:
-      sys.exit(-1)
-    
-    # Build day string
-    # This needs to return -1 on error, so I'll need to test it.
-    date = tweetdate.buildDateInt(info[0])
+    # ---------------------------------------------------------------------------
+    # Process tweets
+    for i in tweets:
+        info = tweetclean.extract(i)
+        if info == None:
+            sys.exit(-1)
+        
+        # Build day string
+        # This needs to return -1 on error, so I'll need to test it.
+        date = tweetdate.buildDateInt(info[0])
 
-    # Do some cleanup
-    newTweet = tweetclean.cleanup(info[1])
+        # Do some cleanup
+        newTweet = tweetclean.cleanup(info[1])
 
-    # Add this tweet to the collective tweet for the day.
-    if date in daysTweets:
-      daysTweets[date] += " " + newTweet
-    else:
-      daysTweets[date] = newTweet
+        # Add this tweet to the collective tweet for the day.
+        if date in daysTweets:
+            daysTweets[date] += " " + newTweet
+        else:
+            daysTweets[date] = newTweet
 
-  # End of: "for i in tweets:"
-  # Thanks to python and not letting me use curly braces.
+    # End of: "for i in tweets:"
+    # Thanks to python and not letting me use curly braces.
 
-  # ---------------------------------------------------------------------------
-  # Process the collected tweets
-  print "tweet days: %d" % len(daysTweets)
-  gramSize = 3
-  docLength = {}
+    # ---------------------------------------------------------------------------
+    # Process the collected tweets
+    print "tweet days: %d" % len(daysTweets)
+    gramSize = 3
+    docLength = {}
 
-  for day in sorted(daysTweets.keys()):
-    daysHisto[day] = {} # initialize the sub-dictionary
+    for day in sorted(daysTweets.keys()):
+        daysHisto[day] = {} # initialize the sub-dictionary
 
-    # This gives me values, starting at 0, growing by gramSize for length of the tweet.
-    # range(0, len(daysTweets[day]), gramSize)
-    # This should give you values, starting at 0 for length of the tweet.
-    # range(0, len(daysTweets[day]), 1)
-    #
-    for j in range(0, len(daysTweets[day]) - gramSize):
-      # this doesn't seem to do the sliding window I was expecting but rather just chunks it.
-      w = daysTweets[day][j:j + gramSize]
-      
-      # wu is a special format that will not screw with whitespace
-      wu = "_%s_" % w
-      try:
-        docLength[day] += 1
-      except:
-        docLength[day] = 1
+        # This gives me values, starting at 0, growing by gramSize for length of the tweet.
+        # range(0, len(daysTweets[day]), gramSize)
+        # This should give you values, starting at 0 for length of the tweet.
+        # range(0, len(daysTweets[day]), 1)
+        #
+        for j in range(0, len(daysTweets[day]) - gramSize):
+            # this doesn't seem to do the sliding window I was expecting but rather just chunks it.
+            w = daysTweets[day][j:j + gramSize]
+            
+            # wu is a special format that will not screw with whitespace
+            wu = "_%s_" % w
+            try:
+                docLength[day] += 1
+            except:
+                docLength[day] = 1
 
-      try:
-        daysHisto[day][wu] += 1
-      except KeyError:
-        daysHisto[day][wu] = 1
+            try:
+                daysHisto[day][wu] += 1
+            except KeyError:
+                daysHisto[day][wu] = 1
 
-      try:
-        docFreq[wu] += 1
-      except KeyError:
-        docFreq[wu] = 1
+            try:
+                docFreq[wu] += 1
+            except KeyError:
+                docFreq[wu] = 1
 
-  # Calculate the inverse document frequencies.
-  invdocFreq = vectorspace.calculate_invdf(len(daysHisto), docFreq)
+    # Calculate the inverse document frequencies.
+    invdocFreq = vectorspace.calculate_invdf(len(daysHisto), docFreq)
 
-  # Calculate the tf-idf values.
-  daysHisto = vectorspace.calculate_tfidf(docLength, daysHisto, invdocFreq)
+    # Calculate the tf-idf values.
+    daysHisto = vectorspace.calculate_tfidf(docLength, daysHisto, invdocFreq)
 
-  # Dump the matrix.
-  print vectorspace.dumpMatrix(docFreq, daysHisto) + "\n"
+    # Dump the matrix.
+    print vectorspace.dumpMatrix(docFreq, daysHisto) + "\n"
 
-  # Computer cosine similarities between sequential days.
-  sorted_days = sorted(daysHisto.keys())
-  for i in range(0, len(sorted_days) - 1):
-    print "similarity(%s, %s) = " % (str(sorted_days[i]), str(sorted_days[i + 1])),
-    print vectorspace.cosineCompute(daysHisto[sorted_days[i]], daysHisto[sorted_days[i + 1]])
+    # Computer cosine similarities between sequential days.
+    sorted_days = sorted(daysHisto.keys())
+    for i in range(0, len(sorted_days) - 1):
+        print "similarity(%s, %s) = " % (str(sorted_days[i]), str(sorted_days[i + 1])),
+        print vectorspace.cosineCompute(daysHisto[sorted_days[i]], daysHisto[sorted_days[i + 1]])
 
-  # ---------------------------------------------------------------------------
-  # Done.
+    # ---------------------------------------------------------------------------
+    # Done.
 
 if __name__ == "__main__":
-  main()
+    main()
 

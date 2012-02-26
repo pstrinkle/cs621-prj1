@@ -36,9 +36,9 @@ def extract_id(tweet):
 
 def extract(tweet):
     """
-  Given a line from my XML file of tweets, return a tuple (date string, tweet contents)
+    Given a line from my XML file of tweets, return a tuple (date string, tweet contents)
   
-  The date string is a string in this, and the tweet is not cleaned.
+    The date string is a string in this, and the tweet is not cleaned.
     """
     createdRe = re.search('<created>"(.*?)"</created>', tweet)
     textRe = re.search('<text>"(.*?)"</text>', tweet)
@@ -51,9 +51,9 @@ def extract(tweet):
 
 def cleanup(tweet, lowercase=True, to_ascii=False):
     """
-  Clean up the string in all the pretty ways.
+    Clean up the string in all the pretty ways.
   
-  Input: tweet := the text body of the tweet, so far I've been trying to process these as utf-8
+    Input: tweet := the text body of the tweet, so far I've been trying to process these as utf-8
                   and let python handle the stuff... but that may not work if I leave the English
                   base.
          lowercase := defaults to True, would you like the tweet moved entirely into lowercase?
@@ -62,10 +62,10 @@ def cleanup(tweet, lowercase=True, to_ascii=False):
          
          Only set to_ascii as true if you read the file in with codecs.open()!
   
-  Output: Cleaned tweet string.
+    Output: Cleaned tweet string.
   
-  This currently removes any @username mentions, extraneous newlines, parentheses, and most if not all
-  punctuation.  It does leave in apostrophies.
+    This currently removes any @username mentions, extraneous newlines, parentheses, and most if not all
+    punctuation.  It does leave in apostrophies.
     """
   
     if to_ascii:

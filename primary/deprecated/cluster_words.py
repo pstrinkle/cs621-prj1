@@ -34,149 +34,149 @@ import vectorspace
 import centroid
 
 def usage():
-  """
-  Standard usage method.
-  """
-  print "usage: %s <tweet file> <stopwords file>" % sys.argv[0]
+    """
+    Standard usage method.
+    """
+    print "usage: %s <tweet file> <stopwords file>" % sys.argv[0]
 
 def main():
 
-  cleanTweets = {}   # dictionary of the tweets by id as integer
+    cleanTweets = {}   # dictionary of the tweets by id as integer
 
-  docFreq = {}       # dictionary of in how many documents the "word" appears
-  invdocFreq = {}    # dictionary of the inverse document frequencies
-  docTermFreq = {}   # dictionary of term frequencies by date as integer
-  docTfIdf = {}      # similar to docTermFreq, but holds the tf-idf values
+    docFreq = {}       # dictionary of in how many documents the "word" appears
+    invdocFreq = {}    # dictionary of the inverse document frequencies
+    docTermFreq = {}   # dictionary of term frequencies by date as integer
+    docTfIdf = {}      # similar to docTermFreq, but holds the tf-idf values
 
-  # Did they provide the correct args?
-  if len(sys.argv) != 3:
-    usage()
-    sys.exit(-1)
+    # Did they provide the correct args?
+    if len(sys.argv) != 3:
+        usage()
+        sys.exit(-1)
 
-  # Pull lines
-  with codecs.open(sys.argv[1], "r", 'utf-8') as f:
-    tweets = f.readlines()
+    # Pull lines
+    with codecs.open(sys.argv[1], "r", 'utf-8') as f:
+        tweets = f.readlines()
 
-  # Pull stop words
-  with open(sys.argv[2], "r") as f:
-    stopwords = f.readlines()
+    # Pull stop words
+    with open(sys.argv[2], "r") as f:
+        stopwords = f.readlines()
 
-  # clean them up!
-  for i in xrange(0, len(stopwords)):
-    stopwords[i] = stopwords[i].strip()
+    # clean them up!
+    for i in xrange(0, len(stopwords)):
+        stopwords[i] = stopwords[i].strip()
 
-  # ---------------------------------------------------------------------------
-  # Process tweets
-  for i in tweets:
-    # Each tweet has <id>DATE-TIME</id> and <text>DATA</text>.
-    #
-    # So we'll have a dictionary<string, string> = {"id", "contents"}
-    #
-    # So, we'll just append to the end of the string for the dictionary
-    # entry.
-    info = tweetclean.extract_id(i)
-    if info == None:
-      sys.stderr.write("Invalid tweet hit\n")
-      sys.exit(-1)
+    # ---------------------------------------------------------------------------
+    # Process tweets
+    for i in tweets:
+        # Each tweet has <id>DATE-TIME</id> and <text>DATA</text>.
+        #
+        # So we'll have a dictionary<string, string> = {"id", "contents"}
+        #
+        # So, we'll just append to the end of the string for the dictionary
+        # entry.
+        info = tweetclean.extract_id(i)
+        if info == None:
+            sys.stderr.write("Invalid tweet hit\n")
+            sys.exit(-1)
 
-    # Add this tweet to the collection of clean ones.
-    cleanTweets[info[0]] = tweetclean.cleanup(info[1], True, True)
+        # Add this tweet to the collection of clean ones.
+        cleanTweets[info[0]] = tweetclean.cleanup(info[1], True, True)
 
-  docLength = {}
+    docLength = {}
 
-  # ---------------------------------------------------------------------------
-  # Process the collected tweets
-  for id in cleanTweets.keys():
-    # Calculate Term Frequencies for this id/document.
-    # Skip 1 letter words.
-    # let's make a short list of the words we'll accept.
-    pruned = [w for w in cleanTweets[id].split(' ') if len(w) > 1 and w not in stopwords]
+    # ---------------------------------------------------------------------------
+    # Process the collected tweets
+    for id in cleanTweets.keys():
+        # Calculate Term Frequencies for this id/document.
+        # Skip 1 letter words.
+        # let's make a short list of the words we'll accept.
+        pruned = [w for w in cleanTweets[id].split(' ') if len(w) > 1 and w not in stopwords]
 
-    if len(pruned) < 2:
-      continue
+        if len(pruned) < 2:
+            continue
 
-    docTermFreq[id] = {} # Prepare the dictionary for that document.
+        docTermFreq[id] = {} # Prepare the dictionary for that document.
+        
+        for w in pruned:
+            try:
+                docLength[id] += 1
+            except KeyError:
+                docLength[id] = 1
+
+            try:
+                docTermFreq[id][w] += 1
+            except KeyError:
+                docTermFreq[id][w] = 1
+
+        # Contribute to the document frequencies.
+        for w in docTermFreq[id]:
+            try:
+                docFreq[w] += 1
+            except KeyError:
+                docFreq[w] = 1
+
+    # ---------------------------------------------------------------------------
+    # Dump how many unique terms were identified by spacing splitting.
+    print "Total Count of Terms: %s" % docLength
+    print "Unique Terms: %d" % len(docFreq)
+    print "How many Documents: %d" % len(docTermFreq)
     
-    for w in pruned:
-      try:
-        docLength[id] += 1
-      except KeyError:
-        docLength[id] = 1
+    # ---------------------------------------------------------------------------
+    # Remove singletons -- standard practice.
+    # Skipped with tweets for now...
 
-      try:
-        docTermFreq[id][w] += 1
-      except KeyError:
-        docTermFreq[id][w] = 1
+    # Calculate the inverse document frequencies.
+    invdocFreq = vectorspace.calculate_invdf(len(docTermFreq), docFreq)
 
-    # Contribute to the document frequencies.
-    for w in docTermFreq[id]:
-      try:
-        docFreq[w] += 1
-      except KeyError:
-        docFreq[w] = 1
+    # Calculate the tf-idf values.
+    docTfIdf = vectorspace.calculate_tfidf(docLength, docTermFreq, invdocFreq)
 
-  # ---------------------------------------------------------------------------
-  # Dump how many unique terms were identified by spacing splitting.
-  print "Total Count of Terms: %s" % docLength
-  print "Unique Terms: %d" % len(docFreq)
-  print "How many Documents: %d" % len(docTermFreq)
-  
-  # ---------------------------------------------------------------------------
-  # Remove singletons -- standard practice.
-  # Skipped with tweets for now...
+    # ---------------------------------------------------------------------------
+    # Recap of everything we have stored.
+    # docLength is the total count of all terms
+    # cleanTweets    is the dictionary of the tweets by id as string
+    # docFreq        is the dictionary of in how many documents the "word" appears
+    # invdocFreq     is the dictionary of the inverse document frequencies
+    # docTermFreq    is the dictionary of term frequencies by date as integer
+    # docTfIdf       is similar to docTermFreq, but holds the tf-idf values
 
-  # Calculate the inverse document frequencies.
-  invdocFreq = vectorspace.calculate_invdf(len(docTermFreq), docFreq)
+    # ---------------------------------------------------------------------------
+    # Build Centroid List
+    centroids = []
 
-  # Calculate the tf-idf values.
-  docTfIdf = vectorspace.calculate_tfidf(docLength, docTermFreq, invdocFreq)
+    for doc, vec in docTfIdf.iteritems():
+        centroids.append(centroid.Centroid(str(doc), vec))
 
-  # ---------------------------------------------------------------------------
-  # Recap of everything we have stored.
-  # docLength is the total count of all terms
-  # cleanTweets    is the dictionary of the tweets by id as string
-  # docFreq        is the dictionary of in how many documents the "word" appears
-  # invdocFreq     is the dictionary of the inverse document frequencies
-  # docTermFreq    is the dictionary of term frequencies by date as integer
-  # docTfIdf       is similar to docTermFreq, but holds the tf-idf values
+    average_sim = centroid.findAvg(centroids)
+    stddev_sim = centroid.findStd(centroids)
+    
+    print "mean: %.10f\tstd: %.10f" % (average_sim, stddev_sim)
+    
+    # ---------------------------------------------------------------------------
+    # Merge centroids by highest similarity of at least threshold  
+    threshold = stddev_sim
 
-  # ---------------------------------------------------------------------------
-  # Build Centroid List
-  centroids = []
+    while len(centroids) > 1:
+        i, j, sim = centroid.findMax(centroids)
 
-  for doc, vec in docTfIdf.iteritems():
-    centroids.append(centroid.Centroid(str(doc), vec))
+        # @warning: This is fairly crap.
+        if sim >= threshold:
+            centroids[i].addVector(centroids[j].name, centroids[j].vectorCnt, centroids[j].centroidVector)
+            del centroids[j]
+            print "merged with sim: %.10f" % sim
+        else:
+            break
 
-  average_sim = centroid.findAvg(centroids)
-  stddev_sim = centroid.findStd(centroids)
-  
-  print "mean: %.10f\tstd: %.10f" % (average_sim, stddev_sim)
-  
-  # ---------------------------------------------------------------------------
-  # Merge centroids by highest similarity of at least threshold  
-  threshold = stddev_sim
+    print "len(centroids): %d" % len(centroids)
+    print "avg(centroids): %.10f" % average_sim
+    print "std(centroids): %.10f" % stddev_sim
+    
+    for cen in centroids:
+        print centroid.topTerms(cen, 10)
 
-  while len(centroids) > 1:
-    i, j, sim = centroid.findMax(centroids)
-
-    # @warning: This is fairly crap.
-    if sim >= threshold:
-      centroids[i].addVector(centroids[j].name, centroids[j].vectorCnt, centroids[j].centroidVector)
-      del centroids[j]
-      print "merged with sim: %.10f" % sim
-    else:
-      break
-
-  print "len(centroids): %d" % len(centroids)
-  print "avg(centroids): %.10f" % average_sim
-  print "std(centroids): %.10f" % stddev_sim
-  
-  for cen in centroids:
-    print centroid.topTerms(cen, 10)
-
-  # ---------------------------------------------------------------------------
-  # Done.
+    # ---------------------------------------------------------------------------
+    # Done.
 
 if __name__ == "__main__":
-  main()
+    main()
 

@@ -17,46 +17,46 @@ import datetime
 import tweetdatabase as td
 
 def usage():
-  sys.stderr.write("usage: %s <user_list> <database_folder>\n" % sys.argv[0])
+    sys.stderr.write("usage: %s <user_list> <database_folder>\n" % sys.argv[0])
 
 def main():
 
-  # ---------------------------------------------------------------------------
-  # Did they provide the correct args?
-  if len(sys.argv) != 3:
-    usage()
-    sys.exit(-1)
-
-  startTime = datetime.datetime.now()
-
-  user_file = sys.argv[1]
-  database_folder = sys.argv[2]
-  
-  # ---------------------------------------------------------------------------
-  # Read in the database files and write out the giant database file.
-  with open(user_file, "r") as f:
-    for line in f:
-      id = re.search("<id>(\d+?)</id>", line)
-      if id == None:
-        sys.stderr.write("ah!, bailing here\n")
+    # ---------------------------------------------------------------------------
+    # Did they provide the correct args?
+    if len(sys.argv) != 3:
+        usage()
         sys.exit(-1)
 
-      # get it ready for insertion
-      user_id = int(id.group(1))
-      path = td.getPath(database_folder, user_id)
-      
-      print user_id
-      
-      try:
-        os.unlink(path)
-      except Exception:
-        pass
+    startTime = datetime.datetime.now()
 
-  # ---------------------------------------------------------------------------
-  # Done.
+    user_file = sys.argv[1]
+    database_folder = sys.argv[2]
+    
+    # ---------------------------------------------------------------------------
+    # Read in the database files and write out the giant database file.
+    with open(user_file, "r") as f:
+        for line in f:
+            id = re.search("<id>(\d+?)</id>", line)
+            if id == None:
+                sys.stderr.write("ah!, bailing here\n")
+                sys.exit(-1)
 
-  print "total runtime: ",
-  print (datetime.datetime.now() - startTime)
+            # get it ready for insertion
+            user_id = int(id.group(1))
+            path = td.getPath(database_folder, user_id)
+            
+            print user_id
+            
+            try:
+                os.unlink(path)
+            except Exception:
+                pass
+
+    # ---------------------------------------------------------------------------
+    # Done.
+
+    print "total runtime: ",
+    print (datetime.datetime.now() - startTime)
 
 if __name__ == "__main__":
-  main()
+    main()

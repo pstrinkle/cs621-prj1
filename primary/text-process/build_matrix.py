@@ -27,10 +27,18 @@ def top_terms(vector, num):
     num := the number of terms to get.
     """
 
+    # This doesn't seem to work right when I used it here.  It works fine
+    # in manual python testing and in the centroid library (i'm assuming).
     sorted_tokens = sorted(
                            vector.items(),
                            key=operator.itemgetter(1), # (1) is value
                            reverse=True)
+
+    #kvp = max(vector.iteritems(), key=operator.itemgetter(1))
+
+    #if kvp[1] != sorted_tokens[0][1]:
+        #sys.stderr.write("max doesn't seem to match!\n")
+        #sys.exit(-2)
 
     # count to index
     to_print = min(num, len(sorted_tokens))
@@ -110,6 +118,8 @@ parameters  :
     query = query_prefetch % query_collect
 
     user_tweets = data_pull(database_file, query % (minimum, maximum))
+    
+    print "data pulled"
 
     # -------------------------------------------------------------------------
     # Convert to a documents into one document per user.
@@ -118,6 +128,10 @@ parameters  :
 
     for user_id in user_tweets:
         docperuser[user_id] = "".join(user_tweets[user_id])
+        
+    if len(docperuser) == 1:
+        sys.stderr.write("Insufficient data for tf-idf, only 1 document\n")
+        sys.exit(-3)
 
     tfidf, dictionary = vectorspace.build_doc_tfIdf(docperuser, stopwords, True)
     

@@ -28,129 +28,129 @@ import tweetdate
 import tweetclean
 
 def getIndx(vocab, term):
-  """
-  Given a vocabulary array and a term, return the index into the array; returns
-   -1 if not present.
-  """
-  for i in xrange(len(vocab)):
-    if term == vocab[i]:
-      return i
+    """
+    Given a vocabulary array and a term, return the index into the array; returns
+      -1 if not present.
+    """
+    for i in xrange(len(vocab)):
+        if term == vocab[i]:
+            return i
 
-  return -1
+    return -1
 
 def usage():
-  print "usage: %s <database> <minimum> <input stopwords> <out_folder>" % \
-    sys.argv[0]
+    print "usage: %s <database> <minimum> <input stopwords> <out_folder>" % \
+        sys.argv[0]
 
 def main():
 
-  # Did they provide the correct args?
-  if len(sys.argv) != 5:
-    usage()
-    sys.exit(-1)
+    # Did they provide the correct args?
+    if len(sys.argv) != 5:
+        usage()
+        sys.exit(-1)
 
-  database_file = sys.argv[1]
-  minimum = int(sys.argv[2])
-  stop_file = sys.argv[3]
-  output_folder = sys.argv[4]
-
-  # ---------------------------------------------------------------------------
-  # Pull stop words
-  stopwords = tweetclean.importStopWords(stop_file)
-
-  # ---------------------------------------------------------------------------
-  # Read in the database
-  query_collect = "select owner from tweets group by owner having count(*) >= %d;"
-  query_tweets = "select id, contents as text from tweets where owner = %d;"
-
-  conn = sqlite3.connect(database_file)
-  conn.row_factory = sqlite3.Row
-  c = conn.cursor()
-
-  users = []
-
-  for row in c.execute(query_collect % (minimum)):
-    users.append(row['owner'])
-
-
-  # ---------------------------------------------------------------------------
-  # Process those tweets by user set.
-  for u in users:
-
-    users_tweets = {}
-    docTermFreq = {}   # dictionary of term frequencies by date as integer
-    vocab = []         # array of terms
-
-    for row in c.execute(query_tweets % u):
-      users_tweets[row['id']] = row['text']
+    database_file = sys.argv[1]
+    minimum = int(sys.argv[2])
+    stop_file = sys.argv[3]
+    output_folder = sys.argv[4]
 
     # ---------------------------------------------------------------------------
-    # Process tweets
-    for id in users_tweets:
+    # Pull stop words
+    stopwords = tweetclean.importStopWords(stop_file)
 
-      if users_tweets[id] == None: # this happens, lol.
-        continue
+    # ---------------------------------------------------------------------------
+    # Read in the database
+    query_collect = "select owner from tweets group by owner having count(*) >= %d;"
+    query_tweets = "select id, contents as text from tweets where owner = %d;"
 
-      users_tweets[id] = tweetclean.cleanup(users_tweets[id], True, True)
+    conn = sqlite3.connect(database_file)
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+
+    users = []
+
+    for row in c.execute(query_collect % (minimum)):
+        users.append(row['owner'])
+
+
+    # ---------------------------------------------------------------------------
+    # Process those tweets by user set.
+    for u in users:
+
+        users_tweets = {}
+        docTermFreq = {}   # dictionary of term frequencies by date as integer
+        vocab = []         # array of terms
+
+        for row in c.execute(query_tweets % u):
+            users_tweets[row['id']] = row['text']
+
+        # ---------------------------------------------------------------------------
+        # Process tweets
+        for id in users_tweets:
+
+            if users_tweets[id] == None: # this happens, lol.
+                continue
+
+            users_tweets[id] = tweetclean.cleanup(users_tweets[id], True, True)
+        
+            # Calculate Term Frequencies for this id/document.
+            # Skip 1 letter words.
+            words = users_tweets[id].split(' ')
+
+            # let's make a short list of the words we'll accept.
+            pruned = []
+
+            for w in words:
+                if len(w) > 1 and w not in stopwords:
+                    pruned.append(w)
+
+            if len(pruned) < 2:
+                continue
+
+            docTermFreq[id] = {} # Prepare the dictionary for that document.
+
+            for w in pruned:
+                try:
+                    docTermFreq[id][w] += 1
+                except KeyError:
+                    docTermFreq[id][w] = 1
+
+                # slow. maybe linear search? maybe switch to a sorted method?
+                if w not in vocab:
+                    vocab.append(w)
+
+        vocab.sort()
+
+        # ---------------------------------------------------------------------------
+        # Build the vocab.txt file
+        with open(os.path.join(output_folder, "%d.vocab" % u), 'w') as f:
+            f.write("\n".join(vocab))
     
-      # Calculate Term Frequencies for this id/document.
-      # Skip 1 letter words.
-      words = users_tweets[id].split(' ')
-
-      # let's make a short list of the words we'll accept.
-      pruned = []
-
-      for w in words:
-        if len(w) > 1 and w not in stopwords:
-          pruned.append(w)
-
-      if len(pruned) < 2:
-        continue
-
-      docTermFreq[id] = {} # Prepare the dictionary for that document.
-
-      for w in pruned:
-        try:
-          docTermFreq[id][w] += 1
-        except KeyError:
-          docTermFreq[id][w] = 1
-
-        # slow. maybe linear search? maybe switch to a sorted method?
-        if w not in vocab:
-          vocab.append(w)
-
-    vocab.sort()
-
-    # ---------------------------------------------------------------------------
-    # Build the vocab.txt file
-    with open(os.path.join(output_folder, "%d.vocab" % u), 'w') as f:
-      f.write("\n".join(vocab))
-  
-    # ---------------------------------------------------------------------------
-    # Given the vocab array, build the document term index + counts:
-    sorted_tweets = sorted(docTermFreq.keys())
-    data = ""
-  
-    for id in docTermFreq:
-      print "%d" % id
-      data += "%d " % len(docTermFreq[id])
+        # ---------------------------------------------------------------------------
+        # Given the vocab array, build the document term index + counts:
+        sorted_tweets = sorted(docTermFreq.keys())
+        data = ""
     
-      for term in docTermFreq[id]:
-        indx = getIndx(vocab, term)
-        if indx == -1:
-          sys.exit(-1)
-        data += "%d:%d " % (indx, docTermFreq[id][term])
-      
-      data += "\n"
+        for id in docTermFreq:
+            print "%d" % id
+            data += "%d " % len(docTermFreq[id])
+        
+            for term in docTermFreq[id]:
+                indx = getIndx(vocab, term)
+                if indx == -1:
+                    sys.exit(-1)
+                data += "%d:%d " % (indx, docTermFreq[id][term])
+            
+            data += "\n"
 
-    with open(os.path.join(output_folder, "%d.dat" % u), "w") as f:
-      f.write(data)
-  
-  # end for each user.
+        with open(os.path.join(output_folder, "%d.dat" % u), "w") as f:
+            f.write(data)
+    
+    # end for each user.
 
-  # ---------------------------------------------------------------------------
-  # Done.
-  conn.close()
+    # ---------------------------------------------------------------------------
+    # Done.
+    conn.close()
 
 if __name__ == "__main__":
-  main()
+    main()

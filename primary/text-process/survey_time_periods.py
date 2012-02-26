@@ -106,7 +106,7 @@ def main():
     end_month = tweetdate.get_monthfromint(newest)
 
     print "users: %d\n" % len(users)
-    print "start: %s%s:%s%s" % (start_year, start_month, end_year, end_month)
+    print "start: %4d%2d:%4d%2d" % (start_year, start_month, end_year, end_month)
     print "full_dates: %s" % str(full_dates)
     #for uid in dates:
         #print dates[uid]

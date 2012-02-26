@@ -14,40 +14,40 @@ import sys
 
 
 def usage():
-  print "usage: %s <database> <user_id> <input stopwords>" % sys.argv[0]
+    print "usage: %s <database> <user_id> <input stopwords>" % sys.argv[0]
 
 def main():
 
-  # Did they provide the correct args?
-  if len(sys.argv) != 4:
-    usage()
-    sys.exit(-1)
+    # Did they provide the correct args?
+    if len(sys.argv) != 4:
+        usage()
+        sys.exit(-1)
 
-  database_file = sys.argv[1]
-  user_id = int(sys.argv[2])
-  stop_file = sys.argv[3]
-  
-  # ---------------------------------------------------------------------------
-  # Pull stop words
-  stopwords = tweetclean.importStopWords(stop_file)
+    database_file = sys.argv[1]
+    user_id = int(sys.argv[2])
+    stop_file = sys.argv[3]
+    
+    # ---------------------------------------------------------------------------
+    # Pull stop words
+    stopwords = tweetclean.importStopWords(stop_file)
 
-  # ---------------------------------------------------------------------------
-  # Read in the database
-  query_tweets = "select id, contents as text from tweets where owner = %d;"
-  users_tweets = {}
-  
-  conn = sqlite3.connect(database_file)
-  conn.row_factory = sqlite3.Row
+    # ---------------------------------------------------------------------------
+    # Read in the database
+    query_tweets = "select id, contents as text from tweets where owner = %d;"
+    users_tweets = {}
+    
+    conn = sqlite3.connect(database_file)
+    conn.row_factory = sqlite3.Row
 
-  c = conn.cursor()
+    c = conn.cursor()
 
-  for row in c.execute(query_tweets % user_id):
-    users_tweets[row['id']] = row['text']
+    for row in c.execute(query_tweets % user_id):
+        users_tweets[row['id']] = row['text']
 
-  conn.close()
+    conn.close()
 
-  # ---------------------------------------------------------------------------
-  # Done.
+    # ---------------------------------------------------------------------------
+    # Done.
 
 if __name__ == "__main__":
-  main()
+    main()
