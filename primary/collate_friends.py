@@ -21,10 +21,16 @@ sys.path.append("tweetlib")
 import tweetxml
 
 def usage():
-    print "usage: %s <starting_file> <folder of friend files> <output_file>" % sys.argv[0]
-    print "       the folder of xml files should have been created with the tweet_statuses.py and"
-    print "        be filenamed: user_date.xml"
-    print "       the output_file is an xml database of the tweets, sadly it is redundant in xml form"
+    ustr = \
+"""
+usage: %s <starting_file> <folder of friend files> <output_file>
+\tthe folder of xml files should have been created with the tweet_statuses.py 
+\tand be filenamed: user_date.xml
+
+\tthe output_file is an xml database of the tweets, sadly it is redundant in 
+\txml form.
+"""
+    print ustr % sys.argv[0]
 
 def main():
 
@@ -38,14 +44,19 @@ def main():
     start_file = sys.argv[1]
     output_file = sys.argv[3]
 
-    # ---------------------------------------------------------------------------
-    # Parse the starting file, because the _friends.txt files only have the user id
-    # in the names and no other details -- so this should have the user's details.
+    # -------------------------------------------------------------------------
+    # Parse the starting file, because the _friends.txt files only have the 
+    # user id in the names and no other details -- so this should have the 
+    # user's details.
     with codecs.open(start_file, "r", 'utf-8') as f:
         users = f.readlines()
     
     for u in users:
-        usr = re.search("<id>(\d+?)</id><name>(.*?)</name><lang>(.*?)</lang><location>(.*?)</location>", u)
+        usr = \
+            re.search(
+                      "<id>(\d+?)</id><name>(.*?)</name>"
+                      "<lang>(.*?)</lang><location>(.*?)</location>",
+                      u)
         if usr:
             id = int(usr.group(1))
             name = usr.group(2)
@@ -59,7 +70,9 @@ def main():
 
     print "users: %d" % len(users)
 
-    # Pull Tweet Collection, there could be multiple xml files for the same user.
+    # -------------------------------------------------------------------------
+    # Pull Tweet Collection, there could be multiple xml files for the same 
+    # user.
     xml_files = glob.glob(os.path.join(sys.argv[2], "*_friends.txt"))
 
     for xml_file in xml_files:
@@ -77,7 +90,14 @@ def main():
             with codecs.open(xml_file, "r", 'utf-8') as f:
                 friends = f.readlines()
                 for friend in friends:
-                    nusr = re.search("<id>(\d+?)</id><screen_name>(.*?)</screen_name><name>(.*?)</name><total_tweets>(.*?)</total_tweets><lang>(.*?)</lang><location>(.*?)</location>", friend)
+                    nusr = \
+                        re.search(
+                                  "<id>(\d+?)</id><screen_name>(.*?)"
+                                  "</screen_name><name>(.*?)</name>"
+                                  "<total_tweets>(.*?)</total_tweets>"
+                                  "<lang>(.*?)</lang>"
+                                  "<location>(.*?)</location>",
+                                  friend)
                     if nusr:
                         fid = int(nusr.group(1))
                         screen_name = nusr.group(2)
@@ -87,15 +107,22 @@ def main():
                         location = nusr.group(6)
                         
                         if fid not in users_list:
-                            # def __init__(self, user_id, name = "", lang = "", location = "", friends = ""):
-                            users_list[fid] = tweetxml.TwitterUser(nusr.group(1), name, lang, location, "", screen_name, totaltweets)
+                            users_list[fid] = \
+                                tweetxml.TwitterUser(
+                                                     nusr.group(1),
+                                                     name,
+                                                     lang,
+                                                     location, 
+                                                     "",
+                                                     screen_name,
+                                                     totaltweets)
                         
                         if fid not in sub_list:
                             sub_list.append(fid)
 
                 users_list[id].addFriends(sub_list)
 
-    # ---------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     # users_list should now have all the users from the starting point and 
     # each _friends.txt file.
     
@@ -104,11 +131,20 @@ def main():
             
             output = u''
             output += tweetxml.xmlOut("id", users_list[u].user_id, False)
-            output += tweetxml.xmlOut("screen_name", users_list[u].screen_name, False)
+            output += \
+                tweetxml.xmlOut(
+                                "screen_name",
+                                users_list[u].screen_name,
+                                False)
             output += tweetxml.xmlOut("name", users_list[u].name, False)
-            output += tweetxml.xmlOut("total_tweets", users_list[u].total_tweets, False)
+            output += \
+                tweetxml.xmlOut(
+                                "total_tweets",
+                                users_list[u].total_tweets,
+                                False)
             output += tweetxml.xmlOut("lang", users_list[u].lang, False)
-            output += tweetxml.xmlOut("location", users_list[u].location, False)        
+            output += \
+                tweetxml.xmlOut("location", users_list[u].location, False)        
             output += "<friends>"
             
             users_list[u].friends.sort()
@@ -121,7 +157,7 @@ def main():
 
             out.write(output)
 
-    # ---------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     # Done.
 
 if __name__ == "__main__":

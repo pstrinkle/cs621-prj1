@@ -8,3 +8,10 @@ manually downloaded archives.
 Needed to install gfortran for max os x lion.
 
 installed scipy 0.10
+
+ <-- regex to double leading whitespace.
+^( +)
+\1\1
+
+import py_compile
+py_compile.compile("script.py")

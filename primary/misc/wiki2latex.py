@@ -325,64 +325,70 @@ def fixHeader(input):
 
     return input
 
-# check for correct # of arguments
-if len(sys.argv) < 3 or len(sys.argv) > 4:
-    sys.stderr.write("Usage: " + sys.argv[0] + " <input.wiki> <output.tex> [header.tex]\n")
-    sys.stderr.write("\n")
-    sys.stderr.write("This script will by default add " + begin)
-    sys.stderr.write("document} and the " + end + "document}")
-    sys.exit()
+def main():
 
-ifp = open(sys.argv[1], "r")
-ofp = open(sys.argv[2], "w")
+    # check for correct # of arguments
+    if len(sys.argv) < 3 or len(sys.argv) > 4:
+        sys.stderr.write("Usage: " + sys.argv[0] + " <input.wiki> <output.tex> [header.tex]\n")
+        sys.stderr.write("\n")
+        sys.stderr.write("This script will by default add " + begin)
+        sys.stderr.write("document} and the " + end + "document}")
+        sys.exit()
 
-content = ifp.readlines()
-ifp.close()
+    ifp = open(sys.argv[1], "r")
+    ofp = open(sys.argv[2], "w")
 
-if len(sys.argv) == 4:
-    ifp = open(sys.argv[3], "r")
-    header = ifp.readlines()
+    content = ifp.readlines()
     ifp.close()
-    for line in header:
+
+    if len(sys.argv) == 4:
+        ifp = open(sys.argv[3], "r")
+        header = ifp.readlines()
+        ifp.close()
+        for line in header:
+            ofp.write(line)
+
+    ofp.write(begin + "document" + endl)
+
+    cnt = 0
+    for line in content:
+        cnt += 1
+        # Handle all changes within a line
+        line = withinline(line)
+        line = handleCode(line)
+
+        # Process list items.
+        # In wiki you can start two lists without a space between them
+        # by just using different types, but I may not support that.
+        # 
+        # Also, you cannot start a list somewhat deep.
+        # Currently this doesn't support : indent characters.
+        if inlist:
+            line = handleLists(line)
+        elif find_list.match(line):
+            # We weren't in a list, but we are now.
+            line = newList(line)
+
+        # Fix Headers
+        if find_headers.match(line):
+            line = fixHeader(line)
+
         ofp.write(line)
 
-ofp.write(begin + "document" + endl)
+    if len(leveltype) > 0:
+        pre = ""
+        while (len(leveltype) > 0):
+            lvl = leveltype.pop()
+            pre += end + lvl + endl
 
-cnt = 0
-for line in content:
-    cnt += 1
-    # Handle all changes within a line
-    line = withinline(line)
+        line = pre
+        ofp.write(line)
 
-    line = handleCode(line)
+    ofp.write(end + "document" + endl)
+    ofp.close()
 
-    # Process list items.
-    # In wiki you can start two lists without a space between them
-    # by just using different types, but I may not support that.
-    # 
-    # Also, you cannot start a list somewhat deep.
-    # Currently this doesn't support : indent characters.
-    if inlist:
-        line = handleLists(line)
-    elif find_list.match(line):
-        # We weren't in a list, but we are now.
-        line = newList(line)
+    # ---------------------------------------------------------------------------
+    # Done.
 
-    # Fix Headers
-    if find_headers.match(line):
-        line = fixHeader(line)
-
-    ofp.write(line)
-
-if len(leveltype) > 0:
-    pre = ""
-    while (len(leveltype) > 0):
-        lvl = leveltype.pop()
-        pre += end + lvl + endl
-
-    line = pre
-    ofp.write(line)
-
-ofp.write(end + "document" + endl)
-ofp.close()
-
+if __name__ == "__main__":
+    main()
