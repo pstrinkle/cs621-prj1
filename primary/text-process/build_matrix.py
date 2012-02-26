@@ -2,13 +2,17 @@
 
 __author__ = 'tri1@umbc.edu'
 
-# Patrick Trinkle
+##
+# @author: Patrick Trinkle
 # Spring 2012
-
+#
+# @summary: This program builds a tf-idf matrix.
+#
 
 import os
 import sys
 import sqlite3
+import operator
 
 sys.path.append(os.path.join("..", "tweetlib"))
 import tweetclean
@@ -16,32 +20,76 @@ import tweetclean
 sys.path.append(os.path.join("..", "modellib"))
 import vectorspace
 
+def top_terms(vector, num):
+    """
+    Returns the num-highest tf-idf terms in the vector.
+    
+    num := the number of terms to get.
+    """
+
+    sorted_tokens = sorted(
+                           vector.items(),
+                           key=operator.itemgetter(1), # (1) is value
+                           reverse=True)
+
+    # count to index
+    to_print = min(num, len(sorted_tokens))
+    terms = []
+  
+    for i in xrange(0, to_print):
+        terms.append(sorted_tokens[i])
+
+    return terms
+
+def data_pull(database_file, query):
+    """Pull the data from the database."""
+    
+    user_tweets = {}
+    conn = sqlite3.connect(database_file)
+    conn.row_factory = sqlite3.Row
+    
+    for row in conn.cursor().execute(query):
+        if row['text'] is not None:
+            data = tweetclean.cleanup(row['text'], True, True)
+            try:
+                user_tweets[row['owner']].append(data)
+            except KeyError:
+                user_tweets[row['owner']] = []
+                user_tweets[row['owner']].append(data)
+
+    conn.close()
+
+    return user_tweets
+
 def usage():
-  print "%s <database_file> <minimum> <maximum> <stop_file> <output>" % sys.argv[0]
+    """Standard usage message."""
+    print "%s <database_file> <minimum> <maximum> <stop_file> <output>" % \
+        sys.argv[0]
 
 def main():
+    """Main."""
 
-  if len(sys.argv) != 6:
-    usage()
-    sys.exit(-1)
+    if len(sys.argv) != 6:
+        usage()
+        sys.exit(-1)
 
-  # ---------------------------------------------------------------------------
-  # Parse the parameters.
-  database_file = sys.argv[1]
-  minimum = int(sys.argv[2])
-  maximum = int(sys.argv[3])
-  stop_file = sys.argv[4]
-  output_file = sys.argv[5]
-  
-  if minimum >= maximum:
-    print "minimum is larger than maximum"
-    usage()
-    sys.exit(-2)
+    # -------------------------------------------------------------------------
+    # Parse the parameters.
+    database_file = sys.argv[1]
+    minimum = int(sys.argv[2])
+    maximum = int(sys.argv[3])
+    stop_file = sys.argv[4]
+    output_file = sys.argv[5]
 
-  # Pull stop words
-  stopwords = tweetclean.import_stopwords(stop_file)
+    if minimum >= maximum:
+        print "minimum is larger than maximum"
+        usage()
+        sys.exit(-2)
 
-  kickoff = \
+    # Pull stop words
+    stopwords = tweetclean.import_stopwords(stop_file)
+
+    kickoff = \
 """
 -------------------------------------------------------------------
 parameters  :
@@ -53,51 +101,46 @@ parameters  :
 -------------------------------------------------------------------
 """
 
-  print kickoff % (database_file, minimum, maximum, output_file, stop_file) 
+    print kickoff % (database_file, minimum, maximum, output_file, stop_file) 
 
-  # this won't return the 3 columns we care about.
-  query_collect = \
-    "select owner from tweets group by owner having count(*) >= %d and count(*) < %d"
-  # "select id, contents as text from tweets where owner = %d;"
-  query_prefetch = \
-    "select owner, id, contents as text from tweets where owner in (%s);"
+    # this won't return the 3 columns we care about.
+    query_collect = "select owner from tweets group by owner having count(*) >= %d and count(*) < %d"
+    query_prefetch = "select owner, id, contents as text from tweets where owner in (%s);"
     
-  query = query_prefetch % query_collect
+    query = query_prefetch % query_collect
 
-  conn = sqlite3.connect(database_file)
-  conn.row_factory = sqlite3.Row
+    user_tweets = data_pull(database_file, query % (minimum, maximum))
 
-  c = conn.cursor()
-  
-  user_tweets = {}
-  
-  for row in c.execute(query % (minimum, maximum)):
-    if row['text'] is not None:
-      data = tweetclean.cleanup(row['text'], True, True)
-      try:
-        user_tweets[row['owner']].append(data)
-      except KeyError:
-        user_tweets[row['owner']] = []
-        user_tweets[row['owner']].append(data)
+    # -------------------------------------------------------------------------
+    # Convert to a documents into one document per user.
 
-  conn.close()
+    docperuser = {} # array representing all the tweets for each user.
 
-  # ---------------------------------------------------------------------------
-  # Convert to a documents into one document per user.
+    for user_id in user_tweets:
+        docperuser[user_id] = "".join(user_tweets[user_id])
 
-  docperuser = {} # array representing all the tweets for each user.
+    tfidf, dictionary = vectorspace.build_doc_tfIdf(docperuser, stopwords, True)
+    
+    # Maybe I should determine the top tf-idf values per document and then make
+    # that my dictionary of terms. =)
+    #
+    # Originally, I intended to use clustering to get topics, but really those
+    # are just high tf-idf terms that are common among certain documents...
+    
+    top_dict = set()
+    
+    for doc_id in tfidf:
+        terms = top_terms(tfidf[doc_id], 250)
+        for term in terms:
+            top_dict.add(term)
 
-  for user_id in user_tweets:
-    docperuser[user_id] = "".join(user_tweets[user_id])
+    # Dump the matrix.
+    with open(output_file, "w") as fout:
+        #fout.write(vectorspace.dump_raw_matrix(dictionary, tfidf) + "\n")
+        fout.write(vectorspace.dump_raw_matrix(top_dict, tfidf) + "\n")
 
-  tfidf, dictionary = vectorspace.build_doc_tfIdf(docperuser, stopwords, True)
-
-  # Dump the matrix.
-  with open(output_file, "w") as f:
-    f.write(vectorspace.dump_matrix(dictionary, tfidf) + "\n")
-
-  # ---------------------------------------------------------------------------
-  # Done.
+    # -------------------------------------------------------------------------
+    # Done.
 
 if __name__ == "__main__":
-  main()
+    main()

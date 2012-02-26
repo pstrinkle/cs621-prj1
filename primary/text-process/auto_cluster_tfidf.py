@@ -37,81 +37,77 @@ import vectorspace
 import centroid
 
 def usage():
-  print "usage: %s <sqlite_db> <minimum> <maximum> <stopwords> <output_folder>" \
-    % sys.argv[0]
+    print "usage: %s <sqlite_db> <minimum> <maximum> <stopwords> <output_folder>" % sys.argv[0]
 
 def threadMain(database_file, output_folder, users, stopwords, start, cnt):
-  """
-  What, what! : )
-  """
-  query_tweets = "select id, contents as text from tweets where owner = %d;"
-  users_tweets = {}
-
-  conn = sqlite3.connect(database_file)
-  conn.row_factory = sqlite3.Row
-
-  c = conn.cursor()
-
-  # -------------------------------------------------------------------------
-  # Process this thread's users.
-  for u in xrange(start, start + cnt):
-    user_id = users[u]
-    docTfIdf = {}      # similar to docTermFreq, but holds the tf-idf values
+    """
+    What, what! : )
+    """
+    query_tweets = "select id, contents as text from tweets where owner = %d;"
     users_tweets = {}
-    output = "%d\t%d\t%d\t%fm"
 
-    start = time.clock()
-
-    for row in c.execute(query_tweets % user_id):
-      if row['text'] is not None:
-        users_tweets[row['id']] = tweetclean.cleanup(row['text'], True, True)
-
-    curr_cnt = len(users_tweets)
-
-    docTfIdf, ignore = vectorspace.build_doc_tfIdf(users_tweets, stopwords)
+    conn = sqlite3.connect(database_file)
+    conn.row_factory = sqlite3.Row
 
     # -------------------------------------------------------------------------
-    centroids = centroid.cluster_documents(docTfIdf)
+    # Process this thread's users.
+    for u in xrange(start, start + cnt):
+        user_id = users[u]
+        users_tweets = {}
+        output = "%d\t%d\t%d\t%fm"
 
-    duration = (time.clock() - start) / 60 # for minutes
+        start = time.clock()
 
-    print output % (user_id, curr_cnt, len(centroids), duration)
+        for row in conn.cursor().execute(query_tweets % user_id):
+            if row['text'] is not None:
+                users_tweets[row['id']] = tweetclean.cleanup(row['text'], True, True)
 
-    with open(os.path.join(output_folder, "%d.topics" % user_id), "w") as f:
-      f.write("user: %d\n#topics: %d\n" % (user_id, len(centroids)))
-      # Might be better if I just implement __str__ for Centroids.
-      for cen in centroids:
-        #f.write("%s\n" % centroids[cen].top_terms(10))
-        f.write("%s\n" % str(centroids[cen]))
-      f.write("------------------------------------------------------------\n")
+        curr_cnt = len(users_tweets)
 
-  conn.close()
+        docTfIdf, ignore = vectorspace.build_doc_tfIdf(users_tweets, stopwords)
+
+        # -------------------------------------------------------------------------
+        centroids = centroid.cluster_documents(docTfIdf)
+
+        duration = (time.clock() - start) / 60 # for minutes
+
+        print output % (user_id, curr_cnt, len(centroids), duration)
+
+        with open(os.path.join(output_folder, "%d.topics" % user_id), "w") as f:
+            f.write("user: %d\n#topics: %d\n" % (user_id, len(centroids)))
+            # Might be better if I just implement __str__ for Centroids.
+            for cen in centroids:
+                #f.write("%s\n" % centroids[cen].top_terms(10))
+                f.write("%s\n" % str(centroids[cen]))
+            f.write("------------------------------------------------------------\n")
+
+    conn.close()
 
 def main():
 
-  # Did they provide the correct args?
-  if len(sys.argv) != 6:
-    usage()
-    sys.exit(-1)
+    # Did they provide the correct args?
+    if len(sys.argv) != 6:
+        usage()
+        sys.exit(-1)
 
-  cpus = multiprocessing.cpu_count()
+    cpus = multiprocessing.cpu_count()
 
-  # ---------------------------------------------------------------------------
-  # Parse the parameters.
-  database_file = sys.argv[1]
-  minimum = int(sys.argv[2])
-  maximum = int(sys.argv[3])
-  stop_file = sys.argv[4]
-  output_folder = sys.argv[5]
+    # ---------------------------------------------------------------------------
+    # Parse the parameters.
+    database_file = sys.argv[1]
+    minimum = int(sys.argv[2])
+    maximum = int(sys.argv[3])
+    stop_file = sys.argv[4]
+    output_folder = sys.argv[5]
   
-  if minimum >= maximum:
-    usage()
-    sys.exit(-2)
+    if minimum >= maximum:
+        usage()
+        sys.exit(-2)
 
-  # Pull stop words
-  stopwords = tweetclean.import_stopwords(stop_file)
+    # Pull stop words
+    stopwords = tweetclean.import_stopwords(stop_file)
 
-  kickoff = \
+    kickoff = \
 """
 -------------------------------------------------------------------
 parameters  :
@@ -123,63 +119,62 @@ parameters  :
 -------------------------------------------------------------------
 """
 
-  print kickoff % (database_file, minimum, maximum, output_folder, stop_file) 
+    print kickoff % (database_file, minimum, maximum, output_folder, stop_file) 
 
-  # this won't return the 3 columns we care about.
-  query_collect = \
-    "select owner from tweets group by owner having count(*) >= %d and count(*) < %d;"
+    # this won't return the 3 columns we care about.
+    query_collect = "select owner from tweets group by owner having count(*) >= %d and count(*) < %d;"
 
-  conn = sqlite3.connect(database_file)
-  conn.row_factory = sqlite3.Row
+    conn = sqlite3.connect(database_file)
+    conn.row_factory = sqlite3.Row
 
-  c = conn.cursor()
+    c = conn.cursor()
 
-  # ---------------------------------------------------------------------------
-  # Search the database file for users.
-  users = []
+    # ---------------------------------------------------------------------------
+    # Search the database file for users.
+    users = []
 
-  start = time.clock()
+    start = time.clock()
 
-  for row in c.execute(query_collect % (minimum, maximum)):
-    users.append(row['owner'])
+    for row in c.execute(query_collect % (minimum, maximum)):
+        users.append(row['owner'])
 
-  print "query time: %f" % (time.clock() - start)
-  print "users: %d\n" % len(users)
+    print "query time: %f" % (time.clock() - start)
+    print "users: %d\n" % len(users)
 
-  conn.close()
+    conn.close()
 
-  # ---------------------------------------------------------------------------
-  # Process those tweets by user set.
+    # ---------------------------------------------------------------------------
+    # Process those tweets by user set.
 
-  print "usr\tcnt\tend\tdur"
+    print "usr\tcnt\tend\tdur"
 
-  cnt = int(math.ceil((float(len(users)) / cpus)))
-  remains = len(users)
-  threads = []
+    cnt = int(math.ceil((float(len(users)) / cpus)))
+    remains = len(users)
+    threads = []
 
-  for i in range(0, cpus):
-    start = i * cnt
+    for i in range(0, cpus):
+        start = i * cnt
 
-    if cnt > remains:
-      cnt = remains
+        if cnt > remains:
+            cnt = remains
 
-    t = threading.Thread(
-                         target=threadMain,
-                         args=(
-                               database_file,
-                               output_folder,
-                               users,
-                               stopwords,
-                               start,
-                               cnt,))
-    threads.append(t)
-    t.start()
+        t = threading.Thread(
+                             target=threadMain,
+                             args=(
+                                   database_file,
+                                   output_folder,
+                                   users,
+                                   stopwords,
+                                   start,
+                                   cnt,))
+        threads.append(t)
+        t.start()
 
-    remains -= cnt
+        remains -= cnt
 
-  # ---------------------------------------------------------------------------
-  # Done.
+    # ---------------------------------------------------------------------------
+    # Done.
 
 if __name__ == "__main__":
-  main()
+    main()
 

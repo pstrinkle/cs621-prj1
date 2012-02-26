@@ -19,6 +19,7 @@ __author__ = 'tri1@umbc.edu'
 
 import os
 import sys
+import operator
 
 sys.path.append(os.path.join("..", "tweetlib"))
 sys.path.append(os.path.join("..", "modellib"))
@@ -162,10 +163,10 @@ def main():
   print "token:weight"
   for day in sorted_keys:
     print str(day) + ":---"
-    sorted_tokens = [(v, k) for k, v in docTfIdf[day].items()]
-    sorted_tokens.sort()
-    sorted_tokens.reverse()
-    sorted_tokens = [(k, v) for v, k in sorted_tokens]
+    sorted_tokens = sorted(
+                           docTfIdf[day].items(),
+                           key=operator.itemgetter(1), # (1) is value
+                           reverse=True)
     for k, v in sorted_tokens:
       print k + ":" + str(v)
 

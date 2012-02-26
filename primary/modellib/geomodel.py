@@ -63,8 +63,8 @@ class LocationBundle:
     time_string := Fri Jan 21 09:28:12 +0000 2011
     coord_string := lat, long
     """
-    dow = td.getDayOfWeek(time_string)
-    ymdh = td.buildDateInt(time_string)
+    dow = td.get_dayofweek(time_string)
+    ymdh = td.get_dateint(time_string)
     
     coord = re.search("(.+),(.+)", coord_string)
     
