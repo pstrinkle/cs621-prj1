@@ -140,25 +140,26 @@ def main():
             # Given a since_id we know where to start pulling the future.
             # Given a max_id we know where to start pulling the past. 
             try:
-                print "\tprocessing: %d, since: %d, max: %d" % (user.user_id, user.since_id, user.max_id)
+                print "\tprocessing: %d, since: %d, max: %d" \
+                    % (user.user_id, user.since_id, user.max_id)
             
                 # Get the timeline (and an updated user information view, sans friends)
                 if user.max_id != 0:
                     statuses = \
                         api.GetUserTimeline(
-                                                                user_id=user.user_id,
-                                                                since_id=user.since_id,
-                                                                max_id=user.max_id,
-                                                                count=200,
-                                                                include_entities='true')
+                                            user_id=user.user_id,
+                                            since_id=user.since_id,
+                                            max_id=user.max_id,
+                                            count=200,
+                                            include_entities='true')
                 else:
                     # this is the first run.
                     statuses = \
                         api.GetUserTimeline(
-                                                                user_id=user.user_id,
-                                                                since_id=user.since_id,
-                                                                count=200,
-                                                                include_entities='true')
+                                            user_id=user.user_id,
+                                            since_id=user.since_id,
+                                            count=200,
+                                            include_entities='true')
 
                 if len(statuses) > 0:
                     with codecs.open(os.path.join(folder_output, str(user) + ext), "a", 'utf-8') as f:

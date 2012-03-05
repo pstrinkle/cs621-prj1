@@ -46,7 +46,8 @@ def main():
     # -------------------------------------------------------------------------
     # Search the database file for users.
     users = []
-    dates = {}
+    dayspermonth = {} # this is used to track
+    dates = {} # this will be a set() of days per month
     oldest = 20991231
     newest = 19990101
 
@@ -63,19 +64,31 @@ def main():
 
             year = twt.year
             month = twt.month_val
+            day = twt.monthday_val
             data = twt.yearmonday
             
             print data
             
-            # amusing. I know.
             try:
-                dates[year][month] += 1
+                dates[year][month].add(day)
             except KeyError:
                 try:
-                    dates[year][month] = 1
+                    dates[year][month] = set()
+                    dates[year][month].add(day)
                 except KeyError:
                     dates[year] = {}
-                    dates[year][month] = 1
+                    dates[year][month] = set()
+                    dates[year][month].add(day)
+            
+            # amusing. I know.
+            try:
+                dayspermonth[year][month] += 1
+            except KeyError:
+                try:
+                    dayspermonth[year][month] = 1
+                except KeyError:
+                    dayspermonth[year] = {}
+                    dayspermonth[year][month] = 1
 
             if data < oldest:
                 oldest = data
@@ -86,18 +99,29 @@ def main():
 
     print "query time: %fm" % ((time.clock() - start) / 60)
 
-    # So, I could get the distinct, max, and min from the sql query itself; and
-    # the counts... lol
-    full_dates = []
-
+    # -------------------------------------------------------------------------
+    # Do we have any full months?
+    # 
     # For which months in which years do I have tweets from every day -- 
     # possibly all from one user, so not the most useful information -- but 
     # still.
+    full_dates = []
+    
+    for year in dayspermonth:
+        for month in dayspermonth[year]:
+            num_days = calendar.monthrange(year, int(month))
+            if num_days == dayspermonth[year][month]:
+                full_dates.append("%s%s" % (str(year), str(month)))
+
+    # -------------------------------------------------------------------------
+    #
+    #
+    #
+    #
     for year in dates:
         for month in dates[year]:
-            num_days = calendar.monthrange(year, int(month))
-            if num_days == dates[year][month]:
-                full_dates.append("%s%s" % (str(year), str(month)))
+            days = sorted(dates[year][month])
+            pass
 
     start_year = tweetdate.get_yearfromint(oldest)
     start_month = tweetdate.get_monthfromint(oldest)
@@ -106,10 +130,10 @@ def main():
     end_month = tweetdate.get_monthfromint(newest)
 
     print "users: %d\n" % len(users)
-    print "start: %4d%2d:%4d%2d" % (start_year, start_month, end_year, end_month)
+    print "start: %4d%02d:%4d%02d" % (start_year, start_month, end_year, end_month)
     print "full_dates: %s" % str(full_dates)
-    #for uid in dates:
-        #print dates[uid]
+    #for uid in dayspermonth:
+        #print dayspermonth[uid]
 
     # -------------------------------------------------------------------------
     # Done.

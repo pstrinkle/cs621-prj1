@@ -191,6 +191,8 @@ class Centroid:
     def top_terms(self, num):
         """
         Returns the num-highest tf-idf terms in the vector.
+        
+        This is an array of tuples [0] - term, [1] -- value.
     
         num := the number of terms to get.
         """

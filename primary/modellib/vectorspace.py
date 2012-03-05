@@ -213,20 +213,20 @@ def build_doc_tfIdf(documents, stopwords, remove_singletons=False):
                     pass
 
     # XXX: Debug; for some reason my tf-idf's are all coming back 0's.
-    print "document frequency: %s" % doc_freq
-    print "term frequency per document: %s" % doc_termfreq
+    #print "document frequency: %s" % doc_freq
+    #print "term frequency per document: %s" % doc_termfreq
       
     # Calculate the inverse document frequencies.
     # dictionary of the inverse document frequencies
     invdoc_freq = calculate_invdf(len(doc_termfreq), doc_freq)
     
-    print "inverse document frequency: %s" % invdoc_freq
+    #print "inverse document frequency: %s" % invdoc_freq
 
     # Calculate the tf-idf values.
     # similar to doc_termfreq, but holds the tf-idf values
     doc_tfidf = calculate_tfidf(doc_length, doc_termfreq, invdoc_freq)
     
-    print "tf-idf per document: %s" % doc_tfidf
+    #print "tf-idf per document: %s" % doc_tfidf
 
     return doc_tfidf, doc_freq
 

@@ -49,10 +49,10 @@ def main():
     # I built my own application thing and have my own oauth stuff.
     #
     api = twitter.Api(
-                                        consumer_key=tweetrequest.consumer_key,
-                                        consumer_secret=tweetrequest.consumer_secret,
-                                        access_token_key=tweetrequest.access_token_key,
-                                        access_token_secret=tweetrequest.access_token_secret)
+                      consumer_key=tweetrequest.consumer_key,
+                      consumer_secret=tweetrequest.consumer_secret,
+                      access_token_key=tweetrequest.access_token_key,
+                      access_token_secret=tweetrequest.access_token_secret)
 
     users = []
     
@@ -140,11 +140,11 @@ def main():
                 # Get the timeline (and an updated user information view, sans friends)
                 statuses = \
                     api.GetUserTimeline(
-                                                            user_id=user.user_id,
-                                                            since_id=user.since_id,
-                                                            max_id=user.max_id,
-                                                            count=200,
-                                                            include_entities='true')
+                                        user_id=user.user_id,
+                                        since_id=user.since_id,
+                                        max_id=user.max_id,
+                                        count=200,
+                                        include_entities='true')
 
                 if len(statuses) > 0:
                     with codecs.open(os.path.join(folder_output, str(user) + ext), "a", 'utf-8') as f:

@@ -24,6 +24,8 @@ def top_terms(vector, num):
     """
     Returns the num-highest tf-idf terms in the vector.
     
+    This returns the array of terms, not the values.
+    
     num := the number of terms to get.
     """
 
@@ -34,18 +36,11 @@ def top_terms(vector, num):
                            key=operator.itemgetter(1), # (1) is value
                            reverse=True)
 
-    #kvp = max(vector.iteritems(), key=operator.itemgetter(1))
-
-    #if kvp[1] != sorted_tokens[0][1]:
-        #sys.stderr.write("max doesn't seem to match!\n")
-        #sys.exit(-2)
-
     # count to index
-    to_print = min(num, len(sorted_tokens))
     terms = []
   
-    for i in xrange(0, to_print):
-        terms.append(sorted_tokens[i])
+    for i in xrange(0, min(num, len(sorted_tokens))):
+        terms.append(sorted_tokens[i][0])
 
     return terms
 
@@ -114,12 +109,13 @@ parameters  :
     # this won't return the 3 columns we care about.
     query_collect = "select owner from tweets group by owner having count(*) >= %d and count(*) < %d"
     query_prefetch = "select owner, id, contents as text from tweets where owner in (%s);"
-    
+
     query = query_prefetch % query_collect
 
     user_tweets = data_pull(database_file, query % (minimum, maximum))
-    
+
     print "data pulled"
+    print "user count: %d" % len(user_tweets)
 
     # -------------------------------------------------------------------------
     # Convert to a documents into one document per user.
@@ -128,25 +124,29 @@ parameters  :
 
     for user_id in user_tweets:
         docperuser[user_id] = "".join(user_tweets[user_id])
-        
+
     if len(docperuser) == 1:
         sys.stderr.write("Insufficient data for tf-idf, only 1 document\n")
         sys.exit(-3)
 
     tfidf, dictionary = vectorspace.build_doc_tfIdf(docperuser, stopwords, True)
-    
+
     # Maybe I should determine the top tf-idf values per document and then make
     # that my dictionary of terms. =)
     #
     # Originally, I intended to use clustering to get topics, but really those
     # are just high tf-idf terms that are common among certain documents...
-    
+
     top_dict = set()
-    
+
     for doc_id in tfidf:
         terms = top_terms(tfidf[doc_id], 250)
+        #print "terms of %d: %s" % (doc_id, terms)
         for term in terms:
             top_dict.add(term)
+
+    print "total top terms (not the set): %d" % (250 * len(tfidf))
+    print "top dict: %d" % len(top_dict)
 
     # Dump the matrix.
     with open(output_file, "w") as fout:
