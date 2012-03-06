@@ -46,7 +46,7 @@ def main():
     # -------------------------------------------------------------------------
     # Search the database file for users.
     users = []
-    dayspermonth = {} # this is used to track
+    tweetspermonth = {} # this is used to track
     dates = {} # this will be a set() of days per month
     oldest = 20991231
     newest = 19990101
@@ -67,7 +67,7 @@ def main():
             day = twt.monthday_val
             data = twt.yearmonday
             
-            print data
+            #print data
             
             try:
                 dates[year][month].add(day)
@@ -82,13 +82,13 @@ def main():
             
             # amusing. I know.
             try:
-                dayspermonth[year][month] += 1
+                tweetspermonth[year][month] += 1
             except KeyError:
                 try:
-                    dayspermonth[year][month] = 1
+                    tweetspermonth[year][month] = 1
                 except KeyError:
-                    dayspermonth[year] = {}
-                    dayspermonth[year][month] = 1
+                    tweetspermonth[year] = {}
+                    tweetspermonth[year][month] = 1
 
             if data < oldest:
                 oldest = data
@@ -107,11 +107,12 @@ def main():
     # still.
     full_dates = []
     
-    for year in dayspermonth:
-        for month in dayspermonth[year]:
-            num_days = calendar.monthrange(year, int(month))
-            if num_days == dayspermonth[year][month]:
-                full_dates.append("%s%s" % (str(year), str(month)))
+    #for year in tweetspermonth:
+    #    for month in tweetspermonth[year]:
+    #        num_days = calendar.monthrange(year, int(month))
+    #        print "%4d%02d: %02d -- %02d" % (year, int(month), tweetspermonth[year][month], num_days[1])
+    #        if num_days[1] == tweetspermonth[year][month]:
+    #            full_dates.append("%s%s" % (str(year), str(month)))
 
     # -------------------------------------------------------------------------
     #
@@ -120,8 +121,9 @@ def main():
     #
     for year in dates:
         for month in dates[year]:
-            days = sorted(dates[year][month])
-            pass
+            num_days = calendar.monthrange(year, int(month))
+            if num_days[1] == len(dates[year][month]):
+                full_dates.append("%s%s" % (str(year), str(month)))
 
     start_year = tweetdate.get_yearfromint(oldest)
     start_month = tweetdate.get_monthfromint(oldest)
@@ -132,8 +134,8 @@ def main():
     print "users: %d\n" % len(users)
     print "start: %4d%02d:%4d%02d" % (start_year, start_month, end_year, end_month)
     print "full_dates: %s" % str(full_dates)
-    #for uid in dayspermonth:
-        #print dayspermonth[uid]
+    #for uid in tweetspermonth:
+        #print tweetspermonth[uid]
 
     # -------------------------------------------------------------------------
     # Done.
