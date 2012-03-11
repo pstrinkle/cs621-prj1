@@ -212,7 +212,6 @@ def build_doc_tfIdf(documents, stopwords, remove_singletons=False):
                 except KeyError:
                     pass
 
-    # XXX: Debug; for some reason my tf-idf's are all coming back 0's.
     #print "document frequency: %s" % doc_freq
     #print "term frequency per document: %s" % doc_termfreq
       

@@ -164,9 +164,9 @@ def main():
     for day in sorted_keys:
         print str(day) + ":---"
         sorted_tokens = sorted(
-                                                      docTfIdf[day].items(),
-                                                      key=operator.itemgetter(1), # (1) is value
-                                                      reverse=True)
+                               docTfIdf[day].items(),
+                               key=operator.itemgetter(1), # (1) is value
+                               reverse=True)
         for k, v in sorted_tokens:
             print k + ":" + str(v)
 

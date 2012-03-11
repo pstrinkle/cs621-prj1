@@ -45,7 +45,7 @@ def main():
 
     # -------------------------------------------------------------------------
     # Search the database file for users.
-    users = []
+    usersperday = {}
     tweetspermonth = {} # this is used to track
     dates = {} # this will be a set() of days per month
     oldest = 20991231
@@ -55,9 +55,7 @@ def main():
 
     # XXX: This doesn't yet do what I want.
     for row in conn.cursor().execute(query % (minimum, maximum)):
-        #uid = row['owner']
-        #if uid not in users:
-            #users.append(uid)
+        uid = row['owner']
 
         if row['created'] is not None:
             twt = tweetdate.TweetTime(row['created'])
@@ -66,9 +64,8 @@ def main():
             month = twt.month_val
             day = twt.monthday_val
             data = twt.yearmonday
-            
-            #print data
-            
+
+            # Determining which months have a tweet for each day.
             try:
                 dates[year][month].add(day)
             except KeyError:
@@ -80,7 +77,7 @@ def main():
                     dates[year][month] = set()
                     dates[year][month].add(day)
             
-            # amusing. I know.
+            # How many tweets I collected for that day.
             try:
                 tweetspermonth[year][month] += 1
             except KeyError:
@@ -90,6 +87,18 @@ def main():
                     tweetspermonth[year] = {}
                     tweetspermonth[year][month] = 1
 
+            # How many users tweeted that day.
+            try:
+                usersperday[year][month].add(uid)
+            except KeyError:
+                try:
+                    usersperday[year][month] = set()
+                    usersperday[year][month].add(uid)
+                except KeyError:
+                    usersperday[year] = {}
+                    usersperday[year][month] = set()
+                    usersperday[year][month].add(uid)
+
             if data < oldest:
                 oldest = data
             if data > newest:
@@ -98,32 +107,24 @@ def main():
     conn.close()
 
     print "query time: %fm" % ((time.clock() - start) / 60)
-
-    # -------------------------------------------------------------------------
-    # Do we have any full months?
-    # 
-    # For which months in which years do I have tweets from every day -- 
-    # possibly all from one user, so not the most useful information -- but 
-    # still.
-    full_dates = []
     
-    #for year in tweetspermonth:
-    #    for month in tweetspermonth[year]:
-    #        num_days = calendar.monthrange(year, int(month))
-    #        print "%4d%02d: %02d -- %02d" % (year, int(month), tweetspermonth[year][month], num_days[1])
-    #        if num_days[1] == tweetspermonth[year][month]:
-    #            full_dates.append("%s%s" % (str(year), str(month)))
+    # -------------------------------------------------------------------------
+    # Build a matrix.  Which dates have the most users.
+    #
 
     # -------------------------------------------------------------------------
+    # Search the dates stored and identify which months have tweets on each 
+    # day.
     #
+    # Do we have any full months?
     #
-    #
-    #
+    full_dates = {}
+    
     for year in dates:
         for month in dates[year]:
             num_days = calendar.monthrange(year, int(month))
             if num_days[1] == len(dates[year][month]):
-                full_dates.append("%s%s" % (str(year), str(month)))
+                full_dates["%4d%02d" % (year, month)] = (tweetspermonth[year][month], usersperday[year][month])
 
     start_year = tweetdate.get_yearfromint(oldest)
     start_month = tweetdate.get_monthfromint(oldest)
@@ -131,11 +132,10 @@ def main():
     end_year = tweetdate.get_yearfromint(newest)
     end_month = tweetdate.get_monthfromint(newest)
 
-    print "users: %d\n" % len(users)
-    print "start: %4d%02d:%4d%02d" % (start_year, start_month, end_year, end_month)
-    print "full_dates: %s" % str(full_dates)
-    #for uid in tweetspermonth:
-        #print tweetspermonth[uid]
+    print "start:end :: %4d%02d:%4d%02d" % (start_year, start_month, end_year, end_month)
+    for date in sorted(full_dates):
+        # guaranteed that there will be an entry as full_dates are a subset.
+        print "%s:%s" % (date, full_dates[date])
 
     # -------------------------------------------------------------------------
     # Done.
