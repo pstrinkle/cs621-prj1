@@ -147,14 +147,14 @@ def main():
     for doc, vec in docTfIdf.iteritems():
         centroids.append(centroid.Centroid(str(doc), vec))
 
-    average_sim = centroid.findAvg(centroids)
-    stddev_sim = centroid.findStd(centroids)
+    average_sim = centroid.find_avg(centroids)
+    stddev_sim = centroid.find_std(centroids)
     
     print "mean: %.10f\tstd: %.10f" % (average_sim, stddev_sim)
     
     # ---------------------------------------------------------------------------
     # Merge centroids by highest similarity of at least threshold  
-    threshold = stddev_sim
+    threshold = (average_sim + stddev_sim)
 
     while len(centroids) > 1:
         i, j, sim = centroid.findMax(centroids)

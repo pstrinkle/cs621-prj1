@@ -76,7 +76,7 @@ def get_sims_from_matrix(matrix):
 def get_sims(centroids):
     """
     Given a list of Centroids, compute the similarity score between all pairs 
-    and return the list.  This can be fed into findAvg(), findStd().
+    and return the list.  This can be fed into find_avg(), find_std().
     """
 
     sims = []
@@ -88,7 +88,7 @@ def get_sims(centroids):
   
     return sims
 
-def findStd(centroids, short_cut=False, sim_scores=None):
+def find_std(centroids, short_cut=False, sim_scores=None):
     """
     Given a list of Centroids, compute the standard deviation of the 
     similarities.
@@ -106,7 +106,7 @@ def findStd(centroids, short_cut=False, sim_scores=None):
   
     return numpy.std(sims)
 
-def findAvg(centroids, short_cut=False, sim_scores=None):
+def find_avg(centroids, short_cut=False, sim_scores=None):
     """
     Given a list of Centroids, compute the similarity of each pairing and 
     return the average.
@@ -360,10 +360,12 @@ def cluster_documents(documents, threshold_str="std"):
     sim_matrix = get_sim_matrix(centroids)
     initial_similarities = get_sims_from_matrix(sim_matrix)
   
+    average_sim = find_avg(centroids, True, initial_similarities)
+  
     if threshold_str == "std":
-        threshold = findStd(centroids, True, initial_similarities)
+        threshold = average_sim + find_std(centroids, True, initial_similarities)
     elif threshold_str == "avg":
-        threshold = findAvg(centroids, True, initial_similarities)
+        threshold = average_sim
     else:
         return None
 
