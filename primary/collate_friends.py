@@ -120,7 +120,7 @@ def main():
                         if fid not in sub_list:
                             sub_list.append(fid)
 
-                users_list[id].addFriends(sub_list)
+                users_list[id].add_friends(sub_list)
 
     # -------------------------------------------------------------------------
     # users_list should now have all the users from the starting point and 

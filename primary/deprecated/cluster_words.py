@@ -161,7 +161,7 @@ def main():
 
         # @warning: This is fairly crap.
         if sim >= threshold:
-            centroids[i].addVector(centroids[j].name, centroids[j].vectorCnt, centroids[j].centroidVector)
+            centroids[i].add_centroid(centroids[j])
             del centroids[j]
             print "merged with sim: %.10f" % sim
         else:

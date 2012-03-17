@@ -56,7 +56,7 @@ def main():
                 for i in xrange(len(tweets)):
                     tweets[i] = tweets[i].strip()
 
-            users_tweets[user_id].addTweets(tweets)
+            users_tweets[user_id].add_tweets(tweets)
             
         else:
             sys.stderr.write("ahh!\n")

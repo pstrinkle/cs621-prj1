@@ -99,7 +99,7 @@ def main():
                                 loc = re.search("<geo>(.+)</geo>", tweet)
 
                                 if timestr and loc:
-                                    guy.addTweet(timestr.group(1), loc.group(1))
+                                    guy.add_tweet(timestr.group(1), loc.group(1))
 
                         #users[int(usr.group(1))] = guy
                         # The old version would build up the dictionary of users, then
