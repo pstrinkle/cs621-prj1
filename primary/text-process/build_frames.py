@@ -33,18 +33,40 @@ import tweetdate
 sys.path.append(os.path.join("..", "modellib"))
 import vectorspace
 
-# XXX: There may be a better way to represent this stuff.
+class FrameSet():
+    """Useful container abstraction."""
+    
+    def __init__(self):
+        self.dictionary = []
+        self.frames = {}
+    
+    def add_frame(self, frm, day_val):
+        """Add a frame."""
+        
+        self.frames[day_val] = frm
+
+    def build_dictionary(self):
+        """Build the overall dictionary -- not yet useful."""
+        
+        return None
+    
+    def dump_to_folder(self, output_folder):
+        """Dump each frame to a different file."""
+        
+        return None
 
 class Frame():
+    """This holds the data for a given day for a set of users."""
     
     def __init__(self, day_val):
         self.day = day_val
         self.data = {}
-        self.doc_tfidf
-        self.doc_freq
+        self.doc_tfidf = None
+        self.doc_freq = None
     
     def add_data(self, user_id, data):
-        """Add data to this frame for a user given an id value and their data."""
+        """Add data to this frame for a user given an id value and their 
+        data."""
         
         self.data[user_id] = data
     
@@ -52,9 +74,37 @@ class Frame():
         """Calculate the tf-idf value for the documents involved."""
         
         # does not remove singletons.
-        self.doc_tfidf, self.doc_freq = vectorspace.build_doc_tfIdf(self.data, stopwords, False)
+        self.doc_tfidf, self.doc_freq = \
+            vectorspace.build_doc_tfIdf(self.data, stopwords, False)
+    
+    def top_terms(self, count):
+        """Get the top terms from all the columns within a frame."""
+        
+        # XXX: It may make more sense to write one that get the top terms 
+        # overall.
+        
+        terms = []
+
+        for doc_id in self.doc_tfidf:
+            new_terms = vectorspace.top_terms(self.doc_tfidf[doc_id], count)
+
+            # new_terms is always a set.
+            terms.extend([term for term in new_terms if term not in terms])
+
+        return terms
+
+    def top_terms_overall(self, count):
+        """Get the top terms overall for the entire set of columns."""
+        
+        # Interestingly, many columns can have similar top terms -- with 
+        # different positions in the list...  So, this will have to be taken 
+        # into account.  Build the overall list and then sort it, then get the
+        # first count of the unique...
+        
+        return None
 
 class FrameUser():
+    """Given a user, this holds their daily data."""
 
     def __init__(self, user_id, day_val, text):
         self.data = {} # tweets collected given some day...?
@@ -97,6 +147,8 @@ class FrameUser():
         return " ".join(data)
 
     def get_id(self):
+        """What is the id of the user."""
+        
         return self.user_id
 
 def find_full_users(users, year, month):
@@ -125,7 +177,9 @@ def build_dictionary(docs, stopwords):
     words = []
     
     for doc_id in docs:
-        pruned = set([w for w in docs[doc_id].split(' ') if w not in stopwords and len(w) > 1])
+        pruned = \
+            set([w for w in docs[doc_id].split(' ') \
+                    if w not in stopwords and len(w) > 1])
 
         if len(pruned) < 2:
             continue
@@ -146,11 +200,14 @@ def data_pull(database_file, query):
             data = tweetclean.cleanup(row['text'], True, True)
             twt = tweetdate.TweetTime(row['created'])
             uid = row['owner']
+            
+            # could probably get away with pushing this up -- like in c++.
+            mdv = twt.get_month()["day_val"]
 
             try:
-                user_data[uid].add_data(twt.monthday_val, data)
+                user_data[uid].add_data(mdv, data)
             except KeyError:
-                user_data[uid] = FrameUser(uid, twt.monthday_val, data)
+                user_data[uid] = FrameUser(uid, mdv, data)
 
     conn.close()
 
@@ -179,7 +236,9 @@ def main():
     stop_file = sys.argv[4]
     output_file = sys.argv[5]
 
-    # XXX: Verify the input.
+    if month_str not in tweetdate.MONTHS:
+        usage()
+        sys.exit(-2)
 
     # Pull stop words
     stopwords = tweetclean.import_stopwords(stop_file)
@@ -196,10 +255,14 @@ parameters  :
 -------------------------------------------------------------------
 """
 
-    print kickoff % (database_file, year_val, month_str, output_file, stop_file) 
+    print kickoff % \
+        (database_file, year_val, month_str, output_file, stop_file) 
 
     # this won't return the 3 columns we care about.
-    query_prefetch = "select owner, created, contents as text from tweets where created like '%%%s%%%d%%';"
+    query_prefetch = \
+"""select owner, created, contents as text
+from tweets
+where created like '%%%s%%%d%%';"""
 
     # -------------------------------------------------------------------------
     # Build a set of documents, per user, per day.
@@ -217,14 +280,23 @@ parameters  :
     #
     # Calculate daily tf-idf; then build frame from top terms over the period
     # of days.
-    
     frames = {}
-    num_days = calendar.monthrange(year_val, int(tweetdate.MONTHS[month_str]))[1]
+    terms = []
+    
+    num_days = \
+        calendar.monthrange(year_val, int(tweetdate.MONTHS[month_str]))[1]
+    
+    print "number day: %d" % num_days
     
     for day in range(1, num_days + 1):
         frames[day] = build_full_frame(full_users, user_data, day)
-    
-    sys.exit(0)
+        frames[day].calculate_tfidf(stopwords)
+        new_terms = frames[day].top_terms(250)
+        
+        # new_terms is a set.
+        terms.extend([term for term in new_terms if term not in terms])
+
+    print "total rows: %d" % len(terms)
 
     # -------------------------------------------------------------------------
     # I don't build a master tf-idf set because the tf-idf values should... 

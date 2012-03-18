@@ -148,8 +148,8 @@ def main():
             twt = tweetdate.TweetTime(row['created'])
 
             year = twt.year
-            month = twt.month_val
-            day = twt.monthday_val
+            month = twt.get_month()["val"]
+            day = twt.get_month()["day_val"]
             data = twt.yearmonday
 
             # Determining which months have a tweet for each day.

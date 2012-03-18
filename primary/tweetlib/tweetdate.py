@@ -8,6 +8,9 @@ __author__ = 'tri1@umbc.edu'
 #
 # @summary: This handles the date string parsing my tweets use.
 #
+# @todo: Make one function just parse the string and return a structure of
+# everything -- maybe just use the class and then access what you want 
+# specifically each time.
 
 import re
 
@@ -177,19 +180,24 @@ class TweetTime:
         """
         Input: datetime := "Fri Jan 21 09:28:12 +0000 2011"
         """
+        
         self.strrep = datetime
         self.valid = False
         
-        self.weekday_val = 0
-        self.weekday_str = ""
+        self.weekday = {}
+        self.weekday["val"] = 0
+        self.weekday["str"] = ""
+
+        self.month = {}
+        self.month["val"] = 0
+        self.month["str"] = ""
+        self.month["day_val"] = 0
         
-        self.month_str = ""
-        self.month_val = 0
-        self.monthday_val = 0
+        self.time = {}
+        self.time["hour"] = 0
+        self.time["minute"] = 0
+        self.time["second"] = 0
         
-        self.hour = 0
-        self.minute = 0
-        self.second = 0
         self.year = 0
         
         self.yearmonday = 0
@@ -203,21 +211,31 @@ class TweetTime:
         else:
             self.valid = True
             
-            self.weekday_str = day.group(1)
-            self.weekday_val = WEEKDAYS[day.group(1)]
+            self.weekday["str"] = day.group(1)
+            self.weekday["val"] = WEEKDAYS[day.group(1)]
             
-            self.month_str = day.group(2)
-            self.month_val = int(MONTHS[day.group(2)])
-            self.monthday_val = int(day.group(3))
+            self.month["str"] = day.group(2)
+            self.month["val"] = int(MONTHS[day.group(2)])
             
-            self.hour = int(day.group(4))
-            self.minute = int(day.group(5))
-            self.second = int(day.group(6))
+            self.month["day_val"] = int(day.group(3))
+            
+            self.time["hour"] = int(day.group(4))
+            self.time["minute"] = int(day.group(5))
+            self.time["second"] = int(day.group(6))
+            
             self.year = int(day.group(7))
             
             self.yearmonday = get_yearmondayint(datetime)
 
     def __str__(self):
         return self.strrep
+
+    def get_weekday(self):
+        """Get the weekday dictionary."""
+        
+        return self.weekday
       
-    
+    def get_month(self):
+        """Get the month dictionary."""
+        
+        return self.month
