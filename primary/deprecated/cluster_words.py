@@ -147,8 +147,9 @@ def main():
     for doc, vec in docTfIdf.iteritems():
         centroids.append(centroid.Centroid(str(doc), vec))
 
-    average_sim = centroid.find_avg(centroids)
-    stddev_sim = centroid.find_std(centroids)
+    similarities = centroid.get_sims(centroids)
+    average_sim = centroid.find_avg(centroids, True, similarities)
+    stddev_sim = centroid.find_std(centroids, True, similarities)
     
     print "mean: %.10f\tstd: %.10f" % (average_sim, stddev_sim)
     
@@ -157,7 +158,7 @@ def main():
     threshold = (average_sim + stddev_sim)
 
     while len(centroids) > 1:
-        i, j, sim = centroid.findMax(centroids)
+        i, j, sim = centroid.find_max(centroids)
 
         # @warning: This is fairly crap.
         if sim >= threshold:

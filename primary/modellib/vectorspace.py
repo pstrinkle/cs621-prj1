@@ -11,6 +11,31 @@ __author__ = 'tri1@umbc.edu'
 #
 
 import math
+import operator
+
+def top_terms(vector, num):
+    """
+    Returns the num-highest tf-idf terms in the vector.
+    
+    This returns the array of terms, not the values.
+    
+    num := the number of terms to get.
+    """
+
+    # This doesn't seem to work right when I used it here.  It works fine
+    # in manual python testing and in the centroid library (i'm assuming).
+    sorted_tokens = sorted(
+                           vector.items(),
+                           key=operator.itemgetter(1), # (1) is value
+                           reverse=True)
+
+    # count to index
+    terms = []
+  
+    for i in xrange(0, min(num, len(sorted_tokens))):
+        terms.append(sorted_tokens[i][0])
+
+    return terms
 
 def calculate_invdf(doc_count, doc_freq):
     """

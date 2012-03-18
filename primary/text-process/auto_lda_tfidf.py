@@ -26,11 +26,10 @@ import sys
 import math
 import time
 import sqlite3
-import operator
 import threading
 import multiprocessing
 
-from gensim import corpora, models, similarities
+from gensim import corpora, models
 
 sys.path.append(os.path.join("..", "tweetlib"))
 import tweetclean
@@ -43,7 +42,7 @@ def usage():
     print "usage: %s <sqlite_db> <minimum> <maximum> <stopwords> <output_folder>" \
         % sys.argv[0]
 
-def threadMain(database_file, output_folder, users, users_tweets, stopwords, start, cnt):
+def thread_main(database_file, output_folder, users, users_tweets, stopwords, start, cnt):
     """
     What, what! : )
     """
@@ -52,34 +51,33 @@ def threadMain(database_file, output_folder, users, users_tweets, stopwords, sta
     # Process this thread's users.
     for u in xrange(start, start + cnt):
         user_id = users[u]
-        docTfIdf = {}      # similar to docTermFreq, but holds the tf-idf values
-        output = "%d\t%d\t%.3f\t%.3f\t%d\t%fm"
+        output = "%d\t%d\t%d\t%fm"
 
         start = time.clock()
 
         curr_cnt = len(users_tweets[user_id])
 
-        docTfIdf, ignore = vectorspace.build_doc_tfIdf(users_tweets[user_id], stopwords)
+        doc_tfidf, ignore = vectorspace.build_doc_tfIdf(users_tweets[user_id], stopwords)
 
         # -------------------------------------------------------------------------
         # Build Centroid List (this step is not actually slow.)
-        centroids = centroid.import_stopwords(docTfIdf)
+        centroids = centroid.import_stopwords(doc_tfidf)
 
         with open(os.path.join(output_folder, "%d.tfidf" % user_id), "w") as f:
             f.write("user: %d\n#topics: %d\n" % (user_id, len(centroids)))
             # Might be better if I just implement __str__ for Centroids.
             for cen in centroids:
-                f.write("%s\n" % centroids[cen].top_terms(10))
+                f.write("%s\n" % centroids[cen].top_terms_tuples(10))
             f.write("------------------------------------------------------------\n")
         
         # output from the above
-        centroidCount = len(centroids)
+        centroid_count = len(centroids)
 
         # -------------------------------------------------------------------------
         # Handle data with gensim LDA modeling code.
         # Use the number of centroids as the topic count input.
         # only words that are greater than one letter and not in the stopword list.
-        texts = [[word for word in users_tweets[user_id][id].split() if word not in stopwords and len(word) > 1] for id in users_tweets[user_id]]
+        texts = [[word for word in users_tweets[user_id][tid].split() if word not in stopwords and len(word) > 1] for tid in users_tweets[user_id]]
         
         # -------------------------------------------------------------------------
         # remove words that appear only once
@@ -95,7 +93,7 @@ def threadMain(database_file, output_folder, users, users_tweets, stopwords, sta
                                        id2word=dictionary,
                                        chunksize=100,
                                        passes=20,
-                                       num_topics=centroidCount)
+                                       num_topics=centroid_count)
 
         topic_strings = lda.show_topics(topics= -1, formatted=True)
         
@@ -107,7 +105,7 @@ def threadMain(database_file, output_folder, users, users_tweets, stopwords, sta
         duration = (time.clock() - start) / 60 # for minutes
 
         print output % \
-            (user_id, curr_cnt, average_sim, stddev_sim, centroidCount, duration)
+            (user_id, curr_cnt, centroid_count, duration)
 
 def main():
 
@@ -205,7 +203,7 @@ parameters  :
         print "launching thread: %d, %d" % (start, cnt)
 
         t = threading.Thread(
-                             target=threadMain,
+                             target=thread_main,
                              args=(
                                    database_file,
                                    output_folder,

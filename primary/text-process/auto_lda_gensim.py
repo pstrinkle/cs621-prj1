@@ -20,7 +20,7 @@ import multiprocessing
 
 #logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
-from gensim import corpora, models, similarities
+from gensim import corpora, models
 
 sys.path.append(os.path.join("..", "tweetlib"))
 import tweetclean
@@ -28,7 +28,7 @@ import tweetclean
 def usage():
     print "usage: %s <database> <minimum> <maximum> <stopwords> <output_folder>" % sys.argv[0]
 
-def threadMain(database_file, output_folder, users, stopwords, start, cnt):
+def thread_main(database_file, output_folder, users, stopwords, start, cnt):
     """
     Process the users in your range!
     
@@ -56,7 +56,7 @@ def threadMain(database_file, output_folder, users, stopwords, start, cnt):
                 users_tweets[row['id']] = tweetclean.cleanup(row['text'], True, True)
 
         # only words that are greater than one letter and not in the stopword list.
-        texts = [[word for word in users_tweets[id].split() if word not in stopwords and len(word) > 1] for id in users_tweets]
+        texts = [[word for word in users_tweets[uid].split() if word not in stopwords and len(word) > 1] for uid in users_tweets]
 
         # -------------------------------------------------------------------------
         # remove words that appear only once
@@ -171,7 +171,7 @@ parameters  :
             cnt = remains
 
         t = threading.Thread(
-                             target=threadMain,
+                             target=thread_main,
                              args=(
                                    database_file,
                                    output_folder,

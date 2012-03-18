@@ -25,7 +25,6 @@ import sys
 import math
 import time
 import sqlite3
-import operator
 import threading
 import multiprocessing
 
@@ -39,7 +38,7 @@ import centroid
 def usage():
     print "usage: %s <sqlite_db> <minimum> <maximum> <stopwords> <output_folder>" % sys.argv[0]
 
-def threadMain(database_file, output_folder, users, stopwords, start, cnt):
+def thread_main(database_file, output_folder, users, stopwords, start, cnt):
     """
     What, what! : )
     """
@@ -64,10 +63,10 @@ def threadMain(database_file, output_folder, users, stopwords, start, cnt):
 
         curr_cnt = len(users_tweets)
 
-        docTfIdf, ignore = vectorspace.build_doc_tfIdf(users_tweets, stopwords)
+        doc_tfidf, ignore = vectorspace.build_doc_tfIdf(users_tweets, stopwords)
 
         # -------------------------------------------------------------------------
-        centroids = centroid.cluster_documents(docTfIdf)
+        centroids = centroid.cluster_documents(doc_tfidf)
 
         duration = (time.clock() - start) / 60 # for minutes
 
@@ -77,7 +76,6 @@ def threadMain(database_file, output_folder, users, stopwords, start, cnt):
             f.write("user: %d\n#topics: %d\n" % (user_id, len(centroids)))
             # Might be better if I just implement __str__ for Centroids.
             for cen in centroids:
-                #f.write("%s\n" % centroids[cen].top_terms(10))
                 f.write("%s\n" % str(centroids[cen]))
             f.write("------------------------------------------------------------\n")
 
@@ -159,7 +157,7 @@ parameters  :
             cnt = remains
 
         t = threading.Thread(
-                             target=threadMain,
+                             target=thread_main,
                              args=(
                                    database_file,
                                    output_folder,

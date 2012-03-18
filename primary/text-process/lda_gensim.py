@@ -16,7 +16,7 @@ import logging
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
-from gensim import corpora, models, similarities
+from gensim import corpora, models
 
 sys.path.append(os.path.join("..", "tweetlib"))
 import tweetclean
@@ -56,7 +56,7 @@ def main():
     conn.close()
 
     # only words that are greater than one letter and not in the stopword list.
-    texts = [[word for word in users_tweets[id].split() if word not in stopwords and len(word) > 1] for id in users_tweets]
+    texts = [[word for word in users_tweets[uid].split() if word not in stopwords and len(word) > 1] for uid in users_tweets]
 
     # remove words that appear only once
     all_tokens = sum(texts, [])

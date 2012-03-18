@@ -12,7 +12,6 @@ __author__ = 'tri1@umbc.edu'
 import os
 import sys
 import sqlite3
-import operator
 
 sys.path.append(os.path.join("..", "tweetlib"))
 import tweetclean
@@ -20,30 +19,6 @@ import tweetclean
 sys.path.append(os.path.join("..", "modellib"))
 import vectorspace
 import centroid
-
-def top_terms(vector, num):
-    """
-    Returns the num-highest tf-idf terms in the vector.
-    
-    This returns the array of terms, not the values.
-    
-    num := the number of terms to get.
-    """
-
-    # This doesn't seem to work right when I used it here.  It works fine
-    # in manual python testing and in the centroid library (i'm assuming).
-    sorted_tokens = sorted(
-                           vector.items(),
-                           key=operator.itemgetter(1), # (1) is value
-                           reverse=True)
-
-    # count to index
-    terms = []
-  
-    for i in xrange(0, min(num, len(sorted_tokens))):
-        terms.append(sorted_tokens[i][0])
-
-    return terms
 
 def data_pull(database_file, query):
     """Pull the data from the database."""
@@ -67,6 +42,7 @@ def data_pull(database_file, query):
 
 def usage():
     """Standard usage message."""
+    
     print "%s <database_file> <minimum> <maximum> <stop_file> <output>" % \
         sys.argv[0]
 
@@ -124,7 +100,7 @@ parameters  :
     docperuser = {} # array representing all the tweets for each user.
 
     for user_id in user_tweets:
-        docperuser[user_id] = "".join(user_tweets[user_id])
+        docperuser[user_id] = " ".join(user_tweets[user_id])
 
     if len(docperuser) == 1:
         sys.stderr.write("Insufficient data for tf-idf, only 1 document\n")
@@ -139,8 +115,9 @@ parameters  :
     for doc, vec in tfidf.iteritems():
         centroids.append(centroid.Centroid(str(doc), vec))
 
-    average_sim = centroid.find_avg(centroids)
-    stddev_sim = centroid.find_std(centroids)
+    similarities = centroid.get_sims(centroids)
+    average_sim = centroid.find_avg(centroids, True, similarities)
+    stddev_sim = centroid.find_std(centroids, True, similarities)
     
     print "mean: %.10f\tstd: %.10f" % (average_sim, stddev_sim)
     
@@ -150,7 +127,7 @@ parameters  :
 
     while len(centroids) > 1:
         print "centroids: %d" % len(centroids)
-        i, j, sim = centroid.findMax(centroids)
+        i, j, sim = centroid.find_max(centroids)
         print "\t%d, %d, %f" % (i, j, sim)
 
         # @warning: This is fairly crap.
@@ -166,7 +143,7 @@ parameters  :
     print "std(centroids): %.10f" % stddev_sim
     
     for cen in centroids:
-        print centroid.topTerms(cen, 10)
+        print centroid.top_term_tuples(cen, 10)
 
     with open(output_file, "w") as fout:
         for cen in centroids:
@@ -183,7 +160,7 @@ parameters  :
     top_dict = set()
 
     for doc_id in tfidf:
-        terms = top_terms(tfidf[doc_id], 250)
+        terms = vectorspace.top_terms(tfidf[doc_id], 250)
         #print "terms of %d: %s" % (doc_id, terms)
         for term in terms:
             top_dict.add(term)

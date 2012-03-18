@@ -12,37 +12,12 @@ __author__ = 'tri1@umbc.edu'
 import os
 import sys
 import sqlite3
-import operator
 
 sys.path.append(os.path.join("..", "tweetlib"))
 import tweetclean
 
 sys.path.append(os.path.join("..", "modellib"))
 import vectorspace
-
-def top_terms(vector, num):
-    """
-    Returns the num-highest tf-idf terms in the vector.
-    
-    This returns the array of terms, not the values.
-    
-    num := the number of terms to get.
-    """
-
-    # This doesn't seem to work right when I used it here.  It works fine
-    # in manual python testing and in the centroid library (i'm assuming).
-    sorted_tokens = sorted(
-                           vector.items(),
-                           key=operator.itemgetter(1), # (1) is value
-                           reverse=True)
-
-    # count to index
-    terms = []
-  
-    for i in xrange(0, min(num, len(sorted_tokens))):
-        terms.append(sorted_tokens[i][0])
-
-    return terms
 
 def data_pull(database_file, query):
     """Pull the data from the database."""
@@ -123,7 +98,7 @@ parameters  :
     docperuser = {} # array representing all the tweets for each user.
 
     for user_id in user_tweets:
-        docperuser[user_id] = "".join(user_tweets[user_id])
+        docperuser[user_id] = " ".join(user_tweets[user_id])
 
     if len(docperuser) == 1:
         sys.stderr.write("Insufficient data for tf-idf, only 1 document\n")
@@ -140,8 +115,7 @@ parameters  :
     top_dict = set()
 
     for doc_id in tfidf:
-        terms = top_terms(tfidf[doc_id], 250)
-        #print "terms of %d: %s" % (doc_id, terms)
+        terms = vectorspace.top_terms(tfidf[doc_id], 250)
         for term in terms:
             top_dict.add(term)
 
@@ -150,7 +124,6 @@ parameters  :
 
     # Dump the matrix.
     with open(output_file, "w") as fout:
-        #fout.write(vectorspace.dump_raw_matrix(dictionary, tfidf) + "\n")
         fout.write(vectorspace.dump_raw_matrix(top_dict, tfidf) + "\n")
 
     # -------------------------------------------------------------------------

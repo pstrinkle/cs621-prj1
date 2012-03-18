@@ -42,13 +42,6 @@ def get_sim_matrix(centroids):
     This function could easily work on a list of them... except then the list 
     would be const, because any manipulation of the centroid list would 
     invalidate the matrix.
-
-    XXX: There has to be a cleaner way, since the innermost part of the loop is
-    identical...
-
-    XXX: Also, since 4x5 will have the same value as 5x4... I only need to 
-    think about the lower left triangle of values -- see program where i handle 
-    this correctly. 
     """
 
     matrix = {}
@@ -136,7 +129,7 @@ def find_avg(centroids, short_cut=False, sim_scores=None):
 
     return (total_sim / total_comparisons)
 
-def findMax(centroids):
+def find_max(centroids):
     """
     Given a list of Centroids, compute the similarity of each pairing and 
     return the pair with the highest similarity, and their similarity score--so
@@ -164,7 +157,7 @@ class Centroid:
     Amusingly, modeled directly after a C# class I wrote for a class I took.
     """
   
-    def __init__(self, name, dv):
+    def __init__(self, name, doc_vec):
         """
         Representation of a document(s) as a tf-idf vector.
     
@@ -174,7 +167,7 @@ class Centroid:
         self.vector_cnt = 0
         self.centroid_vector = {}
         self.length = 0.00
-        self.add_vector(name, 1, dv)
+        self.add_vector(name, 1, doc_vec)
 
     def __len__(self):
         """Get the length of it!"""
@@ -186,15 +179,18 @@ class Centroid:
         25 terms.
         """
 
-        return "%s:\n%s" % (self.name, self.top_terms(25))
+        return "%s:\n%s" % (self.name, self.top_terms_tuples(25))
 
-    def top_terms(self, num):
+    def top_terms_tuples(self, num):
         """
         Returns the num-highest tf-idf terms in the vector.
         
         This is an array of tuples [0] - term, [1] -- value.
     
         num := the number of terms to get.
+        
+        This is not identical to the similarly named function in the vectorspace
+         module.
         """
   
         sorted_tokens = sorted(
