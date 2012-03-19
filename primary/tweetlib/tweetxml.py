@@ -2,19 +2,20 @@
 
 __author__ = 'tri1@umbc.edu'
 
-# Patrick Trinkle
+##
+# @author: Patrick Trinkle
 # Summer 2011
 #
-# This handles building XML data for me.
+# @summary: This handles building XML data for me.
 #
 
 import re
 import sys
 import string
 
-# I convert these characters to nothing--I just remove them.  Strangely they are crap
-# and somehow show up.
-invalid_chars = ('\x00', '\x01', '\x02', '\x03', '\x04',
+# I convert these characters to nothing--I just remove them.  Strangely they 
+# are crap and somehow show up.
+INVALID_CHARS = ('\x00', '\x01', '\x02', '\x03', '\x04',
                                   '\x05', '\x06', '\x07', '\x08', '\x0b',
                                   '\x0c', '\x0e', '\x0f', '\x10', '\x11',
                                   '\x12', '\x13', '\x14', '\x15', '\x16',
@@ -22,21 +23,24 @@ invalid_chars = ('\x00', '\x01', '\x02', '\x03', '\x04',
                                   '\x1c', '\x1d', '\x1e', '\x1f') # , '\x85'
 
 # I convert these characters to a single space character.
-space_chars = ('\n', '\r')
+SPACE_CHARS = ('\n', '\r')
 
 # oldest_id is min(id), since_id is max(id)
 def output(current_id, oldest_id, since_id):
     """
     This is the same as the output function in filter_tweets.py
     """
+
     return "<id>%d</id><last_since_id>%d</last_since_id><oldest_id>%d</oldest_id>" % (current_id, since_id, oldest_id)
 
 def double_unescape(value):
     """
     SQL is all single-quotes, so I have to unescape the double quotes.
     
-    My XML files are all double-escaped, this isn't the case in the database entries.
+    My XML files are all double-escaped, this isn't the case in the database 
+    entries.
     """
+    
     return value.replace(r'\"', '"')
 
 def xml_out(tag, value, quotes=True):
@@ -44,99 +48,103 @@ def xml_out(tag, value, quotes=True):
     Build an appropriate xml tagged data unit string.
     
     Input: tag := the name of the tags for wrapping this data
-                  value := what to place inside the tags, not necessarily a string -- we handle some conversion
-                  quotes := would you like the data inside to be wrapped in quotes?
+           value := what to place inside the tags, not necessarily a 
+                  string -- we handle some conversion
+           quotes := would you like the data inside to be wrapped in quotes?
     """
     
-    xmlStr = u""
-    xmlStrVal = u""
+    xml_str = u""
+    xml_strval = u""
 
     #print "tag: '%s' value: '%s' type: '%s'" % (tag, str(value), type(value))
 
     if isinstance(value, basestring):
         if isinstance(value, unicode):
             #print "tag: '%s' type: '%s'" % (tag, type(value))
-            #xmlStrVal += value.encode('utf-8')
-            xmlStrVal += value
+            #xml_strval += value.encode('utf-8')
+            xml_strval += value
         elif isinstance(value, str):
             #print "tag: '%s' type: '%s'" % (tag, type(value))
             u = unicode(value, 'utf-8')
-            xmlStrVal += u
+            xml_strval += u
     else:
-        xmlStrVal += str(value)
+        xml_strval += str(value)
 
-    xmlStrVal = xmlStrVal.replace("\n", ' ')  # newline character
-    xmlStrVal = xmlStrVal.replace(r"\n", ' ') # newline string (yes, there are those)
+    xml_strval = xml_strval.replace("\n", ' ')  # newline character
+    # newline string (yes, there are those)
+    xml_strval = xml_strval.replace(r"\n", ' ')
 
-    xmlStrVal = xmlStrVal.replace("\r", ' ')  # carriage return character
-    xmlStrVal = xmlStrVal.replace(r"\r", ' ') # carriage return string (yes, there are those)
+    xml_strval = xml_strval.replace("\r", ' ')  # carriage return character
+    # carriage return string (yes, there are those)
+    xml_strval = xml_strval.replace(r"\r", ' ')
 
     # quotes MUST ONLY be escaped if the value is quote surrounded.
     if quotes:
-        xmlStrVal = xmlStrVal.replace(r'"', r'\"')  # quotes must be escaped
+        xml_strval = xml_strval.replace(r'"', r'\"')  # quotes must be escaped
+        # this isn't perfect and can get messy.
 
-    if len(xmlStrVal) > 0:
-        xmlStr += '<' + tag + '>'
+    if len(xml_strval) > 0:
+        xml_str += '<' + tag + '>'
     
         if quotes == True:
-            xmlStr += '"'
+            xml_str += '"'
     
-        xmlStr += xmlStrVal
+        xml_str += xml_strval
     
         if quotes == True:
-            xmlStr += '"'
+            xml_str += '"'
 
-        xmlStr += '</' + tag + '>'
+        xml_str += '</' + tag + '>'
     else:
-        xmlStr += '<' + tag + ' />'
+        xml_str += '<' + tag + ' />'
 
-    return xmlStr
+    return xml_str
 
 def status_str_from_dict(status):
-    
-    statusAsStr = u"<user_id>%d</user_id>" % status["user"]["id"]
 
-    statusAsStr += "<tweet>"
+    status_str = u"<user_id>%d</user_id>" % status["user"]["id"]
 
-    statusAsStr += xml_out("created", status["created_at"], False)
-    statusAsStr += xml_out("id", status["id"], False)
-    
+    status_str += "<tweet>"
+
+    status_str += xml_out("created", status["created_at"], False)
+    status_str += xml_out("id", status["id"], False)
+
     #if status["in_reply_to_screen_name"] is not None: 
-    #  statusAsStr += tx.xml_out("in_reply_to_screen_name", status["in_reply_to_screen_name"], True)
+    #  status_str += tx.xml_out("in_reply_to_screen_name", status["in_reply_to_screen_name"], True)
         
     if status["in_reply_to_status_id"] is not None:
-        statusAsStr += xml_out("in_reply_to_status_id", status["in_reply_to_status_id"], False)
+        status_str += xml_out("in_reply_to_status_id", status["in_reply_to_status_id"], False)
         
     if status["in_reply_to_user_id"] is not None:
-        statusAsStr += xml_out("in_reply_to_user_id", status["in_reply_to_user_id"], False)
+        status_str += xml_out("in_reply_to_user_id", status["in_reply_to_user_id"], False)
 
     if status["geo"] is not None:
         coordinates = status["geo"]["coordinates"]
         pointStr = "%f, %f" % (coordinates[0], coordinates[1])
         # I copied and pasted the list in order into maps.google.com and it worked perfectly!
-        statusAsStr += xml_out("geo", pointStr, False)
+        status_str += xml_out("geo", pointStr, False)
     
     if status["place"] is not None:
         if "full_name" in status["place"].keys():
             fname = "%s" % status["place"]["full_name"]
-            statusAsStr += xml_out("place_name", fname, False)
+            status_str += xml_out("place_name", fname, False)
         
         if "bounding_box" in status["place"].keys() and status["place"]["bounding_box"] is not None:
             if "coordinates" in status["place"]["bounding_box"].keys():
                 bbox = "%s" % status["place"]["bounding_box"]["coordinates"]
-                statusAsStr += xml_out("place_box", bbox, False)
+                status_str += xml_out("place_box", bbox, False)
 
-    statusAsStr += xml_out("source", status["source"], False)
-    statusAsStr += xml_out("text", status["text"], False)
+    status_str += xml_out("source", status["source"], False)
+    status_str += xml_out("text", status["text"], False)
     
-    statusAsStr += "</tweet>"
+    status_str += "</tweet>"
     
-    for c in invalid_chars:
-        statusAsStr = statusAsStr.replace(c, "")
-    for c in space_chars:
-        statusAsStr = statusAsStr.replace(c, " ")
+    for c in INVALID_CHARS:
+        status_str = status_str.replace(c, "")
+    for c in SPACE_CHARS:
+        status_str = status_str.replace(c, " ")
 
-    return statusAsStr
+    return status_str
 
 def xml_user(user):
     """
@@ -146,13 +154,13 @@ def xml_user(user):
     
     Output: a string holding the user id, name, language, and location.
     """
-    output = ""
+    output_str = ""
     
     if user is None:
-        return output
+        return output_str
     
     if user.protected == True:
-        return output
+        return output_str
     
     uid = user.id
     name = user.name.encode('utf-8')
@@ -164,15 +172,15 @@ def xml_user(user):
     if user.location is not None:
         location = user.location.encode('utf-8').replace("\n", "").replace("\r", "").strip()
 
-    output = "<id>%d</id><screen_name>%s</screen_name><name>%s</name><total_tweets>%s</total_tweets><lang>%s</lang><location>%s</location>" \
+    output_str = "<id>%d</id><screen_name>%s</screen_name><name>%s</name><total_tweets>%s</total_tweets><lang>%s</lang><location>%s</location>" \
         % (uid, sn, name, total_tweets, lang, location)
     
-    for c in invalid_chars:
-        output = output.replace(c, "")
-    for c in space_chars:
-        output = output.replace(c, " ")
+    for c in INVALID_CHARS:
+        output_str = output_str.replace(c, "")
+    for c in SPACE_CHARS:
+        output_str = output_str.replace(c, " ")
     
-    return output
+    return output_str
 
 def xml_status(status):
     """
@@ -206,52 +214,53 @@ def xml_status(status):
     """
 
     # if I end up wanting to not need to collate, this line need to be added.
-    #statusAsStr = "<user_id>%d</user_id>" % status.user.id
+    #status_str = "<user_id>%d</user_id>" % status.user.id
 
-    statusAsStr = "<tweet>"
+    status_str = "<tweet>"
 
-    statusAsStr += xml_out("created", status.created_at, False)
-    statusAsStr += xml_out("id", status.id, False)
+    status_str += xml_out("created", status.created_at, False)
+    status_str += xml_out("id", status.id, False)
 
     # used to also dump reply_to_screen_name here.
     
     if status.in_reply_to_status_id is not None:
-        statusAsStr += xml_out("in_reply_to_status_id", status.in_reply_to_status_id, False)
+        status_str += xml_out("in_reply_to_status_id", status.in_reply_to_status_id, False)
         
     if status.in_reply_to_user_id is not None:
-        statusAsStr += xml_out("in_reply_to_user_id", status.in_reply_to_user_id, False)
+        status_str += xml_out("in_reply_to_user_id", status.in_reply_to_user_id, False)
 
     # TODO: add the hashtag stuff in.
     #if status.hashtags is not None:
-    #  statusAsStr += xml_out("hashtags", status.hashtags, False)
+    #  status_str += xml_out("hashtags", status.hashtags, False)
 
     if status.geo is not None:
         coordinates = status.geo["coordinates"]
         pointStr = "%f, %f" % (coordinates[0], coordinates[1])
-        # I copied and pasted the list in order into maps.google.com and it worked perfectly!
-        statusAsStr += xml_out("geo", pointStr, False)
+        # I copied and pasted the list in order into maps.google.com and it 
+        # worked perfectly!
+        status_str += xml_out("geo", pointStr, False)
     
     if status.place is not None:
         if "full_name" in status.place.keys():
             fname = "%s" % status.place["full_name"]
-            statusAsStr += xml_out("place_name", fname, False)
+            status_str += xml_out("place_name", fname, False)
         
         if "bounding_box" in status.place.keys() and status.place["bounding_box"] is not None:
             if "coordinates" in status.place["bounding_box"].keys():
                 bbox = "%s" % status.place["bounding_box"]["coordinates"]
-                statusAsStr += xml_out("place_box", bbox, False)
+                status_str += xml_out("place_box", bbox, False)
 
-    statusAsStr += xml_out("source", status.source, False)
-    statusAsStr += xml_out("text", status.text, False)
+    status_str += xml_out("source", status.source, False)
+    status_str += xml_out("text", status.text, False)
     
-    statusAsStr += "</tweet>"
+    status_str += "</tweet>"
     
-    for c in invalid_chars:
-        statusAsStr = statusAsStr.replace(c, "")
-    for c in space_chars:
-        statusAsStr = statusAsStr.replace(c, " ")
+    for c in INVALID_CHARS:
+        status_str = status_str.replace(c, "")
+    for c in SPACE_CHARS:
+        status_str = status_str.replace(c, " ")
     
-    return statusAsStr
+    return status_str
 
 class Tweet:
     """
@@ -325,12 +334,12 @@ class TwitterUser:
         return len(self.tweets)
 
     def unicode_tweets(self):
-        outStr = u''
+        out_str = u''
         for tweet_id in self.tweets:
-            outStr += "<user_id>%s</user_id>" % str(self.user_id)
-            outStr += unicode(self.tweets[tweet_id], 'utf-8')
-            outStr += "\n"
-        return outStr
+            out_str += "<user_id>%s</user_id>" % str(self.user_id)
+            out_str += unicode(self.tweets[tweet_id], 'utf-8')
+            out_str += "\n"
+        return out_str
 
     def to_unicodestr(self):
         """
@@ -382,46 +391,46 @@ class TwitterUser:
             t_id = ""
             t_old_id = ""
         
-        outStr = unicode("<user>\n", 'utf-8')
-        outStr += "\t%s\n" % xml_out("id", self.user_id, False)
-        outStr += "\t%s\n" % xml_out("screen_name", self.screen_name, False)
-        outStr += "\t%s\n" % xml_out("name", self.name, False)
-        outStr += "\t%s\n" % xml_out("lang", self.lang, False)
-        outStr += "\t%s\n" % xml_out("location", self.location, False)
+        out_str = unicode("<user>\n", 'utf-8')
+        out_str += "\t%s\n" % xml_out("id", self.user_id, False)
+        out_str += "\t%s\n" % xml_out("screen_name", self.screen_name, False)
+        out_str += "\t%s\n" % xml_out("name", self.name, False)
+        out_str += "\t%s\n" % xml_out("lang", self.lang, False)
+        out_str += "\t%s\n" % xml_out("location", self.location, False)
 
         # need to sort and print friends list appropriately
         if len(self.friends) > 0:
-            outStr += "\t<friends>"
+            out_str += "\t<friends>"
             self.friends.sort()
             for i in range(len(self.friends)):
-                outStr += str(self.friends[i])
+                out_str += str(self.friends[i])
                 if i != len(self.friends) - 1:
-                    outStr += ", "
-            outStr += "</friends>\n"
+                    out_str += ", "
+            out_str += "</friends>\n"
         else:
-            outStr += "\t<friends />\n"
+            out_str += "\t<friends />\n"
     
-        outStr += "\t%s\n" % xml_out("total_retrieved", len(self.tweets), False)
-        outStr += "\t%s\n" % xml_out("total_tweets", self.total_tweets, False)
-        outStr += "\t%s\n" % xml_out("last_pulled", "", False)
-        outStr += "\t%s\n" % xml_out("last_date", t_created, False)
-        outStr += "\t%s\n" % xml_out("last_since_id", t_id, False)
-        outStr += "\t%s\n" % xml_out("oldest_id", t_old_id, False)
+        out_str += "\t%s\n" % xml_out("total_retrieved", len(self.tweets), False)
+        out_str += "\t%s\n" % xml_out("total_tweets", self.total_tweets, False)
+        out_str += "\t%s\n" % xml_out("last_pulled", "", False)
+        out_str += "\t%s\n" % xml_out("last_date", t_created, False)
+        out_str += "\t%s\n" % xml_out("last_since_id", t_id, False)
+        out_str += "\t%s\n" % xml_out("oldest_id", t_old_id, False)
 
         if len(self.tweets) > 0:
-            outStr += "\t<tweets>\n"
+            out_str += "\t<tweets>\n"
             for tid in tweet_ids:
-                if isinstance(self.tweets[tid], unicode):
-                    outStr += "\t\t<tweet>%s</tweet>\n" % self.tweets[tid] # should be utf-8...
+                if isinstance(self.tweets[tid], unicode): # should be utf-8...
+                    out_str += "\t\t<tweet>%s</tweet>\n" % self.tweets[tid]
                 else: # should be str type
-                    outStr += "\t\t<tweet>%s</tweet>\n" % unicode(self.tweets[tid], 'utf-8')
-            outStr += "\t</tweets>\n"
+                    out_str += "\t\t<tweet>%s</tweet>\n" % unicode(self.tweets[tid], 'utf-8')
+            out_str += "\t</tweets>\n"
         else:
-            outStr += "\t<tweets />\n"
+            out_str += "\t<tweets />\n"
         
-        outStr += "</user>\n"
+        out_str += "</user>\n"
         
-        return outStr
+        return out_str
     
     def add_tweets(self, new_tweets=[]):
         """

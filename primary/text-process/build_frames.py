@@ -100,8 +100,23 @@ class Frame():
         # different positions in the list...  So, this will have to be taken 
         # into account.  Build the overall list and then sort it, then get the
         # first count of the unique...
+        #        
+        terms = {}
         
-        return None
+        for doc_id in self.doc_tfidf:
+            new_tuples = \
+                vectorspace.top_terms_tuples(self.doc_tfidf[doc_id], count)
+
+            # These are the top tuples for doc_id; if they are not new, then 
+            # increase their value to the new max.            
+            for kvp in new_tuples:
+                if kvp[0] in terms:
+                    terms[kvp[0]] = max(kvp[1], terms[kvp[0]])
+                else:
+                    terms[kvp[0]] = kvp[1]
+
+        # terms is effectively a document now, so we can use this.
+        return vectorspace.top_terms(terms, count)
 
 class FrameUser():
     """Given a user, this holds their daily data."""
@@ -282,6 +297,7 @@ where created like '%%%s%%%d%%';"""
     # of days.
     frames = {}
     terms = []
+    overall_terms = []
     
     num_days = \
         calendar.monthrange(year_val, int(tweetdate.MONTHS[month_str]))[1]
@@ -292,11 +308,18 @@ where created like '%%%s%%%d%%';"""
         frames[day] = build_full_frame(full_users, user_data, day)
         frames[day].calculate_tfidf(stopwords)
         new_terms = frames[day].top_terms(250)
-        
+
         # new_terms is a set.
         terms.extend([term for term in new_terms if term not in terms])
+        
+        new_terms = frames[day].top_terms_overall(250)
+        
+        overall_terms.extend([term for term in new_terms if term not in overall_terms])
 
     print "total rows: %d" % len(terms)
+    print "total overall: %d" % len(overall_terms)
+    # len(overall_terms) should be at most 250 * num_days -- if there is no 
+    # overlap of high value terms over the period of days. 
 
     # -------------------------------------------------------------------------
     # I don't build a master tf-idf set because the tf-idf values should... 

@@ -190,21 +190,18 @@ class Centroid:
         num := the number of terms to get.
         
         This is not identical to the similarly named function in the vectorspace
-         module.
+         module.  It is however, identical to this exact function there.
         """
   
         sorted_tokens = sorted(
                                self.centroid_vector.items(),
                                key=operator.itemgetter(1), # (1) is value
                                reverse=True)
-  
-        #print "len(sorted_tokens): %d" % len(sorted_tokens)
 
         # count to index
-        to_print = min(num, len(sorted_tokens))
         top_terms = []
   
-        for i in xrange(0, to_print):
+        for i in xrange(0, min(num, len(sorted_tokens))):
             top_terms.append(sorted_tokens[i])
 
         return top_terms
@@ -215,6 +212,7 @@ class Centroid:
     
         newCent := the centroid object to add.
         """
+        
         self.add_vector(new_cen.name, new_cen.vector_cnt, new_cen.centroid_vector)
 
     def add_vector(self, doc_name, add_cnt, new_docvec):

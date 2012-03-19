@@ -13,6 +13,31 @@ __author__ = 'tri1@umbc.edu'
 import math
 import operator
 
+def top_terms_tuples(vector, num):
+    """
+    Returns the num-highest tf-idf terms in the vector.
+
+    This is an array of tuples [0] - term, [1] -- value.
+
+    num := the number of terms to get.
+
+    This is not identical to the similarly named function in the vectorspace
+    module.  It is however, identical to this exact function there.
+    """
+
+    sorted_tokens = sorted(
+                           vector.items(),
+                           key=operator.itemgetter(1), # (1) is value
+                           reverse=True)
+
+    # count to index 
+    top_terms = []
+
+    for i in xrange(0, min(num, len(sorted_tokens))):
+        top_terms.append(sorted_tokens[i])
+
+    return top_terms
+
 def top_terms(vector, num):
     """
     Returns the num-highest tf-idf terms in the vector.
