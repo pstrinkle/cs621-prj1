@@ -44,11 +44,6 @@ class FrameSet():
         """Add a frame."""
         
         self.frames[day_val] = frm
-
-    def build_dictionary(self):
-        """Build the overall dictionary -- not yet useful."""
-        
-        return None
     
     def dump_to_folder(self, output_folder):
         """Dump each frame to a different file."""
@@ -76,6 +71,11 @@ class Frame():
         # does not remove singletons.
         self.doc_tfidf, self.doc_freq = \
             vectorspace.build_doc_tfIdf(self.data, stopwords, False)
+    
+    def get_tfidf(self):
+        """Run calculate_tfidf first or this'll return None."""
+        
+        return self.doc_tfidf
     
     def top_terms(self, count):
         """Get the top terms from all the columns within a frame."""
@@ -249,7 +249,7 @@ def main():
     year_val = int(sys.argv[2])
     month_str = sys.argv[3]
     stop_file = sys.argv[4]
-    output_file = sys.argv[5]
+    output_folder = sys.argv[5]
 
     if month_str not in tweetdate.MONTHS:
         usage()
@@ -271,7 +271,7 @@ parameters  :
 """
 
     print kickoff % \
-        (database_file, year_val, month_str, output_file, stop_file) 
+        (database_file, year_val, month_str, output_folder, stop_file) 
 
     # this won't return the 3 columns we care about.
     query_prefetch = \
@@ -281,7 +281,8 @@ where created like '%%%s%%%d%%';"""
 
     # -------------------------------------------------------------------------
     # Build a set of documents, per user, per day.
-    user_data = data_pull(database_file, query_prefetch % (month_str, year_val))
+    user_data = \
+        data_pull(database_file, query_prefetch % (month_str, year_val))
     full_users = find_full_users(user_data, year_val, month_str)
 
     print "data pulled"
@@ -296,7 +297,6 @@ where created like '%%%s%%%d%%';"""
     # Calculate daily tf-idf; then build frame from top terms over the period
     # of days.
     frames = {}
-    terms = []
     overall_terms = []
     
     num_days = \
@@ -307,36 +307,27 @@ where created like '%%%s%%%d%%';"""
     for day in range(1, num_days + 1):
         frames[day] = build_full_frame(full_users, user_data, day)
         frames[day].calculate_tfidf(stopwords)
-        new_terms = frames[day].top_terms(250)
-
-        # new_terms is a set.
-        terms.extend([term for term in new_terms if term not in terms])
         
         new_terms = frames[day].top_terms_overall(250)
         
-        overall_terms.extend([term for term in new_terms if term not in overall_terms])
+        overall_terms.extend([term for term in new_terms \
+                                if term not in overall_terms])
 
-    print "total rows: %d" % len(terms)
     print "total overall: %d" % len(overall_terms)
-    # len(overall_terms) should be at most 250 * num_days -- if there is no 
-    # overlap of high value terms over the period of days. 
+    # len(overall_terms) should be at most 250 * num_users * num_days -- if 
+    # there is no overlap of high value terms over the period of days between 
+    # the users.  If there is literally no overlap then each user will have 
+    # their own 250 terms each day. 
 
     # -------------------------------------------------------------------------
-    # I don't build a master tf-idf set because the tf-idf values should... 
-    # evolve.  albeit, I don't think I'm correctly adjusting them -- I'm just 
-    # recalculating then.
-    #docperuser = {}
-    #for user_id in user_data:
-    #    docperuser[user_id] = user_data[user_id].get_alldata()
-    #dictionary = build_dictionary(docperuser, stopwords)
-    #print "number of terms: %d" % len(dictionary)
-
-    # -------------------------------------------------------------------------
-    # To build a consistent frame we need the top terms for each day's documents
-    #  so the frame rows won't change.  The columns are the users.
-    #
-    # We can compute the frames in full length tf-idf per day, then run through
-    # them
+    # Dump the matrix.
+    for day in frames: # sort if for one file.
+        with open(os.path.join(output_folder, "%d.txt" % day), "w") as fout:
+            fout.write(
+                       vectorspace.dump_raw_matrix(
+                                                   overall_terms,
+                                                   frames[day].get_tfidf()))
+            fout.write("\n")
 
     # -------------------------------------------------------------------------
     # Done.

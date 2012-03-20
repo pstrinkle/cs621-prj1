@@ -49,10 +49,10 @@ def main():
     # I built my own application thing and have my own oauth stuff.
     #
     api = twitter.Api(
-                                        consumer_key=tweetrequest.consumer_key,
-                                        consumer_secret=tweetrequest.consumer_secret,
-                                        access_token_key=tweetrequest.access_token_key,
-                                        access_token_secret=tweetrequest.access_token_secret)
+                                        consumer_key=tweetrequest.CONSUMER_KEY,
+                                        consumer_secret=tweetrequest.CONSUMER_SECRET,
+                                        access_token_key=tweetrequest.ACCESS_TOKEN_KEY,
+                                        access_token_secret=tweetrequest.ACCESS_TOKEN_SECRET)
 
     users = []
     

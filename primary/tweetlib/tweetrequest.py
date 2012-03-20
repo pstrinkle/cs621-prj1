@@ -13,10 +13,10 @@ import twitter
 import urllib2 # for the exception
 import httplib # for the exception
 
-consumer_key = 'IoOS13WALONePQbVoq9ePQ'
-consumer_secret = 'zjf2HsUqe6FHdwy81lX93BOuk8NFT9jGdBZTprAhY'
-access_token_key = '187244615-s3gCVJNg9TZJPlIEW7yFKHYPXi2xf3lpQnv9uDNV'
-access_token_secret = 'Hig5HYmDqv7j7cM4LxZExpXKcKfWs1Xb5sWRU24Bg5E'
+CONSUMER_KEY        = 'IoOS13WALONePQbVoq9ePQ'
+CONSUMER_SECRET     = 'zjf2HsUqe6FHdwy81lX93BOuk8NFT9jGdBZTprAhY'
+ACCESS_TOKEN_KEY    = '187244615-s3gCVJNg9TZJPlIEW7yFKHYPXi2xf3lpQnv9uDNV'
+ACCESS_TOKEN_SECRET = 'Hig5HYmDqv7j7cM4LxZExpXKcKfWs1Xb5sWRU24Bg5E'
 
 class RequestTuple:
     def __init__(self, user_id, since_id=0, max_id=0):
@@ -30,9 +30,10 @@ class RequestTuple:
 
 def getRateStatus(api):
     """
-    Given an api object, call GetRateLimitStatus() and if it throws a "Capacity Error" 
-    continue calling until it doesn't, with a 2 second pause.  Any other exceptions are
-    passed up.
+    Given an api object, call GetRateLimitStatus() and if it throws a 
+    "Capacity Error" continue calling until it doesn't, with a 2 second pause.  
+    
+    Any other exceptions are passed up.
     
     Input: api := Twitter.api object
     
