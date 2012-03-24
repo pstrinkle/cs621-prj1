@@ -25,6 +25,7 @@ import os
 import sys
 import sqlite3
 import calendar
+from ConfigParser import SafeConfigParser
 
 sys.path.append(os.path.join("..", "tweetlib"))
 import tweetclean
@@ -32,23 +33,6 @@ import tweetdate
 
 sys.path.append(os.path.join("..", "modellib"))
 import vectorspace
-
-class FrameSet():
-    """Useful container abstraction."""
-    
-    def __init__(self):
-        self.dictionary = []
-        self.frames = {}
-    
-    def add_frame(self, frm, day_val):
-        """Add a frame."""
-        
-        self.frames[day_val] = frm
-    
-    def dump_to_folder(self, output_folder):
-        """Dump each frame to a different file."""
-        
-        return None
 
 class Frame():
     """This holds the data for a given day for a set of users."""
@@ -64,13 +48,13 @@ class Frame():
         data."""
         
         self.data[user_id] = data
-    
-    def calculate_tfidf(self, stopwords):
+
+    def calculate_tfidf(self, stopwords, rm_singletons=False):
         """Calculate the tf-idf value for the documents involved."""
         
         # does not remove singletons.
         self.doc_tfidf, self.doc_freq = \
-            vectorspace.build_doc_tfIdf(self.data, stopwords, False)
+            vectorspace.build_doc_tfIdf(self.data, stopwords, rm_singletons)
     
     def get_tfidf(self):
         """Run calculate_tfidf first or this'll return None."""
@@ -78,10 +62,10 @@ class Frame():
         return self.doc_tfidf
     
     def top_terms(self, count):
-        """Get the top terms from all the columns within a frame."""
+        """Get the top terms from all the columns within a frame.
         
-        # XXX: It may make more sense to write one that get the top terms 
-        # overall.
+        len(terms) is at most the number of users for a given frame X count.
+        """
         
         terms = []
 
@@ -94,7 +78,10 @@ class Frame():
         return terms
 
     def top_terms_overall(self, count):
-        """Get the top terms overall for the entire set of columns."""
+        """Get the top terms overall for the entire set of columns.
+        
+        len(terms) is actually count.
+        """
         
         # Interestingly, many columns can have similar top terms -- with 
         # different positions in the list...  So, this will have to be taken 
@@ -171,10 +158,8 @@ def find_full_users(users, year, month):
 
     num_days = calendar.monthrange(year, int(tweetdate.MONTHS[month]))[1]
     
-    # users is a dictionary of FrameUsers key'd on their user id.
-    full_users = [user for user in users if len(users[user]) == num_days]
-    
-    return full_users
+    # users is a dictionary of FrameUsers key'd on their user id.    
+    return [user for user in users if len(users[user]) == num_days]
 
 def build_full_frame(user_list, user_data, day):
     """Build tf-idf for that day."""
@@ -230,31 +215,37 @@ def data_pull(database_file, query):
 
 def usage():
     """Standard usage message."""
-    
-    print "%s <database_file> <year_value> <month_str> <stop_file> <output>" % \
-        sys.argv[0]
+
+    print "%s <config_file>" % sys.argv[0]
     print "\tyear_value: like 2011, 2010"
     print "\tmonth_str: like Jan, Feb"
+    print "\tcount: how many top terms to pull"
 
 def main():
     """Main."""
 
-    if len(sys.argv) != 6:
+    if len(sys.argv) != 2:
         usage()
         sys.exit(-1)
 
     # -------------------------------------------------------------------------
     # Parse the parameters.
-    database_file = sys.argv[1]
-    year_val = int(sys.argv[2])
-    month_str = sys.argv[3]
-    stop_file = sys.argv[4]
-    output_folder = sys.argv[5]
+    config = SafeConfigParser()
+    config.read(sys.argv[1])
+
+    database_file = config.get('input', 'database_file')
+    year_val = int(config.get('input', 'year'))
+    month_str = config.get('input', 'month')
+    stop_file = config.get('input', 'stopwords')
+    output_folder = config.get('input', 'output_folder')
+    request_value = int(config.get('input', 'request_value'))
+    remove_singletons = config.getboolean('input', 'remove_singletons')
 
     if month_str not in tweetdate.MONTHS:
         usage()
         sys.exit(-2)
 
+    # -------------------------------------------------------------------------
     # Pull stop words
     stopwords = tweetclean.import_stopwords(stop_file)
 
@@ -267,11 +258,19 @@ parameters  :
   month     : %s
   output    : %s
   stop      : %s
+  count     : %d
+  remove    : %s
 -------------------------------------------------------------------
 """
 
     print kickoff % \
-        (database_file, year_val, month_str, output_folder, stop_file) 
+        (database_file, 
+         year_val,
+         month_str,
+         output_folder,
+         stop_file,
+         request_value,
+         remove_singletons) 
 
     # this won't return the 3 columns we care about.
     query_prefetch = \
@@ -298,22 +297,23 @@ where created like '%%%s%%%d%%';"""
     # of days.
     frames = {}
     overall_terms = []
-    
+
     num_days = \
         calendar.monthrange(year_val, int(tweetdate.MONTHS[month_str]))[1]
-    
+
     print "number day: %d" % num_days
-    
+
     for day in range(1, num_days + 1):
         frames[day] = build_full_frame(full_users, user_data, day)
-        frames[day].calculate_tfidf(stopwords)
-        
-        new_terms = frames[day].top_terms_overall(250)
-        
+        frames[day].calculate_tfidf(stopwords, remove_singletons)
+
+        new_terms = frames[day].top_terms_overall(request_value)
+
         overall_terms.extend([term for term in new_terms \
                                 if term not in overall_terms])
 
     print "total overall: %d" % len(overall_terms)
+    print "---- terms ----\n%s\n---- end terms ----" % str(overall_terms)
     # len(overall_terms) should be at most 250 * num_users * num_days -- if 
     # there is no overlap of high value terms over the period of days between 
     # the users.  If there is literally no overlap then each user will have 

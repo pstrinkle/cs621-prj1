@@ -2,10 +2,12 @@
 
 __author__ = 'tri1@umbc.edu'
 
-# Patrick Trinkle
+##
+# @author: Patrick Trinkle
 # Summer 2011
 #
-# Given a path to a bunch of data files, plot them into a big eps file.
+# @summary: Given a path to a bunch of data files, plot them into a big eps 
+# file.
 #
 
 import os
