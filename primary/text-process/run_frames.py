@@ -30,16 +30,16 @@ def main():
     
     input_folder = sys.argv[1]
     output_file = sys.argv[2]
-
-    # -------------------------------------------------------------------------
-    # Done.
     
     output = ""
-    
+
+    # -------------------------------------------------------------------------
+    # Build list of config files.
+
     configs = [cfg for cfg in os.listdir(input_folder) if cfg.endswith('.cfg')]
-    
-    # Need to have it glob the config files.
-    
+
+    # -------------------------------------------------------------------------
+    # Launch framemaker for each configuration file.
     for config in configs:
         config_file = os.path.join(input_folder, config)
         process = \
@@ -49,6 +49,9 @@ def main():
                              stdout=subprocess.PIPE)
 
         output += process.communicate()[0]
+
+    # -------------------------------------------------------------------------
+    # Done.
 
     with open(output_file, 'w') as fout:
         fout.write(output)
