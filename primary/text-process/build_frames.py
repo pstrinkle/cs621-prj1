@@ -245,6 +245,11 @@ def main():
         usage()
         sys.exit(-2)
 
+    try:
+        os.stat(output_folder)
+    except OSError:
+        os.mkdir(output_folder)
+
     # -------------------------------------------------------------------------
     # Pull stop words
     stopwords = tweetclean.import_stopwords(stop_file)

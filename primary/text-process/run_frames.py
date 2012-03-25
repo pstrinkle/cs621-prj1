@@ -19,33 +19,32 @@ import tweetdate
 def usage():
     """Standard usage message."""
 
-    print "%s <output_file>" % sys.argv[0]
-
-    return
+    print "%s <input_folder> <output_file>" % sys.argv[0]
 
 def main():
     """Main."""
 
-    if len(sys.argv) != 2:
+    if len(sys.argv) != 3:
         usage()
         sys.exit(-1)
     
-    output_file = sys.argv[1]
+    input_folder = sys.argv[1]
+    output_file = sys.argv[2]
 
     # -------------------------------------------------------------------------
     # Done.
     
     output = ""
     
-    configs = \
-        ('2011_jul_100_rm.cfg', '2011_jul_150_rm.cfg', '2011_jul_250_rm.cfg')
+    configs = [cfg for cfg in os.listdir(input_folder) if cfg.endswith('.cfg')]
     
     # Need to have it glob the config files.
     
     for config in configs:
+        config_file = os.path.join(input_folder, config)
         process = \
             subprocess.Popen(
-                             ['python', 'build_frames.py', config],
+                             ['python', 'build_frames.py', config_file],
                              shell=False,
                              stdout=subprocess.PIPE)
 
