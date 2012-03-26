@@ -15,6 +15,7 @@ class Expense:
     """
     Container for holding an expense.
     """
+
     def __init__(self, details):
         self.name = details[0].replace("#", "\#").replace("&", "\&").strip()
         self.date = details[1].strip()
@@ -109,11 +110,6 @@ This invoice covers the following expenses. In this table, ``shared'' expenses a
 
     # -------------------------------------------------------------------------
     
-    expenses = []
-
-    for entry in entries:
-        expenses.append(Expense(entry.strip().split(",")))
-    
     shared = 12
     house = 50
     bills = 40
@@ -124,10 +120,12 @@ This invoice covers the following expenses. In this table, ``shared'' expenses a
     output += table_top
     
     total = 0.0
-    
-    for exp in expenses:
+
+    for entry in entries:
+        exp = Expense(entry.strip().split(","))
+
         output += item % exp
-        total += exp.get_value()
+        total += exp.get_value()    
     
     output += bottom % total
     
