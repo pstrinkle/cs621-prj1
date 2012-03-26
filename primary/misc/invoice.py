@@ -2,10 +2,11 @@
 
 __author__ = 'tri1@umbc.edu'
 
-# Patrick Trinkle
+##
+# @author: Patrick Trinkle
 # Spring 2012
 #
-# Given a CSV, it'll build a .tex file for the invoice.
+# @summary: Given a CSV, it'll build a .tex file for the invoice.
 #
 
 import sys
@@ -15,17 +16,21 @@ class Expense:
     Container for holding an expense.
     """
     def __init__(self, details):
-        self.name = details[0].replace("#", "\#")
-        self.date = details[1]
-        self.cat = details[2]
+        self.name = details[0].replace("#", "\#").replace("&", "\&").strip()
+        self.date = details[1].strip()
+        self.cat = details[2].strip()
         self.total = details[3].replace("$", "").strip()
         self.effective = details[4].replace("$", "").strip()
     
     def __str__(self):
-        return "%s & %s & %s &  %s & %s" % (self.name, self.date, self.cat, self.total, self.effective)
+        return "%s & %s & %s &  %s & %s" % \
+            (self.name, self.date, self.cat, self.total, self.effective)
+
+    def get_value(self):
+        return float(self.effective)
 
 def usage():
-    sys.stderr.write("usage: %s <input.csv> number <output.tex>\n" % sys.argv[0])
+    sys.stderr.write("usage: %s <in.csv> number <out.tex>\n" % sys.argv[0])
 
 def main():
 
@@ -37,7 +42,7 @@ def main():
     num_val = int(sys.argv[2])
     output_file = sys.argv[3]
     
-    # ---------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     
     # (num_val)
     header = \
@@ -97,13 +102,12 @@ This invoice covers the following expenses. In this table, ``shared'' expenses a
 \\end{document}
     """
 
-    # ---------------------------------------------------------------------------
-    
+    # -------------------------------------------------------------------------
     # Pull invoice entries from csv file.
     with open(input_file, "r") as f:
         entries = f.readlines()
 
-    # ---------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     
     expenses = []
 
@@ -123,7 +127,7 @@ This invoice covers the following expenses. In this table, ``shared'' expenses a
     
     for exp in expenses:
         output += item % exp
-        total += float(exp.effective)
+        total += exp.get_value()
     
     output += bottom % total
     
