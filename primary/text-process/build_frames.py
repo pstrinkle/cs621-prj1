@@ -213,13 +213,49 @@ def data_pull(database_file, query):
 
     return user_data
 
+def text_create(text_name, dictionary, data):
+    """Dump the matrix as a csv file."""
+    with open(text_name + '.txt', "w") as fout:
+        fout.write(vectorspace.dump_raw_matrix(dictionary, data))
+        fout.write("\n")
+
+def image_create(file_name, dictionary, data):
+    """Dump the matrix as a grey-scale bmp file."""
+    from PIL import Image
+    import math
+    
+    width = len(data)
+    height = len(dictionary)
+    
+    BLACK = 0
+    
+    # for greyscale.
+    img = Image.new('L', (width, height))
+    pix = img.load()
+    
+    # This code is identical to the method used to create the text file.
+    # Except because it's building bitmaps, I think it will be flipped. lol.
+    sorted_docs = sorted(data)  
+    sorted_terms = sorted(dictionary)
+  
+    # Print Term Rows
+    # with L the pixel value is from 0 - 255 (black -> white)
+    for i in range(sorted_terms):
+        for j in range(sorted_docs):
+            if sorted_terms[i] in sorted_docs[j]:
+                if sorted_docs[j][i] >= 2:
+                    sys.stderr.write("bigger value than anticipated\n")
+                else:
+                    pix[i, j] = math.ceil(128 * sorted_docs[j][i])
+            else:
+                pix[i, j] = BLACK
+    
+    img.save(file_name + '.png')
+
 def usage():
     """Standard usage message."""
 
     print "%s <config_file>" % sys.argv[0]
-    print "\tyear_value: like 2011, 2010"
-    print "\tmonth_str: like Jan, Feb"
-    print "\tcount: how many top terms to pull"
 
 def main():
     """Main."""
@@ -327,12 +363,9 @@ where created like '%%%s%%%d%%';"""
     # -------------------------------------------------------------------------
     # Dump the matrix.
     for day in frames: # sort if for one file.
-        with open(os.path.join(output_folder, "%d.txt" % day), "w") as fout:
-            fout.write(
-                       vectorspace.dump_raw_matrix(
-                                                   overall_terms,
-                                                   frames[day].get_tfidf()))
-            fout.write("\n")
+        fname = os.path.join(output_folder, "%d" % day)
+        text_create(fname, overall_terms, frames[day].get_tfidf())
+        image_create(fname, overall_terms, frames[day].get_tfidf())
 
     # -------------------------------------------------------------------------
     # Done.
