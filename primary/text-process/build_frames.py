@@ -215,17 +215,19 @@ def data_pull(database_file, query):
 
 def text_create(text_name, dictionary, data):
     """Dump the matrix as a csv file."""
+
     with open(text_name + '.txt', "w") as fout:
         fout.write(vectorspace.dump_raw_matrix(dictionary, data))
         fout.write("\n")
 
 def image_create(file_name, dictionary, data):
     """Dump the matrix as a grey-scale bmp file."""
+
     from PIL import Image
     import math
     
-    width = len(data)
-    height = len(dictionary)
+    width = len(data) # Each column is a document within data
+    height = len(dictionary) # Each row is a term.
     
     black = 0
     
@@ -242,14 +244,13 @@ def image_create(file_name, dictionary, data):
     # with L the pixel value is from 0 - 255 (black -> white)
     for i in range(len(sorted_terms)):
         for j in range(len(sorted_docs)):
+            # for each row, for each column
             if sorted_terms[i] in data[sorted_docs[j]]:
-                if data[sorted_docs[j]][sorted_terms[i]] >= 2:
-                    sys.stderr.write("bigger value than anticipated\n")
-                else:
-                    pix[i, j] = \
-                        math.ceil(128 * data[sorted_docs[j]][sorted_terms[i]])
+               val = math.log10(data[sorted_docs[j]][sorted_terms[i]] + 1)
+               val %= 2
+               pix[j, i] = math.ceil(128 * val)
             else:
-                pix[i, j] = black
+                pix[j, i] = black # i is row, j is column.
     
     img.save(file_name + '.png')
 
@@ -342,8 +343,6 @@ where created like '%%%s%%%d%%';"""
 
     num_days = \
         calendar.monthrange(year_val, int(tweetdate.MONTHS[month_str]))[1]
-
-    print "number day: %d" % num_days
 
     for day in range(1, num_days + 1):
         frames[day] = build_full_frame(full_users, user_data, day)
