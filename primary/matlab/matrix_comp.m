@@ -1,19 +1,19 @@
 % Matrix completion demo
 
 %rng(234923);    % for reproducible results
-N   = 16;       % the matrix is N x N
-r   = 2;        % the rank of the matrix
-df  = 2*N*r - r^2;  % degrees of freedom of a N x N rank r matrix
-nSamples    = 3*df; % number of observed entries
+X            = x1
+[rows, cols] = size(X)
+N            = rows * cols
+r            = 2;        % the rank of the matrix
+nSamples     = N / 2; % number of observed entries
 
 % For this demo, we will use a matrix with integer entries
 % because it will make displaying the matrix easier.
-iMax    = 5;
-X       = randi(iMax,N,r)*randi(iMax,r,N); % Our target matrix
+iMax         = 5;
 
 %Let “Omega” be the set of observed entries
 
-rPerm   = randperm(N^2); % use "randsample" if you have the stats toolbox
+rPerm   = randperm(N); % use "randsample" if you have the stats toolbox
 omega   = sort( rPerm(1:nSamples) );
 
 % Show the observed data
@@ -28,7 +28,7 @@ mu           = .001;        % smoothing parameter
 
 % The solver runs in seconds
 tic
-Xk = solver_sNuclearBP( {N,N,omega}, observations, mu );
+Xk = solver_sNuclearBP( {row,col,omega}, observations, mu );
 toc
 
 % Show the recovered data

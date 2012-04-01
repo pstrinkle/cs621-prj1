@@ -227,7 +227,7 @@ def image_create(file_name, dictionary, data):
     width = len(data)
     height = len(dictionary)
     
-    BLACK = 0
+    black = 0
     
     # for greyscale.
     img = Image.new('L', (width, height))
@@ -235,20 +235,21 @@ def image_create(file_name, dictionary, data):
     
     # This code is identical to the method used to create the text file.
     # Except because it's building bitmaps, I think it will be flipped. lol.
-    sorted_docs = sorted(data)  
+    sorted_docs = sorted(data.keys())  
     sorted_terms = sorted(dictionary)
   
     # Print Term Rows
     # with L the pixel value is from 0 - 255 (black -> white)
-    for i in range(sorted_terms):
-        for j in range(sorted_docs):
-            if sorted_terms[i] in sorted_docs[j]:
-                if sorted_docs[j][i] >= 2:
+    for i in range(len(sorted_terms)):
+        for j in range(len(sorted_docs)):
+            if sorted_terms[i] in data[sorted_docs[j]]:
+                if data[sorted_docs[j]][sorted_terms[i]] >= 2:
                     sys.stderr.write("bigger value than anticipated\n")
                 else:
-                    pix[i, j] = math.ceil(128 * sorted_docs[j][i])
+                    pix[i, j] = \
+                        math.ceil(128 * data[sorted_docs[j]][sorted_terms[i]])
             else:
-                pix[i, j] = BLACK
+                pix[i, j] = black
     
     img.save(file_name + '.png')
 
