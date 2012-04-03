@@ -2,10 +2,11 @@
 
 __author__ = 'tri1@umbc.edu'
 
-# Patrick Trinkle
+##
+# @author: Patrick Trinkle
 # Summer 2011
 #
-# This handles the geo-graphic model stuff.
+# @summary: This handles the geo-graphic model stuff.
 #
 # TODO: unfinished.
 # Currently somewhat stupidly handled.
@@ -25,13 +26,15 @@ class LocationBundle:
     This should eventually take the geo-coordinate and obtain the timezone and 
     adjust the tweet time appropriately.
   
-    days['dayofweek'] has a dictionary of timestamps (YYYYMMDDHH) and coordinates (coords in a list)
+    days['dayofweek'] has a dictionary of timestamps (YYYYMMDDHH) and 
+    coordinates (coords in a list)
   
     So we can identify where they are on Mondays, over a period of time, etc. 
     """
   
     weekDays = ('Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat')
-    yearMonths = ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
+    yearMonths = ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
   
     def __init__(self):
         """
@@ -102,7 +105,8 @@ class LocationBundle:
 
     def dump_weekdayhourly3d(self):
         """
-        Each data set in the output file represents a line in 3d, where its position on the z axis is the day of the week.
+        Each data set in the output file represents a line in 3d, where its 
+        position on the z axis is the day of the week.
         """
     
         out = "# hour count (each set is a day, sun, mon, tue, ...)\n"
@@ -117,7 +121,8 @@ class LocationBundle:
                          18:0, 19:0, 20:0, 21:0, 22:0, 23:0}
       
             # for each event within the weekday
-            # events are int's YYYYMMDDHH, self.days[day][event] is an array of latlongs.
+            # events are int's YYYYMMDDHH, self.days[day][event] is an array of
+            # latlongs.
             for event in self.days[day].keys():
                 m = re.search("\d{4}\d{2}\d{2}(\d{2})", str(event))
                 if m:
@@ -129,8 +134,8 @@ class LocationBundle:
                         data[day][hour] = len(self.days[day][event])
 
         # build output string
-        # I can actually do this while building up data{}{}..., but let's get it working before
-        # optimizing.
+        # I can actually do this while building up data{}{}..., but let's get 
+        # it working before optimizing.
         out += "# x y z"
         out += "# hour dayindx count\n"
         for i in range(len(self.weekDays)):
@@ -158,7 +163,8 @@ class LocationBundle:
                          18:0, 19:0, 20:0, 21:0, 22:0, 23:0}
       
             # for each event within the weekday
-            # events are int's YYYYMMDDHH, self.days[day][event] is an array of latlongs.
+            # events are int's YYYYMMDDHH, self.days[day][event] is an array of
+            # latlongs.
             for event in self.days[day].keys():
                 m = re.search("\d{4}\d{2}\d{2}(\d{2})", str(event))
                 if m:
@@ -180,7 +186,8 @@ class LocationBundle:
   
     def dump_latlong_count(self, normalize=0.0):
         """
-        Dumps the Long,Lat,Count for using with gnuplot.  This doesn't yet filter by year or month.
+        Dumps the Long,Lat,Count for using with gnuplot.  This doesn't yet 
+        filter by year or month.
     
         Input: normalize, added to both latitude and longitude.
         Output := a string. : )
@@ -202,7 +209,8 @@ class LocationBundle:
 
     def by_year_data(self, year=0):
         """
-        Attempts to dump the time and place information, well just time and occurrence count.
+        Attempts to dump the time and place information, well just time and 
+        occurrence count.
     
         --- Okay, I'm not certain about how useful this will be.
         """
@@ -244,7 +252,8 @@ class LocationBundle:
         
                 dist = g.calculate_distance(self.centroid, [lat, longitude])
         
-                if sort_output == True: # the distances should be unique, because the points are...
+                # the distances should be unique, because the points are...
+                if sort_output == True:
                     data["%f" % dist] = cnt
                 else:
                     out += "%f %d\n" % (dist, cnt)
@@ -259,15 +268,18 @@ class LocationBundle:
         return out
   
     def average_distance(self):
-        """Calculate the average distance between all pairs of coordinates (where i != j) --> (km, mi)"""
+        """Calculate the average distance between all pairs of coordinates 
+        (where i != j) --> (km, mi)"""
         total = 0.0
         count = 0
         llocals = []
     
         # for each weekday
         for day in self.days:
-            for timestamp in self.days[day]: # for each timestamp for that day
-                for local in self.days[day][timestamp]: # for each location for that timestamp
+            # for each timestamp for that day
+            for timestamp in self.days[day]:
+                # for each location for that timestamp
+                for local in self.days[day][timestamp]:
                     llocals.append(local)
     
         # don't need to compute all pairs. only the upper triangle.
@@ -285,14 +297,17 @@ class LocationBundle:
         return (avg, g.km_to_mi(avg))
   
     def maximum_distance(self):
-        """Calculate the maximum distance between all pairs of coordinates --> (km, mi)"""
+        """Calculate the maximum distance between all pairs of coordinates 
+        --> (km, mi)"""
         maxVal = 0.0
         llocals = []
     
         # for each weekday
         for day in self.days:
-            for timestamp in self.days[day]: # for each timestamp for that day
-                for local in self.days[day][timestamp]: # for each location for that timestamp
+            # for each timestamp for that day
+            for timestamp in self.days[day]:
+                # for each location for that timestamp
+                for local in self.days[day][timestamp]:
                     llocals.append(local)
     
         for i in xrange(0, len(llocals)):
@@ -302,7 +317,8 @@ class LocationBundle:
                     maxVal = dist
     
         #print llocals
-        #print "maximum distance: %f.2km (%.2fmi)" % (maxVal, g.km_to_mi(maxVal))
+        #print "maximum distance: %f.2km (%.2fmi)" \
+        #    % (maxVal, g.km_to_mi(maxVal))
     
         return (maxVal, g.km_to_mi(maxVal))
 
@@ -332,8 +348,8 @@ class LocationBundle:
         """
         Return an array of centroids
     
-        TODO: Implement this.  Thing is, it really should take a parameter on how close two things have to be
-        to draw a line.
+        TODO: Implement this.  Thing is, it really should take a parameter on 
+        how close two things have to be to draw a line.
         """
     
         return None

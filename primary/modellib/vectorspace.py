@@ -31,12 +31,12 @@ def top_terms_tuples(vector, num):
                            reverse=True)
 
     # count to index 
-    top_terms = []
+    top = []
 
     for i in xrange(0, min(num, len(sorted_tokens))):
-        top_terms.append(sorted_tokens[i])
+        top.append(sorted_tokens[i])
 
-    return top_terms
+    return top
 
 def top_terms(vector, num):
     """
@@ -110,8 +110,11 @@ def calculate_tfidf(doc_length, doc_termfreq, invdoc_freq):
 
     for doc in doc_termfreq.keys():
         doc_tfidf[doc] = {} # Prepare the dictionary for that document.
-        for w in doc_termfreq[doc]:
-            doc_tfidf[doc][w] = (float(doc_termfreq[doc][w]) / doc_length[doc]) * invdoc_freq[w]
+        
+        for word in doc_termfreq[doc]:
+            doc_tfidf[doc][word] = \
+                (float(doc_termfreq[doc][word]) / doc_length[doc]) \
+                    * invdoc_freq[word]
 
     return doc_tfidf
 
@@ -148,10 +151,11 @@ def dump_raw_matrix(term_dict, tfidf_dict):
     sorted_terms = sorted(term_dict)
   
     # Print Term Rows
-    for t in sorted_terms:
-        for d in sorted_docs:
-            if t in tfidf_dict[d]:
-                output += str(tfidf_dict[d][t]) + ","
+    for term in sorted_terms:
+        for doc in sorted_docs:
+
+            if term in tfidf_dict[doc]:
+                output += str(tfidf_dict[doc][term]) + ","
             else:
                 output += str(0.0) + ","
         output += "\n"
@@ -181,23 +185,23 @@ def dump_matrix(term_dict, tfidf_dict):
 
     # Print Header Row
     output += "terms,"
-    for d in sorted_docs:
-        output += str(d) + ","
+    output += ",".join([str(doc) for doc in sorted_docs])
     output += "\n"
   
     # Print Term Rows
-    for t in sorted_terms:
-        output += t + ","
-        for d in sorted_docs:
-            if t in tfidf_dict[d]:
-                output += str(tfidf_dict[d][t]) + ","
+    for term in sorted_terms:
+        output += term + ","
+        for doc in sorted_docs:
+            
+            if term in tfidf_dict[doc]:
+                output += str(tfidf_dict[doc][term]) + ","
             else:
                 output += str(0.0) + ","
         output += "\n"
 
     return output
 
-def build_doc_tfIdf(documents, stopwords, remove_singletons=False):
+def build_doc_tfidf(documents, stopwords, remove_singletons=False):
     """
     Note: This doesn't remove singletons from the dictionary of terms, unless 
     you say otherwise.  With tweets there is certain value in not removing 
@@ -225,8 +229,10 @@ def build_doc_tfIdf(documents, stopwords, remove_singletons=False):
         # Calculate Term Frequencies for this doc_id/document.
         # let's make a short list of the words we'll accept.
 
-        # only words that are greater than one letter and not in the stopword list.
-        pruned = [w for w in documents[doc_id].split(' ') if w not in stopwords and len(w) > 1]
+        # only words that are greater than one letter and not in the stopword 
+        # list.
+        pruned = [w for w in documents[doc_id].split(' ') \
+                    if w not in stopwords and len(w) > 1]
 
         if len(pruned) < 2:
             continue
@@ -238,27 +244,28 @@ def build_doc_tfIdf(documents, stopwords, remove_singletons=False):
         except KeyError:
             doc_length[doc_id] = len(pruned)
 
-        for w in pruned:
+        for word in pruned:
             try:
-                doc_termfreq[doc_id][w] += 1
+                doc_termfreq[doc_id][word] += 1
             except KeyError:
-                doc_termfreq[doc_id][w] = 1
+                doc_termfreq[doc_id][word] = 1
 
         # Contribute to the document frequencies.
-        for w in doc_termfreq[doc_id]:
+        for word in doc_termfreq[doc_id]:
             try:
-                doc_freq[w] += 1
+                doc_freq[word] += 1
             except KeyError:
-                doc_freq[w] = 1
+                doc_freq[word] = 1
 
     if remove_singletons:
-        singles = [w for w in doc_freq.keys() if doc_freq[w] == 1]
+        singles = [word for word in doc_freq.keys() if doc_freq[word] == 1]
         # could use map() function to delete terms from singles
         for doc_id in doc_termfreq:
-            for s in singles:
+            for single in singles:
                 try:
-                    del doc_termfreq[doc_id][s]
-                    doc_length[doc_id] -= 1 # only subtracts if the deletion worked
+                    del doc_termfreq[doc_id][single]
+                    # only subtracts if the deletion worked
+                    doc_length[doc_id] -= 1
                 except KeyError:
                     pass
 
@@ -278,12 +285,3 @@ def build_doc_tfIdf(documents, stopwords, remove_singletons=False):
     #print "tf-idf per document: %s" % doc_tfidf
 
     return doc_tfidf, doc_freq
-
-class DocumentStore:
-    """
-    In the future it may become useful to store information about the documents.
-  
-    So that the model an be updated.
-    """
-    def __init__(self, name):
-        self.name = name

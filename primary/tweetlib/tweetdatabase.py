@@ -2,10 +2,11 @@
 
 __author__ = 'tri1@umbc.edu'
 
-# Patrick Trinkle
+##
+# @author: Patrick Trinkle
 # Summer 2011
 #
-# This handles building XML data for me.
+# @summary: This handles building XML data for me.
 #
 #c.execute('''create table users (id integer primary key, screen_name text, name text, lang text, location text, friends text, private integer)''')
 #c.execute('''create table tweets (id integer primary key, owner integer, created text, reply_to_user integer, reply_to_tweet integer, geo text, place_name text, place_box text, source text, contents text)''')

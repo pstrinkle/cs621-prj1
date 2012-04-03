@@ -286,8 +286,8 @@ def find_matrix_max(matrix):
         except ValueError:
             continue
     
-        # Maybe I should store the max value with the array, and then always store
-        # the previous largest, and when i insert or delete...
+        # Maybe I should store the max value with the array, and then always 
+        # store the previous largest, and when i insert or delete...
     
         if kvp[1] > max_val:
             max_val = kvp[1]
@@ -357,7 +357,8 @@ def cluster_documents(documents, threshold_str="std"):
     average_sim = find_avg(centroids, True, initial_similarities)
   
     if threshold_str == "std":
-        threshold = average_sim + find_std(centroids, True, initial_similarities)
+        threshold = \
+            average_sim + find_std(centroids, True, initial_similarities)
     elif threshold_str == "avg":
         threshold = average_sim
     else:

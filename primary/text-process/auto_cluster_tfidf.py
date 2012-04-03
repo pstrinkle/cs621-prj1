@@ -63,7 +63,7 @@ def thread_main(database_file, output_folder, users, stopwords, start, cnt):
 
         curr_cnt = len(users_tweets)
 
-        doc_tfidf, ignore = vectorspace.build_doc_tfIdf(users_tweets, stopwords)
+        doc_tfidf, ignore = vectorspace.build_doc_tfidf(users_tweets, stopwords)
 
         # -------------------------------------------------------------------------
         centroids = centroid.cluster_documents(doc_tfidf)

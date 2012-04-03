@@ -104,7 +104,7 @@ parameters  :
         sys.stderr.write("Insufficient data for tf-idf, only 1 document\n")
         sys.exit(-3)
 
-    tfidf, dictionary = vectorspace.build_doc_tfIdf(docperuser, stopwords, True)
+    tfidf, dictionary = vectorspace.build_doc_tfidf(docperuser, stopwords, True)
 
     # Maybe I should determine the top tf-idf values per document and then make
     # that my dictionary of terms. =)

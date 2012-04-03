@@ -57,7 +57,7 @@ def thread_main(database_file, output_folder, users, users_tweets, stopwords, st
 
         curr_cnt = len(users_tweets[user_id])
 
-        doc_tfidf, ignore = vectorspace.build_doc_tfIdf(users_tweets[user_id], stopwords)
+        doc_tfidf, ignore = vectorspace.build_doc_tfidf(users_tweets[user_id], stopwords)
 
         # -------------------------------------------------------------------------
         # Build Centroid List (this step is not actually slow.)

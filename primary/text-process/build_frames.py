@@ -23,8 +23,11 @@ __author__ = 'tri1@umbc.edu'
 
 import os
 import sys
+import math
 import sqlite3
 import calendar
+import operator
+from PIL import Image
 from ConfigParser import SafeConfigParser
 
 sys.path.append(os.path.join("..", "tweetlib"))
@@ -42,6 +45,9 @@ class Frame():
         self.data = {}
         self.doc_tfidf = None
         self.doc_freq = None
+        self.maximum = 0.0
+        self.minimum = float(2**32) # amazingly big value.
+        self.val_range = 0.0
     
     def add_data(self, user_id, data):
         """Add data to this frame for a user given an id value and their 
@@ -54,7 +60,7 @@ class Frame():
         
         # does not remove singletons.
         self.doc_tfidf, self.doc_freq = \
-            vectorspace.build_doc_tfIdf(self.data, stopwords, rm_singletons)
+            vectorspace.build_doc_tfidf(self.data, stopwords, rm_singletons)
     
     def get_tfidf(self):
         """Run calculate_tfidf first or this'll return None."""
@@ -76,6 +82,10 @@ class Frame():
             terms.extend([term for term in new_terms if term not in terms])
 
         return terms
+
+    def get_range(self):
+        """Get the range from the minimum to the maximum value."""
+        return self.val_range
 
     def top_terms_overall(self, count):
         """Get the top terms overall for the entire set of columns.
@@ -101,6 +111,15 @@ class Frame():
                     terms[kvp[0]] = max(kvp[1], terms[kvp[0]])
                 else:
                     terms[kvp[0]] = kvp[1]
+
+        maxkvp = max(terms.iteritems(), key=operator.itemgetter(1))
+        minkvp = min(terms.iteritems(), key=operator.itemgetter(1))
+
+        # these are going to be used to determine the mapping into 256 values
+        # for greyscale, or 256**3 for rgb.
+        self.maximum = maxkvp[1]
+        self.minimum = minkvp[1]
+        self.val_range = self.maximum - self.minimum
 
         # terms is effectively a document now, so we can use this.
         return vectorspace.top_terms(terms, count)
@@ -220,38 +239,47 @@ def text_create(text_name, dictionary, data):
         fout.write(vectorspace.dump_raw_matrix(dictionary, data))
         fout.write("\n")
 
-def image_create(file_name, dictionary, data):
+def image_create(file_name, dictionary, data, val_range):
     """Dump the matrix as a grey-scale bmp file."""
 
-    from PIL import Image
-    import math
-    
     width = len(data) # Each column is a document within data
     height = len(dictionary) # Each row is a term.
-    
-    black = 0
-    
+
     # for greyscale.
     img = Image.new('L', (width, height))
     pix = img.load()
-    
+
     # This code is identical to the method used to create the text file.
     # Except because it's building bitmaps, I think it will be flipped. lol.
     sorted_docs = sorted(data.keys())  
     sorted_terms = sorted(dictionary)
-  
+    
+    # val_range value is how far the minimum value and maximum value are apart 
+    # from each other.
+    # so val_range / color_range gives us a way of representing the values with 
+    # shading. --> divisible.
+    #
+    # math.floor(val / divisible) -> shade.
+    #
+    # the lower the value, the closer to black -- so this will create images
+    # that are black with light spots.
+    shade_range = float(val_range / 256)
+    
+    if shade_range == 0:
+        sys.exit(-3)
+
     # Print Term Rows
     # with L the pixel value is from 0 - 255 (black -> white)
     for i in range(len(sorted_terms)):
         for j in range(len(sorted_docs)):
             # for each row, for each column
             if sorted_terms[i] in data[sorted_docs[j]]:
-               val = math.log10(data[sorted_docs[j]][sorted_terms[i]] + 1)
-               val %= 2
-               pix[j, i] = math.ceil(128 * val)
+                val = data[sorted_docs[j]][sorted_terms[i]]
+                
+                pix[j, i] = math.floor(val / shade_range)
             else:
-                pix[j, i] = black # i is row, j is column.
-    
+                pix[j, i] = 0 # (blakc) i is row, j is column.
+
     img.save(file_name + '.png')
 
 def usage():
@@ -278,6 +306,8 @@ def main():
     output_folder = config.get('input', 'output_folder')
     request_value = int(config.get('input', 'request_value'))
     remove_singletons = config.getboolean('input', 'remove_singletons')
+    build_images = config.getboolean('input', 'build_images')
+    build_csv_files = config.getboolean('input', 'build_csv_files')
 
     if month_str not in tweetdate.MONTHS:
         usage()
@@ -352,6 +382,8 @@ where created like '%%%s%%%d%%';"""
 
         overall_terms.extend([term for term in new_terms \
                                 if term not in overall_terms])
+        
+        #break # just do first day.
 
     print "total overall: %d" % len(overall_terms)
     print "---- terms ----\n%s\n---- end terms ----" % str(overall_terms)
@@ -364,8 +396,15 @@ where created like '%%%s%%%d%%';"""
     # Dump the matrix.
     for day in frames: # sort if for one file.
         fname = os.path.join(output_folder, "%d" % day)
-        text_create(fname, overall_terms, frames[day].get_tfidf())
-        image_create(fname, overall_terms, frames[day].get_tfidf())
+
+        if build_csv_files:
+            text_create(fname, overall_terms, frames[day].get_tfidf())
+        if build_images:
+            image_create(
+                         fname,
+                         overall_terms,
+                         frames[day].get_tfidf(),
+                         frames[day].get_range())
 
     # -------------------------------------------------------------------------
     # Done.

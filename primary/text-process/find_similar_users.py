@@ -106,7 +106,7 @@ parameters  :
         sys.stderr.write("Insufficient data for tf-idf, only 1 document\n")
         sys.exit(-3)
 
-    tfidf, dictionary = vectorspace.build_doc_tfIdf(docperuser, stopwords, True)
+    tfidf, dictionary = vectorspace.build_doc_tfidf(docperuser, stopwords, True)
     
     # ---------------------------------------------------------------------------
     # Build Centroid List
