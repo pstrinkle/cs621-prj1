@@ -37,6 +37,21 @@ import tweetdate
 sys.path.append(os.path.join("..", "modellib"))
 import vectorspace
 
+class Output():
+    """This holds the run parameters."""
+    
+    def __init__(self, output_folder, request_value):
+        self.output_folder = output_folder # where to store everything
+        self.request_value = request_value # the overall terms to pull daily
+        self.overall_terms = [] # the terms overall for the month
+        self.max_range = 0 # the maximum range over the days in the month.
+    
+    def add_terms(self, new_terms):
+        """Add some new terms for this output level.  The overall terms vary
+        depending on how many you want from the top per day over the month."""
+        self.overall_terms.extend([term for term in new_terms \
+                                   if term not in self.overall_terms])
+
 class Frame():
     """This holds the data for a given day for a set of users."""
     
@@ -264,9 +279,12 @@ def image_create(file_name, dictionary, data, val_range):
     # the lower the value, the closer to black -- so this will create images
     # that are black with light spots.
     shade_range = float(val_range / 256)
-    
+
     if shade_range == 0:
+        sys.stderr.write("invalid shade_range\n")
         sys.exit(-3)
+    
+    #print "%f" % shade_range
 
     # Print Term Rows
     # with L the pixel value is from 0 - 255 (black -> white)
@@ -276,7 +294,20 @@ def image_create(file_name, dictionary, data, val_range):
             if sorted_terms[i] in data[sorted_docs[j]]:
                 val = data[sorted_docs[j]][sorted_terms[i]]
                 
-                pix[j, i] = math.floor(val / shade_range)
+                #print "%f" % val
+                #print "%d" % math.floor(val / shade_range)
+                
+                # with floor and most values of mine very small; maybe it'll
+                # set most to just 0 instead of a value when they shouldn't
+                # really be zero.
+                #color = math.floor(val / shade_range)
+                
+                color = math.ceil(val / shade_range)
+                
+                if color > 255: # not bloodly likely (until i switched to ceil)
+                    color = 255
+                
+                pix[j, i] = color
             else:
                 pix[j, i] = 0 # (blakc) i is row, j is column.
 
@@ -300,11 +331,9 @@ def main():
     config.read(sys.argv[1])
 
     database_file = config.get('input', 'database_file')
-    year_val = int(config.get('input', 'year'))
+    year_val = config.getint('input', 'year')
     month_str = config.get('input', 'month')
     stop_file = config.get('input', 'stopwords')
-    output_folder = config.get('input', 'output_folder')
-    request_value = int(config.get('input', 'request_value'))
     remove_singletons = config.getboolean('input', 'remove_singletons')
     build_images = config.getboolean('input', 'build_images')
     build_csv_files = config.getboolean('input', 'build_csv_files')
@@ -313,10 +342,21 @@ def main():
         usage()
         sys.exit(-2)
 
-    try:
-        os.stat(output_folder)
-    except OSError:
-        os.mkdir(output_folder)
+    output_set = {}
+    
+    for section in config.sections():
+        if section.startswith("run"):
+            output_folder = config.get(section, 'output_folder')
+            
+            output_set[section] = \
+                Output(
+                       output_folder,
+                       config.getint(section, 'request_value'))
+
+            try:
+                os.stat(output_folder)
+            except OSError:
+                os.mkdir(output_folder)
 
     # -------------------------------------------------------------------------
     # Pull stop words
@@ -331,7 +371,7 @@ parameters  :
   month     : %s
   output    : %s
   stop      : %s
-  count     : %d
+  count     : %s
   remove    : %s
 -------------------------------------------------------------------
 """
@@ -340,9 +380,9 @@ parameters  :
         (database_file, 
          year_val,
          month_str,
-         output_folder,
+         str([output_set[output].output_folder for output in output_set]),
          stop_file,
-         request_value,
+         str([output_set[output].request_value for output in output_set]),
          remove_singletons) 
 
     # this won't return the 3 columns we care about.
@@ -369,24 +409,30 @@ where created like '%%%s%%%d%%';"""
     # Calculate daily tf-idf; then build frame from top terms over the period
     # of days.
     frames = {}
-    overall_terms = []
 
     num_days = \
         calendar.monthrange(year_val, int(tweetdate.MONTHS[month_str]))[1]
 
     for day in range(1, num_days + 1):
+        # This is run once per day overall.
         frames[day] = build_full_frame(full_users, user_data, day)
         frames[day].calculate_tfidf(stopwords, remove_singletons)
 
-        new_terms = frames[day].top_terms_overall(request_value)
-
-        overall_terms.extend([term for term in new_terms \
-                                if term not in overall_terms])
+        # This is run once per day per output.
+        for output in output_set:
+            output_set[output].add_terms(frames[day].top_terms_overall(output_set[output].request_value))
         
-        #break # just do first day.
+            # get_range() is just whatever the last time you ran 
+            # top_terms_overall
+            new_range = frames[day].get_range()
+        
+            # This way the images are created with the correct range to cover 
+            # all of them.
+            if output_set[output].max_range < new_range:
+                output_set[output].max_range = new_range
+        
+        break # just do first day.
 
-    print "total overall: %d" % len(overall_terms)
-    print "---- terms ----\n%s\n---- end terms ----" % str(overall_terms)
     # len(overall_terms) should be at most 250 * num_users * num_days -- if 
     # there is no overlap of high value terms over the period of days between 
     # the users.  If there is literally no overlap then each user will have 
@@ -395,16 +441,21 @@ where created like '%%%s%%%d%%';"""
     # -------------------------------------------------------------------------
     # Dump the matrix.
     for day in frames: # sort if for one file.
-        fname = os.path.join(output_folder, "%d" % day)
+        for output in output_set:
+            fname = os.path.join(output_set[output].output_folder, "%d" % day)
 
-        if build_csv_files:
-            text_create(fname, overall_terms, frames[day].get_tfidf())
-        if build_images:
-            image_create(
-                         fname,
-                         overall_terms,
-                         frames[day].get_tfidf(),
-                         frames[day].get_range())
+            if build_csv_files:
+                text_create(
+                            fname,
+                            output_set[output].overall_terms,
+                            frames[day].get_tfidf())
+
+            if build_images:
+                image_create(
+                             fname,
+                             output_set[output].overall_terms,
+                             frames[day].get_tfidf(),
+                             output_set[output].max_range)
 
     # -------------------------------------------------------------------------
     # Done.
