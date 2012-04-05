@@ -49,6 +49,7 @@ class Output():
     def add_terms(self, new_terms):
         """Add some new terms for this output level.  The overall terms vary
         depending on how many you want from the top per day over the month."""
+
         self.overall_terms.extend([term for term in new_terms \
                                    if term not in self.overall_terms])
 
@@ -302,14 +303,21 @@ def image_create(file_name, dictionary, data, val_range):
                 # really be zero.
                 #color = math.floor(val / shade_range)
                 
+                # doing math.floor means you will have 0s for your low data --
+                # which means there was no data point -- not what we want.
+                #
+                # could do pix[] = 255 - color to switch to white background.
+                
                 color = math.ceil(val / shade_range)
                 
                 if color > 255: # not bloodly likely (until i switched to ceil)
                     color = 255
                 
+                #print "color: %d" % color
+                
                 pix[j, i] = color
             else:
-                pix[j, i] = 0 # (blakc) i is row, j is column.
+                pix[j, i] = 0 # (black) i is row, j is column.
 
     img.save(file_name + '.png')
 
@@ -420,7 +428,8 @@ where created like '%%%s%%%d%%';"""
 
         # This is run once per day per output.
         for output in output_set:
-            output_set[output].add_terms(frames[day].top_terms_overall(output_set[output].request_value))
+            out = output_set[output]
+            out.add_terms(frames[day].top_terms_overall(out.request_value))
         
             # get_range() is just whatever the last time you ran 
             # top_terms_overall
@@ -428,8 +437,8 @@ where created like '%%%s%%%d%%';"""
         
             # This way the images are created with the correct range to cover 
             # all of them.
-            if output_set[output].max_range < new_range:
-                output_set[output].max_range = new_range
+            if out.max_range < new_range:
+                out.max_range = new_range
         
         break # just do first day.
 
@@ -442,20 +451,21 @@ where created like '%%%s%%%d%%';"""
     # Dump the matrix.
     for day in frames: # sort if for one file.
         for output in output_set:
-            fname = os.path.join(output_set[output].output_folder, "%d" % day)
+            out = output_set[output]
+            fname = os.path.join(out.output_folder, "%d" % day)
 
             if build_csv_files:
                 text_create(
                             fname,
-                            output_set[output].overall_terms,
+                            out.overall_terms,
                             frames[day].get_tfidf())
 
             if build_images:
                 image_create(
                              fname,
-                             output_set[output].overall_terms,
+                             out.overall_terms,
                              frames[day].get_tfidf(),
-                             output_set[output].max_range)
+                             out.max_range)
 
     # -------------------------------------------------------------------------
     # Done.
