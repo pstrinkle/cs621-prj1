@@ -264,6 +264,8 @@ def image_create(file_name, dictionary, data, val_range):
     # for greyscale.
     img = Image.new('L', (width, height))
     pix = img.load()
+    
+    print "width: %d; height: %d" % (width, height) 
 
     # This code is identical to the method used to create the text file.
     # Except because it's building bitmaps, I think it will be flipped. lol.
@@ -440,7 +442,9 @@ where created like '%%%s%%%d%%';"""
             if out.max_range < new_range:
                 out.max_range = new_range
         
-        break # just do first day.
+        #break # just do first day.
+
+    print "Frames created"
 
     # len(overall_terms) should be at most 250 * num_users * num_days -- if 
     # there is no overlap of high value terms over the period of days between 
@@ -453,6 +457,8 @@ where created like '%%%s%%%d%%';"""
         for output in output_set:
             out = output_set[output]
             fname = os.path.join(out.output_folder, "%d" % day)
+
+            print "%s" % out.output_folder
 
             if build_csv_files:
                 text_create(
