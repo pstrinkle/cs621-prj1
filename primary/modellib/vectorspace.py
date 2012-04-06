@@ -225,6 +225,8 @@ def build_doc_tfidf(documents, stopwords, remove_singletons=False):
     doc_freq = {}     # dictionary of in how many documents the "word" appears
     doc_termfreq = {} # dictionary of term frequencies by date as integer
 
+    #print "documents in: %d" % len(documents)
+
     for doc_id in documents:
         # Calculate Term Frequencies for this doc_id/document.
         # let's make a short list of the words we'll accept.
@@ -271,17 +273,20 @@ def build_doc_tfidf(documents, stopwords, remove_singletons=False):
 
     #print "document frequency: %s" % doc_freq
     #print "term frequency per document: %s" % doc_termfreq
+    #print "term frequency per document: %d" % len(doc_termfreq)
       
     # Calculate the inverse document frequencies.
     # dictionary of the inverse document frequencies
     invdoc_freq = calculate_invdf(len(doc_termfreq), doc_freq)
     
     #print "inverse document frequency: %s" % invdoc_freq
+    #print "inverse document frequency: %d" % len(invdoc_freq)
 
     # Calculate the tf-idf values.
     # similar to doc_termfreq, but holds the tf-idf values
     doc_tfidf = calculate_tfidf(doc_length, doc_termfreq, invdoc_freq)
     
     #print "tf-idf per document: %s" % doc_tfidf
+    #print "tf-idf per document: %d" % len(doc_tfidf)
 
     return doc_tfidf, doc_freq

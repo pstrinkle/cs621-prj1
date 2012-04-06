@@ -65,6 +65,9 @@ class Frame():
         self.minimum = float(2**32) # amazingly big value.
         self.val_range = 0.0
     
+    def __len__(self):
+        return len(self.data)
+    
     def add_data(self, user_id, data):
         """Add data to this frame for a user given an id value and their 
         data."""
@@ -77,6 +80,9 @@ class Frame():
         # does not remove singletons.
         self.doc_tfidf, self.doc_freq = \
             vectorspace.build_doc_tfidf(self.data, stopwords, rm_singletons)
+        
+        #print "len(tfidf): %d; len(freq): %d" \
+            #% (len(self.doc_tfidf), len(self.doc_freq))
     
     def get_tfidf(self):
         """Run calculate_tfidf first or this'll return None."""
@@ -86,8 +92,7 @@ class Frame():
     def top_terms(self, count):
         """Get the top terms from all the columns within a frame.
         
-        len(terms) is at most the number of users for a given frame X count.
-        """
+        len(terms) is at most the number of users for a given frame X count."""
         
         terms = []
 
@@ -101,13 +106,13 @@ class Frame():
 
     def get_range(self):
         """Get the range from the minimum to the maximum value."""
+
         return self.val_range
 
     def top_terms_overall(self, count):
         """Get the top terms overall for the entire set of columns.
         
-        len(terms) is actually count.
-        """
+        len(terms) is actually count."""
         
         # Interestingly, many columns can have similar top terms -- with 
         # different positions in the list...  So, this will have to be taken 
@@ -151,6 +156,17 @@ class FrameUser():
     def __len__(self):
         return len(self.data)
 
+    def valid_data(self, stopwords):
+        """Do all the days have real data."""
+        for day in self.data:
+            pruned = [word for word in " ".join(self.data[day]).split(' ') \
+                      if word not in stopwords and len(word) > 1]
+
+            if len(pruned) < 2:
+                return False
+        
+        return True
+
     def add_data(self, day_val, text):
         """Add a data to a user's day."""
 
@@ -188,13 +204,13 @@ class FrameUser():
         
         return self.user_id
 
-def find_full_users(users, year, month):
+def find_full_users(users, year, month, stopwords, num_days):
     """Which users have tweets for every day in the month (and year)."""
-
-    num_days = calendar.monthrange(year, int(tweetdate.MONTHS[month]))[1]
     
     # users is a dictionary of FrameUsers key'd on their user id.    
-    return [user for user in users if len(users[user]) == num_days]
+    return [user for user in users \
+            if len(users[user]) == num_days \
+                and users[user].valid_data(stopwords)]
 
 def build_full_frame(user_list, user_data, day):
     """Build tf-idf for that day."""
@@ -203,6 +219,9 @@ def build_full_frame(user_list, user_data, day):
 
     for user in user_list:
         frm.add_data(user, user_data[user].get_data(day))
+
+    print "day: %d; user_list: %d; user_data: %d; frame: %d" \
+        % (day, len(user_list), len(user_data), len(frm))
 
     return frm
 
@@ -265,7 +284,7 @@ def image_create(file_name, dictionary, data, val_range):
     img = Image.new('L', (width, height))
     pix = img.load()
     
-    print "width: %d; height: %d" % (width, height) 
+    #print "\twidth: %d; height: %d" % (width, height) 
 
     # This code is identical to the method used to create the text file.
     # Except because it's building bitmaps, I think it will be flipped. lol.
@@ -317,9 +336,9 @@ def image_create(file_name, dictionary, data, val_range):
                 
                 #print "color: %d" % color
                 
-                pix[j, i] = color
+                pix[j, i] = 255 - color
             else:
-                pix[j, i] = 0 # (black) i is row, j is column.
+                pix[j, i] = 255 # (white) i is row, j is column.
 
     img.save(file_name + '.png')
 
@@ -403,9 +422,12 @@ where created like '%%%s%%%d%%';"""
 
     # -------------------------------------------------------------------------
     # Build a set of documents, per user, per day.
+    num_days = \
+        calendar.monthrange(year_val, int(tweetdate.MONTHS[month_str]))[1]
     user_data = \
         data_pull(database_file, query_prefetch % (month_str, year_val))
-    full_users = find_full_users(user_data, year_val, month_str)
+    full_users = \
+        find_full_users(user_data, year_val, month_str, stopwords, num_days)
 
     print "data pulled"
     print "user count: %d" % len(user_data)
@@ -419,9 +441,6 @@ where created like '%%%s%%%d%%';"""
     # Calculate daily tf-idf; then build frame from top terms over the period
     # of days.
     frames = {}
-
-    num_days = \
-        calendar.monthrange(year_val, int(tweetdate.MONTHS[month_str]))[1]
 
     for day in range(1, num_days + 1):
         # This is run once per day overall.
@@ -442,7 +461,8 @@ where created like '%%%s%%%d%%';"""
             if out.max_range < new_range:
                 out.max_range = new_range
         
-        #break # just do first day.
+        #if day == 3:
+            #break # just do first day.
 
     print "Frames created"
 
@@ -458,7 +478,8 @@ where created like '%%%s%%%d%%';"""
             out = output_set[output]
             fname = os.path.join(out.output_folder, "%d" % day)
 
-            print "%s" % out.output_folder
+            #print "out: %s; day: %d: cols: %d" \
+                #% (out.output_folder, day, len(frames[day].get_tfidf()))
 
             if build_csv_files:
                 text_create(
@@ -469,8 +490,8 @@ where created like '%%%s%%%d%%';"""
             if build_images:
                 image_create(
                              fname,
-                             out.overall_terms,
-                             frames[day].get_tfidf(),
+                             out.overall_terms,       # dictionary
+                             frames[day].get_tfidf(), # data
                              out.max_range)
 
     # -------------------------------------------------------------------------
