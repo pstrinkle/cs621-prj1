@@ -1,4 +1,5 @@
 #! /usr/bin/python
+"""Build frames per day per month."""
 
 __author__ = 'tri1@umbc.edu'
 
@@ -25,7 +26,6 @@ import os
 import sys
 import sqlite3
 import calendar
-import operator
 from ConfigParser import SafeConfigParser
 
 sys.path.append(os.path.join("..", "tweetlib"))
@@ -52,6 +52,21 @@ class Output():
 
         self.overall_terms.extend([term for term in new_terms \
                                    if term not in self.overall_terms])
+    
+    def get_folder(self):
+        """Get the output_folder."""
+        
+        return self.output_folder
+    
+    def get_request(self):
+        """Get the request_value."""
+        
+        return self.request_value
+    
+    def get_terms(self):
+        """Get the overall terms."""
+        
+        return self.overall_terms
 
 def data_pull(database_file, query):
     """Pull the data from the database."""
@@ -84,6 +99,31 @@ def text_create(text_name, dictionary, data):
     with open(text_name + '.txt', "w") as fout:
         fout.write(vectorspace.dump_raw_matrix(dictionary, data))
         fout.write("\n")
+
+def output_matrix(frames, output_set, build_csv_files, build_images):
+    """Output the data matrix."""
+
+    for day in frames:
+        for output in output_set:
+            out = output_set[output]
+            fname = os.path.join(out.get_folder(), "%d" % day)
+
+            if build_csv_files:
+                text_create(fname, out.get_terms(), frames[day].get_tfidf())
+
+            if build_images:
+                imageoutput.image_create(
+                                         fname,
+                                         out.get_terms(),         # dictionary
+                                         frames[day].get_tfidf(), # data
+                                         out.max_range,
+                                         'black')
+
+                imageoutput.image_create_color(
+                                               fname,
+                                               out.get_terms(),   # dictionary
+                                               frames[day].get_tfidf(), # data
+                                               out.max_range)
 
 def usage():
     """Standard usage message."""
@@ -152,9 +192,9 @@ parameters  :
         (database_file, 
          year_val,
          month_str,
-         str([output_set[output].output_folder for output in output_set]),
+         str([output_set[output].get_folder() for output in output_set]),
          stop_file,
-         str([output_set[output].request_value for output in output_set]),
+         str([output_set[output].get_request() for output in output_set]),
          remove_singletons) 
 
     # this won't return the 3 columns we care about.
@@ -192,7 +232,7 @@ where created like '%%%s%%%d%%';"""
         # This is run once per day per output.
         for output in output_set:
             out = output_set[output]
-            out.add_terms(frames[day].top_terms_overall(out.request_value))
+            out.add_terms(frames[day].top_terms_overall(out.get_request()))
         
             # get_range() is just whatever the last time you ran 
             # top_terms_overall
@@ -203,7 +243,7 @@ where created like '%%%s%%%d%%';"""
             if out.max_range < new_range:
                 out.max_range = new_range
         
-        break
+        #break
         #if day == 3:
             #break # just do first day.
 
@@ -216,33 +256,7 @@ where created like '%%%s%%%d%%';"""
 
     # -------------------------------------------------------------------------
     # Dump the matrix.
-    for day in frames: # sort if for one file.
-        for output in output_set:
-            out = output_set[output]
-            fname = os.path.join(out.output_folder, "%d" % day)
-
-            #print "out: %s; day: %d: cols: %d" \
-                #% (out.output_folder, day, len(frames[day].get_tfidf()))
-
-            if build_csv_files:
-                text_create(
-                            fname,
-                            out.overall_terms,
-                            frames[day].get_tfidf())
-
-            if build_images:
-                imageoutput.image_create(
-                                         fname,
-                                         out.overall_terms,       # dictionary
-                                         frames[day].get_tfidf(), # data
-                                         out.max_range,
-                                         'black')
-
-                imageoutput.image_create_color(
-                                               fname,
-                                               out.overall_terms,  # dictionary
-                                               frames[day].get_tfidf(), # data
-                                               out.max_range)
+    output_matrix(frames, output_set, build_csv_files, build_images)
 
     # -------------------------------------------------------------------------
     # Done.
