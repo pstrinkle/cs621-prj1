@@ -13,6 +13,20 @@ __author__ = 'tri1@umbc.edu'
 import math
 import operator
 
+def build_dictionary(docs, stopwords):
+    """docs is a dictionary of documents."""
+    
+    words = []
+    
+    for doc_id in docs:
+        pruned = \
+            set([w for w in docs[doc_id].split(' ') \
+                    if w not in stopwords and len(w) > 1])
+        
+        words.extend([w for w in pruned if w not in words])
+    
+    return words
+
 def top_terms_tuples(vector, num):
     """
     Returns the num-highest tf-idf terms in the vector.
@@ -236,6 +250,7 @@ def build_doc_tfidf(documents, stopwords, remove_singletons=False):
         pruned = [w for w in documents[doc_id].split(' ') \
                     if w not in stopwords and len(w) > 1]
 
+        # skip documents that only have one word.
         if len(pruned) < 2:
             continue
 

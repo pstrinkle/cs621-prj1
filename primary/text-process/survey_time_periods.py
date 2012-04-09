@@ -4,12 +4,10 @@ __author__ = 'tri1@umbc.edu'
 
 ##
 # @author Patrick Trinkle
-# Summer 2011
 # Spring 2012
 #
-# @summary: The goal of this simple script is to run various queries against 
-# Twitter through the published API, using the python-twitter open source 
-# library.
+# @summary: The goal of this program is to identify good months in my data set
+# for use in other experiments.
 #
 
 import os
@@ -28,7 +26,10 @@ class DateSurvey():
         self.tweetspermonth = {} # this is used to track
         self.usersperday = {}
         self.full_dates = {}
-        self.usermonths = {} # how many users were in common between key'd months
+        # how many users were in common between key'd months
+        self.usermonths = {}
+        self.computed_full = False
+        self.computed_similar = False
     
     def get_dates(self):
         """Get raw date structure."""
@@ -38,10 +39,16 @@ class DateSurvey():
     def get_full(self):
         """Get full dates set."""
         
+        if self.computed_full is False:
+            self.compute_full()
+
         return self.full_dates
 
     def get_similar(self):
         """Get similar dates."""
+        
+        if self.computed_similar is False:
+            self.compute_similar()
         
         return self.usermonths
     
@@ -175,9 +182,7 @@ def main():
     #
     # Do we have any full months?
     #
-    survey.compute_full()
     full_dates = survey.get_full()
-    survey.compute_similar()
     incommon = survey.get_similar()
     
     sorted_incommon = sorted(
@@ -190,18 +195,21 @@ def main():
 
     end_year = tweetdate.get_yearfromint(newest)
     end_month = tweetdate.get_monthfromint(newest)
-
-    print "data:"
-    print "start:end :: %4d%02d:%4d%02d" % \
-        (start_year, start_month, end_year, end_month)
     
-    print "months with a tweet collected from each day (at least one)"
-    for date in sorted(full_dates):
-        print "%s:%s" % (date, full_dates[date])
+    print "building output"
 
-    print "number in common"
-    for com in sorted_incommon:
-        print com
+    with open(output_file, "w") as fout:
+        fout.write("data:\n")
+        fout.write("start:end :: %4d%02d:%4d%02d\n" % \
+            (start_year, start_month, end_year, end_month))
+    
+        fout.write("months with a tweet collected from each day (at least one)\n")
+        for date in sorted(full_dates):
+            fout.write("%s:%s\n" % (date, full_dates[date]))
+
+        fout.write("number in common\n")
+        for com in sorted_incommon:
+            fout.write("%s\n" % com)
 
     # -------------------------------------------------------------------------
     # Done.

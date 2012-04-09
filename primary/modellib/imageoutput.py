@@ -71,7 +71,9 @@ def image_create_color(file_name, dictionary, data, val_range):
                 if color > MAX_COLOR-1:
                     color = MAX_COLOR-1
                 
-                pix[j, i] = color
+                y = "%06x" % color
+                
+                pix[j, i] = (int(y[0:2], 16), int(y[2:4], 16), int(y[4:6], 16))
             else:
                 pix[j, i] = 0 # (white) i is row, j is column.
 

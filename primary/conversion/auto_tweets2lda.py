@@ -95,15 +95,12 @@ def main():
         
             # Calculate Term Frequencies for this id/document.
             # Skip 1 letter words.
-            words = users_tweets[id].split(' ')
 
             # let's make a short list of the words we'll accept.
-            pruned = []
+            pruned = [w for w in users_tweets[id].split(' ') \
+                      if len(w) > 1 and w not in stopwords]
 
-            for w in words:
-                if len(w) > 1 and w not in stopwords:
-                    pruned.append(w)
-
+            # skip documents that only have one word.
             if len(pruned) < 2:
                 continue
 

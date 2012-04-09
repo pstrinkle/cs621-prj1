@@ -92,6 +92,7 @@ def main():
         # let's make a short list of the words we'll accept.
         pruned = [w for w in cleanTweets[id].split(' ') if len(w) > 1 and w not in stopwords]
 
+        # skip documents that only have one word.
         if len(pruned) < 2:
             continue
 
