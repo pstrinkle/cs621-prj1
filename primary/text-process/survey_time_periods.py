@@ -1,4 +1,6 @@
 #! /usr/bin/python
+"""Given a database of tweets, identify the best months for further 
+experiments."""
 
 __author__ = 'tri1@umbc.edu'
 
@@ -20,7 +22,20 @@ import operator
 sys.path.append(os.path.join("..", "tweetlib"))
 import tweetdate
 
+def compare(set_a, set_b):
+    """Compare two sets of users, return number of in common."""
+        
+    cnt = 0
+        
+    for user in set_a:
+        if user in set_b:
+            cnt += 1
+    
+    return cnt
+
 class DateSurvey():
+    """Data structure for storing survey information."""
+
     def __init__(self):
         self.dates = {} # this will be a set() of days per month
         self.tweetspermonth = {} # this is used to track
@@ -30,6 +45,8 @@ class DateSurvey():
         self.usermonths = {}
         self.computed_full = False
         self.computed_similar = False
+        self.oldest = 20991231
+        self.newest = 19990101
     
     def get_dates(self):
         """Get raw date structure."""
@@ -84,17 +101,6 @@ class DateSurvey():
         except KeyError:
             self.tweetspermonth["%4d%02d" % (year, month)] = 1
 
-    def compare(self, set_a, set_b):
-        """Compare two sets of users, return number of in common."""
-        
-        cnt = 0
-        
-        for user in set_a:
-            if user in set_b:
-                cnt += 1
-    
-        return cnt
-
     def compute_similar(self):
         """Determine which dates have the most users in common."""
         
@@ -104,9 +110,9 @@ class DateSurvey():
         for i in xrange(0, length):
             for j in xrange(i + 1, length):
                 self.usermonths["%s:%s" % (months[i], months[j])] = \
-                    self.compare(
-                                 self.usersperday[months[i]],
-                                 self.usersperday[months[j]]) 
+                    compare(
+                            self.usersperday[months[i]],
+                            self.usersperday[months[j]]) 
 
     def add_user(self, year, month, uid):
         """How many users tweeted that day."""
@@ -117,38 +123,17 @@ class DateSurvey():
             self.usersperday["%4d%02d" % (year, month)] = set()
             self.usersperday["%4d%02d" % (year, month)].add(uid)
 
-def usage():
-    """Usage"""
-    print "%s <database_file> <minimum> <maximum> <output>" % sys.argv[0]
-
-def main():
-
-    if len(sys.argv) != 5:
-        usage()
-        sys.exit(-1)
-  
-    database_file = sys.argv[1]
-    minimum = int(sys.argv[2])
-    maximum = int(sys.argv[3])
-    output_file = sys.argv[4]
-
-    query_collect = "select owner from tweets group by owner having count(*) >= %d and count(*) < %d"
-    query_prefetch = "select owner, created from tweets where owner in (%s);"
-
-    query = query_prefetch % query_collect
-
+def data_pull(database_file, query):
+    """Pull the data from the database."""
+    
     conn = sqlite3.connect(database_file)
     conn.row_factory = sqlite3.Row
 
     # -------------------------------------------------------------------------
     # Search the database file for users.
     survey = DateSurvey()
-    oldest = 20991231
-    newest = 19990101
 
-    start = time.clock()
-
-    for row in conn.cursor().execute(query % (minimum, maximum)):
+    for row in conn.cursor().execute(query):
         uid = row['owner']
 
         if row['created'] is not None:
@@ -163,18 +148,43 @@ def main():
             survey.add_date(year, month, day)
             survey.add_user(year, month, uid)
 
-            if data < oldest:
-                oldest = data
-            if data > newest:
-                newest = data
+            if data < survey.oldest:
+                survey.oldest = data
+            if data > survey.newest:
+                survey.newest = data
 
     conn.close()
+    
+    return
+
+def usage():
+    """Usage"""
+
+    print "%s <database_file> <minimum> <maximum> <output>" % sys.argv[0]
+    print "\t>= minimum"
+    print "\t< maximum"
+
+def main():
+    """Entry point."""
+
+    if len(sys.argv) != 5:
+        usage()
+        sys.exit(-1)
+
+    database_file = sys.argv[1]
+    minimum = int(sys.argv[2])
+    maximum = int(sys.argv[3])
+    output_file = sys.argv[4]
+
+    query_collect = "select owner from tweets group by owner having count(*) >= %d and count(*) < %d"
+    query_prefetch = "select owner, created from tweets where owner in (%s);"
+    query = query_prefetch % query_collect
+
+    start = time.clock()
+
+    survey = data_pull(database_file, query % (minimum, maximum))
 
     print "query time: %fm" % ((time.clock() - start) / 60)
-    
-    # -------------------------------------------------------------------------
-    # Build a matrix.  Which dates have the most users.
-    #
 
     # -------------------------------------------------------------------------
     # Search the dates stored and identify which months have tweets on each 
@@ -184,26 +194,26 @@ def main():
     #
     full_dates = survey.get_full()
     incommon = survey.get_similar()
-    
+
     sorted_incommon = sorted(
                              incommon.items(),
                              key=operator.itemgetter(1), # (1) is value
                              reverse=True)
 
-    start_year = tweetdate.get_yearfromint(oldest)
-    start_month = tweetdate.get_monthfromint(oldest)
+    start_year = tweetdate.get_yearfromint(survey.oldest)
+    start_month = tweetdate.get_monthfromint(survey.oldest)
 
-    end_year = tweetdate.get_yearfromint(newest)
-    end_month = tweetdate.get_monthfromint(newest)
-    
+    end_year = tweetdate.get_yearfromint(survey.newest)
+    end_month = tweetdate.get_monthfromint(survey.newest)
+
     print "building output"
 
     with open(output_file, "w") as fout:
         fout.write("data:\n")
         fout.write("start:end :: %4d%02d:%4d%02d\n" % \
             (start_year, start_month, end_year, end_month))
-    
-        fout.write("months with a tweet collected from each day (at least one)\n")
+
+        fout.write("months w/ a tweet collected from each day (at least one)\n")
         for date in sorted(full_dates):
             fout.write("%s:%s\n" % (date, full_dates[date]))
 

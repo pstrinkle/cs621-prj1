@@ -1,3 +1,4 @@
+"""This module was designed to assist in dumping data as a frame."""
 
 import operator
 import vectorspace
@@ -29,9 +30,6 @@ class Frame():
         # does not remove singletons.
         self.doc_tfidf, self.doc_freq = \
             vectorspace.build_doc_tfidf(self.data, stopwords, rm_singletons)
-        
-        #print "len(tfidf): %d; len(freq): %d" \
-            #% (len(self.doc_tfidf), len(self.doc_freq))
     
     def get_tfidf(self):
         """Run calculate_tfidf first or this'll return None."""
@@ -107,11 +105,13 @@ class FrameUser():
 
     def valid_data(self, stopwords):
         """Do all the days have real data."""
+
         for day in self.data:
             pruned = [word for word in " ".join(self.data[day]).split(' ') \
                       if word not in stopwords and len(word) > 1]
 
             # skip documents that only have one word.
+            # the vectorspace code skips these docs.
             if len(pruned) < 2:
                 return False
         

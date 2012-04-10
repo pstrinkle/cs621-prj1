@@ -249,10 +249,10 @@ where created like '%%%s%%%d%%';"""
 
     print "Frames created"
 
-    # len(overall_terms) should be at most 250 * num_users * num_days -- if 
-    # there is no overlap of high value terms over the period of days between 
+    # len(overall_terms) should be at most 250 * num_users * num_days -- if
+    # there is no overlap of high value terms over the period of days between
     # the users.  If there is literally no overlap then each user will have 
-    # their own 250 terms each day. 
+    # their own 250 terms each day.
 
     # -------------------------------------------------------------------------
     # Dump the matrix.
