@@ -17,8 +17,6 @@ def usage():
 
 def main():
 
-    rawOccurrenceModel = {} # key'd by term pairing
-
     # Did they provide the correct args?
     if len(sys.argv) != 4:
         usage()

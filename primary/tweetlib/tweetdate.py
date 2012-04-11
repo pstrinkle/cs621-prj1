@@ -38,11 +38,9 @@ WEEKDAYS = {
     'Sun': '06'}
 
 def get_monthfromint(date_val):
-    """
-    Grab the year from a date integer, the first four digits.
-    Input: YYYYMMHH...
-    Output: MM or -1 on error
-    """
+    """Grab the year from a date integer, the first four digits.
+        Input: YYYYMMHH...
+        Output: MM or -1 on error"""
   
     monre = re.search('^\d{4}(\d{2})', str(date_val))
     if monre == None:
@@ -51,11 +49,9 @@ def get_monthfromint(date_val):
         return int(monre.group(1))
 
 def get_yearfromint(date_val):
-    """
-    Grab the year from a date integer, the first four digits.
-    Input: YYYYMMHH...
-    Output: YYYY or 0 on error
-    """
+    """Grab the year from a date integer, the first four digits.
+        Input: YYYYMMHH...
+        Output: YYYY or 0 on error"""
   
     yearre = re.search('^(\d{4})', str(date_val))
     if yearre == None:
@@ -64,11 +60,9 @@ def get_yearfromint(date_val):
         return int(yearre.group(1))
 
 def get_dayofweek(date_str):
-    """
-    Get the day of the week from the string.
-    Input: Fri Jan 21 09:28:12 +0000 2011
-    Output: Fri (see above)
-    """
+    """Get the day of the week from the string.
+        Input: Fri Jan 21 09:28:12 +0000 2011
+        Output: Fri (see above)"""
   
     # ----------------Fri     Jan     21    09  : 28  :  12   +0000   2011
     day = re.search('(\w{3}) \w{3} \d{1,2} \d{2}:\d{2}:\d{2} \+\d{4} \d{4}', date_str)
@@ -79,11 +73,9 @@ def get_dayofweek(date_str):
     return ""
 
 def get_fulltimeint(date_str):
-    """
-    Build a date integer from the string.
-    Input: Fri Jan 21 09:28:12 +0000 2011
-    Output: YYYYMMDDHHMMSS
-    """
+    """Build a date integer from the string.
+        Input: Fri Jan 21 09:28:12 +0000 2011
+        Output: YYYYMMDDHHMMSS"""
 
     # ----------------Fri   Jan       21        09  : 28    :  12     +0000   2011
     # ----------------        1        2        3       4       5               6
@@ -98,11 +90,9 @@ def get_fulltimeint(date_str):
     return date
 
 def get_dateint(date_str):
-    """
-    Build a date integer from the string.
-    Input: Fri Jan 21 09:28:12 +0000 2011
-    Output: YYYYMMDDHH
-    """
+    """Build a date integer from the string.
+        Input: Fri Jan 21 09:28:12 +0000 2011
+        Output: YYYYMMDDHH"""
 
     # ----------------Fri   Jan       21        09  : 28  :  12   +0000   2011
     # ----------------        1        2        3                           4
@@ -117,11 +107,9 @@ def get_dateint(date_str):
     return date
 
 def get_yearmondayint(date_str):
-    """
-    Build a date integer from the string.
-    Input: Fri Jan 21 09:28:12 +0000 2011
-    Output: YYYYMMDD
-    """
+    """Build a date integer from the string.
+        Input: Fri Jan 21 09:28:12 +0000 2011
+        Output: YYYYMMDD"""
 
     day = re.search('\w{3} (\w{3}) (\d{1,2}) \d{2}:\d{2}:\d{2} \+\d{4} (\d{4})', date_str)
 
@@ -134,11 +122,9 @@ def get_yearmondayint(date_str):
     return date
 
 def get_monthint(date_str):
-    """
-    Build a date integer from the string.
-    Input: Fri Jan 21 09:28:12 +0000 2011
-    Output: MM
-    """
+    """Build a date integer from the string.
+        Input: Fri Jan 21 09:28:12 +0000 2011
+        Output: MM"""
 
     # ----------------Fri   Jan       21        09  : 28  :  12   +0000   2011
     # ----------------        1        2        3                           4
@@ -153,11 +139,9 @@ def get_monthint(date_str):
     return date
 
 def get_yearint(date_str):
-    """
-    Build a date integer from the string.
-    Input: Fri Jan 21 09:28:12 +0000 2011
-    Output: YYYY
-    """
+    """Build a date integer from the string.
+        Input: Fri Jan 21 09:28:12 +0000 2011
+        Output: YYYY"""
 
     # ----------------Fri   Jan       21        09  : 28  :  12   +0000   2011
     # ----------------        1        2        3                           4
@@ -172,14 +156,10 @@ def get_yearint(date_str):
     return date
 
 class TweetTime:
-    """
-    Stores the datetime string in pieces.
-    """
+    """Stores the datetime string in pieces."""
 
     def __init__(self, datetime=""):
-        """
-        Input: datetime := "Fri Jan 21 09:28:12 +0000 2011"
-        """
+        """Input: datetime := "Fri Jan 21 09:28:12 +0000 2011" """
         
         self.strrep = datetime
         self.valid = False

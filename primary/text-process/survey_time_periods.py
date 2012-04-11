@@ -14,13 +14,22 @@ __author__ = 'tri1@umbc.edu'
 
 import os
 import sys
-import time
 import sqlite3
 import calendar
-import operator
+from operator import itemgetter
 
 sys.path.append(os.path.join("..", "tweetlib"))
 import tweetdate
+
+def str_yearmonth(year, month):
+    """."""
+    
+    return "%4d%02d" % (year, month)
+
+def str_yearmonthday(year, month, day):
+    """."""
+    
+    return "%4d02%d%02d" % (year, month, day)
 
 def compare(set_a, set_b):
     """Compare two sets of users, return number of in common."""
@@ -77,7 +86,7 @@ class DateSurvey():
             for month in self.dates[year]:
                 num_days = calendar.monthrange(year, int(month))[1]
                 if num_days == len(self.dates[year][month]):
-                    yrmt = "%4d%02d" % (year, month)
+                    yrmt = str_yearmonth(year, month)
                     self.full_dates[yrmt] = \
                         (self.tweetspermonth[yrmt], self.usersperday[yrmt])
 
@@ -97,7 +106,7 @@ class DateSurvey():
     def add_date(self, year, month, day):
         """Add a date to the set of survey data."""
         
-        yearmonth = "%4d%02d" % (year, month)
+        yearmonth = str_yearmonth(year, month)
         
         try:
             self.dates[year][month].add(day)
@@ -119,7 +128,7 @@ class DateSurvey():
     def add_user(self, year, month, uid):
         """How many users tweeted that day."""
         
-        yearmonth = "%4d%02d" % (year, month)
+        yearmonth = str_yearmonth(year, month)
         
         try:
             self.usersperday[yearmonth].add(uid)
@@ -163,7 +172,7 @@ def data_pull(database_file, query):
             if data > survey.newest:
                 survey.newest = data
             
-            print "data point: %4d%02d%02d" % (year, month, day)
+            print "data point: %s" % str_yearmonthday(year, month, day)
 
     conn.close()
     
@@ -192,11 +201,7 @@ def main():
     query_prefetch = "select owner, created from tweets where owner in (%s);"
     query = query_prefetch % query_collect
 
-    start = time.clock()
-
     survey = data_pull(database_file, query % (minimum, maximum))
-
-    print "query time: %fm" % ((time.clock() - start) / 60)
 
     # -------------------------------------------------------------------------
     # Search the dates stored and identify which months have tweets on each 
@@ -209,7 +214,7 @@ def main():
 
     sorted_incommon = sorted(
                              incommon.items(),
-                             key=operator.itemgetter(1), # (1) is value
+                             key=itemgetter(1), # (1) is value
                              reverse=True)
 
     start_year = tweetdate.get_yearfromint(survey.oldest)
@@ -222,8 +227,9 @@ def main():
 
     with open(output_file, "w") as fout:
         fout.write("data:\n")
-        fout.write("start:end :: %4d%02d:%4d%02d\n" % \
-            (start_year, start_month, end_year, end_month))
+        fout.write("start:end :: %s:%s\n" % \
+            (str_yearmonth(start_year, start_month), 
+             str_yearmonth(end_year, end_month)))
 
         fout.write("months w/ a tweet collected from each day (at least one)\n")
         for date in sorted(full_dates):

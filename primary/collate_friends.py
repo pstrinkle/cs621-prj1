@@ -11,10 +11,9 @@ __author__ = 'tri1@umbc.edu'
 #
 
 import os
-import sys
 import re
+import sys
 import glob
-import string
 import codecs
 
 sys.path.append("tweetlib")
@@ -48,23 +47,24 @@ def main():
     # Parse the starting file, because the _friends.txt files only have the 
     # user id in the names and no other details -- so this should have the 
     # user's details.
-    with codecs.open(start_file, "r", 'utf-8') as f:
-        users = f.readlines()
+    with codecs.open(start_file, "r", 'utf-8') as fout:
+        users = fout.readlines()
     
-    for u in users:
+    for user in users:
         usr = \
             re.search(
                       "<id>(\d+?)</id><name>(.*?)</name>"
                       "<lang>(.*?)</lang><location>(.*?)</location>",
-                      u)
+                      user)
         if usr:
-            id = int(usr.group(1))
+            uid = int(usr.group(1))
             name = usr.group(2)
             lang = usr.group(3)
             location = usr.group(4)
             
-            if id not in users_list:
-                users_list[id] = tweetxml.TwitterUser(id, name, lang, location)
+            if uid not in users_list:
+                users_list[uid] = \
+                    tweetxml.TwitterUser(uid, name, lang, location)
         else:
             print "invalid line!"
 
@@ -79,10 +79,10 @@ def main():
         # get userid from filename.
         usr = re.search("(\d+?)_friends.txt", xml_file)
         if usr:
-            id = int(usr.group(1))
+            uid = int(usr.group(1))
             
-            if id not in users_list:
-                users_list[id] = tweetxml.TwitterUser(id)
+            if uid not in users_list:
+                users_list[uid] = tweetxml.TwitterUser(uid)
             
             sub_list = []
             
@@ -120,7 +120,7 @@ def main():
                         if fid not in sub_list:
                             sub_list.append(fid)
 
-                users_list[id].add_friends(sub_list)
+                users_list[uid].add_friends(sub_list)
 
     # -------------------------------------------------------------------------
     # users_list should now have all the users from the starting point and 

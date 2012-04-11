@@ -27,31 +27,27 @@ SPACE_CHARS = ('\n', '\r')
 
 # oldest_id is min(id), since_id is max(id)
 def output(current_id, oldest_id, since_id):
-    """
-    This is the same as the output function in filter_tweets.py
-    """
+    """This is the same as the output function in filter_tweets.py"""
 
-    return "<id>%d</id><last_since_id>%d</last_since_id><oldest_id>%d</oldest_id>" % (current_id, since_id, oldest_id)
+    return \
+        "<id>%d</id><last_since_id>%d</last_since_id><oldest_id>%d</oldest_id>"\
+        % (current_id, since_id, oldest_id)
 
 def double_unescape(value):
-    """
-    SQL is all single-quotes, so I have to unescape the double quotes.
+    """SQL is all single-quotes, so I have to unescape the double quotes.
     
     My XML files are all double-escaped, this isn't the case in the database 
-    entries.
-    """
+    entries."""
     
     return value.replace(r'\"', '"')
 
 def xml_out(tag, value, quotes=True):
-    """
-    Build an appropriate xml tagged data unit string.
+    """Build an appropriate xml tagged data unit string.
     
     Input: tag := the name of the tags for wrapping this data
            value := what to place inside the tags, not necessarily a 
                   string -- we handle some conversion
-           quotes := would you like the data inside to be wrapped in quotes?
-    """
+           quotes := would you like the data inside to be wrapped in quotes?"""
     
     xml_str = u""
     xml_strval = u""
@@ -101,6 +97,7 @@ def xml_out(tag, value, quotes=True):
     return xml_str
 
 def status_str_from_dict(status):
+    """Given a dictionary status thing, created a simple string."""
 
     status_str = u"<user_id>%d</user_id>" % status["user"]["id"]
 
@@ -110,13 +107,19 @@ def status_str_from_dict(status):
     status_str += xml_out("id", status["id"], False)
 
     #if status["in_reply_to_screen_name"] is not None: 
-    #  status_str += tx.xml_out("in_reply_to_screen_name", status["in_reply_to_screen_name"], True)
+    #  status_str += \
+    #    tx.xml_out("in_reply_to_screen_name", status["in_reply_to_screen_name"], True)
         
     if status["in_reply_to_status_id"] is not None:
-        status_str += xml_out("in_reply_to_status_id", status["in_reply_to_status_id"], False)
+        status_str += \
+            xml_out(
+                    "in_reply_to_status_id",
+                    status["in_reply_to_status_id"],
+                    False)
         
     if status["in_reply_to_user_id"] is not None:
-        status_str += xml_out("in_reply_to_user_id", status["in_reply_to_user_id"], False)
+        status_str += \
+            xml_out("in_reply_to_user_id", status["in_reply_to_user_id"], False)
 
     if status["geo"] is not None:
         coordinates = status["geo"]["coordinates"]
@@ -129,7 +132,8 @@ def status_str_from_dict(status):
             fname = "%s" % status["place"]["full_name"]
             status_str += xml_out("place_name", fname, False)
         
-        if "bounding_box" in status["place"].keys() and status["place"]["bounding_box"] is not None:
+        if "bounding_box" in status["place"].keys() \
+            and status["place"]["bounding_box"] is not None:
             if "coordinates" in status["place"]["bounding_box"].keys():
                 bbox = "%s" % status["place"]["bounding_box"]["coordinates"]
                 status_str += xml_out("place_box", bbox, False)
@@ -147,13 +151,12 @@ def status_str_from_dict(status):
     return status_str
 
 def xml_user(user):
-    """
-    Given a user object, build a string from their more immediate details.
+    """Given a user object, build a string from their more immediate details.
     
     Input: user := a user object
     
-    Output: a string holding the user id, name, language, and location.
-    """
+    Output: a string holding the user id, name, language, and location."""
+    
     output_str = ""
     
     if user is None:
@@ -170,7 +173,8 @@ def xml_user(user):
     location = ""
 
     if user.location is not None:
-        location = user.location.encode('utf-8').replace("\n", "").replace("\r", "").strip()
+        location = \
+            user.location.encode('utf-8').replace("\n", "").replace("\r", "").strip()
 
     output_str = "<id>%d</id><screen_name>%s</screen_name><name>%s</name><total_tweets>%s</total_tweets><lang>%s</lang><location>%s</location>" \
         % (uid, sn, name, total_tweets, lang, location)
@@ -183,8 +187,7 @@ def xml_user(user):
     return output_str
 
 def xml_status(status):
-    """
-    Given a twitter status object, build an XML representation.
+    """Given a twitter status object, build an XML representation.
     
     Input: status := the status object
     
@@ -210,8 +213,7 @@ def xml_status(status):
       |    status.geo
       |    status.place
       |    status.coordinates
-      |    status.contributors
-    """
+      |    status.contributors"""
 
     # if I end up wanting to not need to collate, this line need to be added.
     #status_str = "<user_id>%d</user_id>" % status.user.id
@@ -224,10 +226,15 @@ def xml_status(status):
     # used to also dump reply_to_screen_name here.
     
     if status.in_reply_to_status_id is not None:
-        status_str += xml_out("in_reply_to_status_id", status.in_reply_to_status_id, False)
+        status_str += \
+            xml_out(
+                    "in_reply_to_status_id",
+                    status.in_reply_to_status_id,
+                    False)
         
     if status.in_reply_to_user_id is not None:
-        status_str += xml_out("in_reply_to_user_id", status.in_reply_to_user_id, False)
+        status_str += \
+            xml_out("in_reply_to_user_id", status.in_reply_to_user_id, False)
 
     # TODO: add the hashtag stuff in.
     #if status.hashtags is not None:
@@ -245,7 +252,8 @@ def xml_status(status):
             fname = "%s" % status.place["full_name"]
             status_str += xml_out("place_name", fname, False)
         
-        if "bounding_box" in status.place.keys() and status.place["bounding_box"] is not None:
+        if "bounding_box" in status.place.keys() \
+            and status.place["bounding_box"] is not None:
             if "coordinates" in status.place["bounding_box"].keys():
                 bbox = "%s" % status.place["bounding_box"]["coordinates"]
                 status_str += xml_out("place_box", bbox, False)
@@ -263,16 +271,13 @@ def xml_status(status):
     return status_str
 
 class Tweet:
-    """
-    The Tweet class is how I represent a tweet.
+    """The Tweet class is how I represent a tweet.
     
-    xml here is what is between <tweet>...</tweet>
-    """
+    xml here is what is between <tweet>...</tweet>"""
 
     def __init__(self, owner_id):
-        """
-        From the XML file, grab details.
-        """
+        """From the XML file, grab details."""
+        
         self.owner = owner_id
         self.reply_to_tweet = None
         self.reply_to_user = None
@@ -280,28 +285,28 @@ class Tweet:
         self.place_name = None
         self.place_box = None
         self.source = None
-        self.text = None # some of my tweets seem to have no-text... which is weird.
+        # some of my tweets seem to have no-text... which is weird.
+        self.text = None
         self.created = None
         self.tweet_id = None
 
 class TwitterUser:
-    """
-    The TwitterUser class really needs to converge at some point.
+    """The TwitterUser class really needs to converge at some point.
     I use it for a few different things and as such it has many
     different structures, each with a specific goal in mind.
     
     I really should try to just get my data to come out in the final
-    format.
-    """
-    def __init__(self, user_id, name="", lang="", location="", friends="", screen_name="", totaltweets=0, private=False):
-        """
-        Input: 
+    format."""
+    
+    def __init__(self, user_id, name="", lang="", location="", friends="", 
+                 screen_name="", totaltweets=0, private=False):
+        """Input: 
             user_id is an int
             name is a utf-8 string
             lang is a utf-8 string (i think)
             location is a utf-8 string
-            friends is a comma separated string as input.
-        """
+            friends is a comma separated string as input."""
+        
         # the user id of this user
         self.user_id = user_id
         self.screen_name = screen_name
@@ -334,16 +339,19 @@ class TwitterUser:
         return len(self.tweets)
 
     def unicode_tweets(self):
+        """."""
+        
         out_str = u''
         for tweet_id in self.tweets:
             out_str += "<user_id>%s</user_id>" % str(self.user_id)
             out_str += unicode(self.tweets[tweet_id], 'utf-8')
             out_str += "\n"
+            
         return out_str
 
     def to_unicodestr(self):
-        """
-        Output the TwitterUser in the XML format:
+        """Output the TwitterUser in the XML format:
+        
         <user>
             <id></id>
             <screen_name></screen_name>
@@ -366,8 +374,7 @@ class TwitterUser:
         <tweet><created>""</created><id></id><geo></geo>
             <place_name>""</place_name><place_box></place_box><source>""</source><text>""</text></tweet>
         
-        Implementing this as __str__ didn't work once the unicode strings were involved.
-        """
+        Implementing this as __str__ didn't work once the unicode strings were involved."""
 
         # these tweets cannot quite be sorted like this.
         #
@@ -433,17 +440,15 @@ class TwitterUser:
         return out_str
     
     def add_tweets(self, new_tweets=[]):
-        """
-        Tweets in xml format.
-        """
+        """Tweets in xml format."""
+        
         for new_tweet in new_tweets:
             #print new_tweet
             self.add_tweet(new_tweet)
 
     def add_tweet(self, new_tweet):
-        """
-        Tweet in xml format.
-        """
+        """Tweet in xml format."""
+        
         t_info = re.search("<id>(\d+?)</id>", new_tweet)
         if t_info:
             tid = int(t_info.group(1))
@@ -461,9 +466,8 @@ class TwitterUser:
                 self.friends.append(friend)
     
     def addFriendsStr(self, new_friends=""):
-        """
-        id1, id2, id3, id4, ..., idn string!
-        """
+        """id1, id2, id3, id4, ..., idn string!"""
+        
         if len(new_friends) > 0:
             fids = new_friends.split(", ")
             for fid in fids:
@@ -472,8 +476,7 @@ class TwitterUser:
                         self.friends.append(int(fid))
 
 def tweet_from_xml(user_id, tweet=""):
-    """
-    Given what we so far have in the database this works.
+    """Given what we so far have in the database this works.
     
     Input:
     <created>"Sun Sep 04 22:16:36 +0000 2011"</created>                       <-- double-quoted
@@ -487,8 +490,7 @@ def tweet_from_xml(user_id, tweet=""):
     <source>"<a href=\"http://www.tweetcaster.com\" rel=\"nofollow\">TweetCaster for Android</a>"</source>  <-- double-quoted
     <text>"@FirstLadi_Lyles ya...."</text> <-- double-quoted
     
-    It unescapes the double-quotes and does completely unpack (if you will) the XML.
-    """
+    It unescapes the double-quotes and does completely unpack (if you will) the XML."""
     
     twt = Tweet(user_id)
     
@@ -539,8 +541,7 @@ def tweet_from_xml(user_id, tweet=""):
     return twt
 
 def user_from_xml(xml=""):
-    """
-    Given what we so far have in the database this works.
+    """Given what we so far have in the database this works.
     
     Input:
         <user>
@@ -559,8 +560,8 @@ def user_from_xml(xml=""):
             <tweets>
                 <tweet>....</tweet>
             </tweets>
-        </user>
-    """
+        </user>"""
+
     idr = re.search("<id>(\d+?)</id>\n", xml)
     if idr:
         user = TwitterUser(int(idr.group(1)))

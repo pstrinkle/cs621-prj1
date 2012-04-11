@@ -11,13 +11,11 @@ __author__ = 'tri1@umbc.edu'
 #
 
 import re
-import os
 import sys
 import codecs
 import sqlite3
 
 sys.path.append("tweetlib")
-import tweetdatabase as td
 import tweetxml
 
 def usage():
@@ -97,7 +95,8 @@ def main():
         if output_sofar > user_val and user_val != 0:
             break
         if row['owner'] not in excludes:
-            print "%s" % tweetxml.output(row['owner'], row['min(id)'], row['max(id)'])
+            print "%s" % \
+                tweetxml.output(row['owner'], row['min(id)'], row['max(id)'])
             output_sofar += 1
 
     # ---------------------------------------------------------------------------

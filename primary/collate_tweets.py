@@ -50,8 +50,8 @@ def main():
             
             print "user id: %d" % user_id
             
-            with codecs.open(xml_file, "r", 'utf-8') as f:
-                tweets = f.readlines()
+            with codecs.open(xml_file, "r", 'utf-8') as fout:
+                tweets = fout.readlines()
                 # strip off trailing new line characters
                 for i in xrange(len(tweets)):
                     tweets[i] = tweets[i].strip()
@@ -63,15 +63,15 @@ def main():
             sys.exit(-1)
 
     counts = 0
-    with codecs.open(sys.argv[2], "w", 'utf-8') as f:
+    with codecs.open(sys.argv[2], "w", 'utf-8') as fout:
         users_ids = users_tweets.keys()
         users_ids.sort()
         for user in users_ids:
             counts += len(users_tweets[user])
             print "user: %d tweets: %d" % (user, len(users_tweets[user]))
             for tweet_key in users_tweets[user].tweets:
-                f.write("<user_id>%d</user_id>" % user)
-                f.write(users_tweets[user].tweets[tweet_key] + "\n")
+                fout.write("<user_id>%d</user_id>" % user)
+                fout.write(users_tweets[user].tweets[tweet_key] + "\n")
         
     print "tweet count: %d" % counts  
 

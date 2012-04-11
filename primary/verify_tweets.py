@@ -10,7 +10,6 @@ __author__ = 'tri1@umbc.edu'
 # on a per file basis.
 #
 
-import os
 import re
 import sys
 import codecs
@@ -20,7 +19,7 @@ def usage():
 
 def main():
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Did they provide the correct args?
     if len(sys.argv) != 2:
         usage()
@@ -30,10 +29,11 @@ def main():
     
     bad = []
     for i in range(0, 31):
-        if i != 0x0a and i != 0x09: # newline and tab.  Tweets cannot have newline, but they can have tab.
+        # newline and tab.  Tweets cannot have newline, but they can have tab.
+        if i != 0x0a and i != 0x09:
             bad.append(chr(i))
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Read in the new tweets
     #
     # The trick is to read in the user file first, then add the tweets for that 
@@ -41,7 +41,8 @@ def main():
     with codecs.open(tweets_input, "r", 'utf-8') as f:
         for line in f:
             l = line.strip()
-            twt_info = re.search("<user_id>(\d+?)</user_id><tweet>(.+?)</tweet>", l)
+            twt_info = \
+                re.search("<user_id>(\d+?)</user_id><tweet>(.+?)</tweet>", l)
             
             if twt_info:
                 for b in bad: # now checks for invalid values.
@@ -53,7 +54,7 @@ def main():
                 sys.stderr.write("non-matching '%s'" % l)
                 sys.exit(-2)
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Done.
 
 if __name__ == "__main__":

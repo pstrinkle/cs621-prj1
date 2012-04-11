@@ -37,8 +37,10 @@ def tweet_insert(user_id, tweet):
     re_created = re.search("<created>(.+?)</created>", tweet)
     re_tweet_id = re.search("<id>(.+?)</id>", tweet)
     # reply_to_screen_name we don't care about.
-    re_reply_tweet_id = re.search("<in_reply_to_status_id>(.+?)</in_reply_to_status_id>", tweet)
-    re_reply_user_id = re.search("<in_reply_to_user_id>(.+?)</in_reply_to_user_id>", tweet)
+    re_reply_tweet_id = \
+        re.search("<in_reply_to_status_id>(.+?)</in_reply_to_status_id>", tweet)
+    re_reply_user_id = \
+        re.search("<in_reply_to_user_id>(.+?)</in_reply_to_user_id>", tweet)
     re_geo = re.search("<geo>(.+?)</geo>", tweet)
     re_place_name = re.search("<place_name>(.+?)</place_name>", tweet)
     re_place_box = re.search("<place_box>(.+?)</place_box>", tweet)
@@ -89,7 +91,8 @@ def tweet_insert(user_id, tweet):
     #                                   source text,
     #                                   contents text)''')
     
-    ins = (tweet_id, owner, created, reply_to_user, reply_to_tweet, geo, place_name, place_box, source, text,)
+    ins = (tweet_id, owner, created, reply_to_user, reply_to_tweet, geo, 
+           place_name, place_box, source, text,)
     
     # c.execute('insert into tweets values (?,?,?,?,?,?,?,?,?,?)', ins)
         
@@ -132,20 +135,18 @@ def user_insert(user):
     #                                  friends text,
     #                                  private integer)''')
     
-    ins = (user.user_id, screen_name, name, lang, location, friend_list, private,)
+    ins = (user.user_id, screen_name, name, lang, location, friend_list, 
+           private,)
 
     # c.execute('insert into users values (?,?,?,?,?,?,?)', ins)
 
     return ins
 
 class DbUser:
-    """
-    Temporary thing until I move away from files forever.
-    """
+    """Temporary thing until I move away from files forever."""
+    
     def __init__(self, row):
-        """
-        Custom init, must use sqlite3.Row for row_factory.
-        """
+        """Custom init, must use sqlite3.Row for row_factory."""
         
         self.id = row['id']
         
@@ -156,9 +157,9 @@ class DbUser:
         self.private = None
         
         if row['screen_name'] != None:
-            # I don't think I need the single_unescape here, the python library handles it;
-            # but in theory if I correctly escape thing and unescape things all the time--it should
-            # be fine.
+            # I don't think I need the single_unescape here, the python library 
+            # handles it; but in theory if I correctly escape thing and unescape
+            # things all the time--it should be fine.
             self.screen_name = row['screen_name']
 
         if row['name'] != None:
@@ -176,13 +177,11 @@ class DbUser:
         self.friends = row['friends']
 
 class DbTweet:
-    """
-    Temporary thing until I move away from files forever (well, at database side).
-    """
+    """Temporary thing until I move away from files forever (well, at database 
+    side)."""
+    
     def __init__(self, row):
-        """
-        Custom init, must use sqlite3.Row for row_factory.
-        """
+        """Custom init, must use sqlite3.Row for row_factory."""
 
         if row == None:
             return
@@ -209,11 +208,9 @@ class DbTweet:
             self.contents = row['contents']
 
 def compare_users(txt_user, db_user):
-    """
-    Compare user object built from text and from the database.
+    """Compare user object built from text and from the database.
     
-    This doesn't compare counts or oldest and newest ids, etc.
-    """
+    This doesn't compare counts or oldest and newest ids, etc."""
     
     if txt_user.user_id != db_user.id:
         print "invalid id"
@@ -272,9 +269,7 @@ def compare_users(txt_user, db_user):
     return True
 
 def compare_tweets(txt_tweet, db_tweet):
-    """
-    Compare user object built from text and from the database.
-    """
+    """Compare user object built from text and from the database."""
 
     if txt_tweet.owner != db_tweet.owner:
         print "invalid owner"

@@ -19,6 +19,8 @@ ACCESS_TOKEN_KEY    = '187244615-s3gCVJNg9TZJPlIEW7yFKHYPXi2xf3lpQnv9uDNV'
 ACCESS_TOKEN_SECRET = 'Hig5HYmDqv7j7cM4LxZExpXKcKfWs1Xb5sWRU24Bg5E'
 
 class RequestTuple:
+    """For tracking requests."""
+    
     def __init__(self, user_id, since_id=0, max_id=0):
         self.user_id = user_id
         self.since_id = since_id
@@ -29,16 +31,14 @@ class RequestTuple:
         return str(self.user_id)
 
 def getRateStatus(api):
-    """
-    Given an api object, call GetRateLimitStatus() and if it throws a 
+    """Given an api object, call GetRateLimitStatus() and if it throws a 
     "Capacity Error" continue calling until it doesn't, with a 2 second pause.  
     
     Any other exceptions are passed up.
     
     Input: api := Twitter.api object
     
-    Return: RateLimit dictionary.  See python-twitter docs.
-    """
+    Return: RateLimit dictionary.  See python-twitter docs."""
 
     success = 0
     rate_status = None

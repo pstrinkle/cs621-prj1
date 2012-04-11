@@ -15,9 +15,6 @@ import sys
 import codecs
 import sqlite3
 
-sys.path.append("tweetlib")
-import tweetdatabase as td
-
 output_name = ""
 
 # oldest_id is min(id), since_id is max(id)
@@ -37,28 +34,30 @@ def main():
         usage()
         sys.exit(-1)
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Parse the parameters.
     database_file = sys.argv[1]
     owner_id = int(sys.argv[2])
     output_name = sys.argv[3]
     
-    print "database folder: %s\nowner id: %d\noutput file: %s" % (database_file, owner_id, output_name)
+    print "database folder: %s\nowner id: %d\noutput file: %s" \
+        % (database_file, owner_id, output_name)
 
     # this won't return the 3 columns we care about.
-    query = "select id, contents as text from tweets where owner = %d;" % owner_id
+    query = "select id, contents as text from tweets where owner = %d;" \
+        % owner_id
 
     conn = sqlite3.connect(database_file)
     conn.row_factory = sqlite3.Row
 
     c = conn.cursor()
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Search the database file for certain things.
     for row in c.execute(query):
         output(row['id'], row['text'])
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Done.
     conn.close()
 

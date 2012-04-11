@@ -22,7 +22,8 @@ import tweetxml as tx
 import tweetdatabase as td
 
 def usage():
-    sys.stderr.write("usage: %s <stream|main> <input_file> <sqlite_db>\n" % sys.argv[0])
+    sys.stderr.write("usage: %s <stream|main> <input_file> <sqlite_db>\n" \
+                    % sys.argv[0])
 
 def main():
 
@@ -46,13 +47,14 @@ def main():
         usage()
         sys.exit(-1)
 
-    # This test is just running to see how big the database file gets when it's just users.
+    # This test is just running to see how big the database file gets when it's 
+    # just users.
     conn = sqlite3.connect(database_file)
     conn.row_factory = sqlite3.Row
 
     c = conn.cursor()
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Read in the database files and write out the giant database file.    
     with codecs.open(input_file, "r", "utf-8") as f:
         for tweet in f:
@@ -78,11 +80,11 @@ def main():
             else:
                 print "ugh"
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Close it down.
     conn.close()
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Done.
 
     print "total runtime: ",

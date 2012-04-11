@@ -10,9 +10,8 @@ __author__ = 'tri1@umbc.edu'
 # on a per file basis.
 #
 
-import os
-import sys
 import re
+import sys
 import codecs
 
 def usage():
@@ -40,26 +39,26 @@ def main():
     print output_file
 
     tweets = {}
-    lineCount = 0
-    tweetCount = 0
-    setCount = 0
-    for input in input_files:
-        with codecs.open(input, "r", 'utf-8') as f:
-            lines = f.readlines()
+    line_count = 0
+    tweet_count = 0
+    set_count = 0
+    for input_file in input_files:
+        with codecs.open(input_file, "r", 'utf-8') as fout:
+            lines = fout.readlines()
             print "lines read: %d" % len(lines)
             for i in range(len(lines)):
                 l = lines[i].strip()
                 
-                lineCount += 1
+                line_count += 1
                 info = re.search("<user_id>(\d+?)</user_id>", l)
                 if info:
-                    id = int(info.group(1))
-                    if id not in tweets:
-                        tweets[id] = []
-                    if l not in tweets[id]:
-                        tweets[id].append(l)
-                        setCount += 1
-                    tweetCount += 1
+                    tid = int(info.group(1))
+                    if tid not in tweets:
+                        tweets[tid] = []
+                    if l not in tweets[tid]:
+                        tweets[tid].append(l)
+                        set_count += 1
+                    tweet_count += 1
                 else:
                     sys.stderr.write("non matching line: '%s'" % l)
 
@@ -68,20 +67,20 @@ def main():
                     print "%f%%" % ((float(i) / len(lines)) * 100)
 
     print "user count:  %d" % len(tweets)
-    print "line count: %d" % lineCount
-    print "tweet count: %d" % tweetCount
-    print "set count: %d" % setCount
+    print "line count: %d" % line_count
+    print "tweet count: %d" % tweet_count
+    print "set count: %d" % set_count
 
     # Sort by user id.
     tweetkeys = tweets.keys()
     tweetkeys.sort()
     
-    with codecs.open(output_file, "w", 'utf-8') as f:
+    with codecs.open(output_file, "w", 'utf-8') as fout:
         for tk in tweetkeys:
             for tw in tweets[tk]:
-                f.write(tw + u"\n")
+                fout.write(tw + u"\n")
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Done.
 
 if __name__ == "__main__":
