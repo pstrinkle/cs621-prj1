@@ -13,9 +13,6 @@ import os
 import sys
 import subprocess
 
-sys.path.append(os.path.join("..", "tweetlib"))
-import tweetdate
-
 def usage():
     """Standard usage message."""
 
