@@ -9,7 +9,6 @@ __author__ = 'tri1@umbc.edu'
 # moves the system back into a single flat file database.
 #
 
-import os
 import re
 import sys
 import codecs
@@ -17,7 +16,6 @@ import sqlite3
 import datetime
 
 sys.path.append("tweetlib")
-import tweetxml as tx
 import tweetdatabase as td
 
 def usage():

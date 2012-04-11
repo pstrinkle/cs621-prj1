@@ -1,6 +1,6 @@
 """This module was designed to assist in dumping data as a frame."""
 
-import operator
+from operator import itemgetter
 import vectorspace
 
 class Frame():
@@ -80,8 +80,8 @@ class Frame():
                 else:
                     terms[kvp[0]] = kvp[1]
 
-        maxkvp = max(terms.iteritems(), key=operator.itemgetter(1))
-        minkvp = min(terms.iteritems(), key=operator.itemgetter(1))
+        maxkvp = max(terms.iteritems(), key=itemgetter(1))
+        minkvp = min(terms.iteritems(), key=itemgetter(1))
 
         # these are going to be used to determine the mapping into 256 values
         # for greyscale, or 256**3 for rgb.

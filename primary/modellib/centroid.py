@@ -1,4 +1,4 @@
-#! /usr/bin/python
+"""This module builds vectorspace centroids, versus geographic ones"""
 
 __author__ = 'tri1@umbc.edu'
 
@@ -14,12 +14,13 @@ __author__ = 'tri1@umbc.edu'
 # whether or not it's a constant.  So, I'm saving it as a variable that doesn't
 # change.  In theory, hm... no idea whether this will give me speed-up or not.
 
-import math
-import numpy
-import operator
+from math import sqrt
+from numpy import std
+from operator import itemgetter
 
 def similarity(centroid_a, centroid_b):
     """Compute dot product of vectors A & B"""
+    
     vector_a = centroid_a.centroid_vector
     vector_b = centroid_b.centroid_vector
     
@@ -35,14 +36,12 @@ def similarity(centroid_a, centroid_b):
     return float(dotproduct / (length_a * length_b))
 
 def get_sim_matrix(centroids):
-    """
-    Given a list of Centroids, compute the similarity score between each and 
+    """Given a list of Centroids, compute the similarity score between each and 
     return a matrix, matrix[i][j] = 0.000... as a dictionary of dictionaries.
 
     This function could easily work on a list of them... except then the list 
     would be const, because any manipulation of the centroid list would 
-    invalidate the matrix.
-    """
+    invalidate the matrix."""
 
     matrix = {}
     length = len(centroids)
@@ -67,10 +66,8 @@ def get_sims_from_matrix(matrix):
     return sims
 
 def get_sims(centroids):
-    """
-    Given a list of Centroids, compute the similarity score between all pairs 
-    and return the list.  This can be fed into find_avg(), find_std().
-    """
+    """Given a list of Centroids, compute the similarity score between all pairs
+    and return the list.  This can be fed into find_avg(), find_std()."""
 
     sims = []
     length = len(centroids)
@@ -82,13 +79,11 @@ def get_sims(centroids):
     return sims
 
 def find_std(centroids, short_cut=False, sim_scores=None):
-    """
-    Given a list of Centroids, compute the standard deviation of the 
-    similarities.
-    """
+    """Given a list of Centroids, compute the standard deviation of the 
+    similarities."""
   
     if short_cut:
-        return numpy.std(sim_scores)
+        return std(sim_scores)
   
     sims = []
     length = len(centroids)
@@ -97,18 +92,17 @@ def find_std(centroids, short_cut=False, sim_scores=None):
         for j in xrange(i + 1, length):
             sims.append(similarity(centroids[i], centroids[j]))
   
-    return numpy.std(sims)
+    return std(sims)
 
 def find_avg(centroids, short_cut=False, sim_scores=None):
-    """
-    Given a list of Centroids, compute the similarity of each pairing and 
+    """Given a list of Centroids, compute the similarity of each pairing and 
     return the average.
   
     If short_cut is True, it'll use sim_scores as the input instead of 
     calculating the scores.
   
-    This can only work on the early perfect version of the centroid list.
-    """
+    This can only work on the early perfect version of the centroid list."""
+    
     total_sim = 0.0
     total_comparisons = 0
   
@@ -130,11 +124,10 @@ def find_avg(centroids, short_cut=False, sim_scores=None):
     return (total_sim / total_comparisons)
 
 def find_max(centroids):
-    """
-    Given a list of Centroids, compute the similarity of each pairing and 
+    """Given a list of Centroids, compute the similarity of each pairing and 
     return the pair with the highest similarity, and their similarity score--so
-    i don't have to re-compute.
-    """
+    i don't have to re-compute."""
+    
     max_sim = 0.0
     max_i = 0
     max_j = 0
@@ -151,18 +144,14 @@ def find_max(centroids):
     return (max_i, max_j, max_sim)
 
 class Centroid:
-    """
-    This data structure represents an average of documents in a vector space.
+    """This data structure represents an average of documents in a vector space.
   
-    Amusingly, modeled directly after a C# class I wrote for a class I took.
-    """
+    Amusingly, modeled directly after a C# class I wrote for a class I took."""
   
     def __init__(self, name, doc_vec):
-        """
-        Representation of a document(s) as a tf-idf vector.
+        """Representation of a document(s) as a tf-idf vector.
     
-        name the name for it.
-        """
+        name the name for it."""
         self.name = "" # it's added below
         self.vector_cnt = 0
         self.centroid_vector = {}
@@ -174,28 +163,24 @@ class Centroid:
         return len(self.centroid_vector)
 
     def __str__(self):
-        """
-        Get the string representation.  In this case, it's the name and the top
-        25 terms.
-        """
+        """Get the string representation.  In this case, it's the name and the 
+        top 25 terms."""
 
         return "%s:\n%s" % (self.name, self.top_terms_tuples(25))
 
     def top_terms_tuples(self, num):
-        """
-        Returns the num-highest tf-idf terms in the vector.
+        """Returns the num-highest tf-idf terms in the vector.
         
         This is an array of tuples [0] - term, [1] -- value.
     
         num := the number of terms to get.
         
         This is not identical to the similarly named function in the vectorspace
-         module.  It is however, identical to this exact function there.
-        """
+         module.  It is however, identical to this exact function there."""
   
         sorted_tokens = sorted(
                                self.centroid_vector.items(),
-                               key=operator.itemgetter(1), # (1) is value
+                               key=itemgetter(1), # (1) is value
                                reverse=True)
 
         # count to index
@@ -207,24 +192,23 @@ class Centroid:
         return top_terms
 
     def add_centroid(self, new_cen):
-        """
-        This merges in the new centroid.
+        """This merges in the new centroid.
     
-        newCent := the centroid object to add.
-        """
+        newCent := the centroid object to add."""
         
-        self.add_vector(new_cen.name, new_cen.vector_cnt, new_cen.centroid_vector)
+        self.add_vector(
+                        new_cen.name,
+                        new_cen.vector_cnt,
+                        new_cen.centroid_vector)
 
     def add_vector(self, doc_name, add_cnt, new_docvec):
-        """
-        This averages in the new vector.
+        """This averages in the new vector.
     
         doc_name   := the name of the thing we're adding in.
         add_cnt    := the number of documents represented by newV.
         new_docvec := the vector representing the document(s).
     
-        This is copied and translated directly from my c# program.
-        """
+        This is copied and translated directly from my c# program."""
     
         # determine the weight of the merging pieces
         old_weight = float(self.vector_cnt) / (self.vector_cnt + add_cnt)
@@ -269,12 +253,11 @@ class Centroid:
         self.vector_cnt += add_cnt
 
         # calculate magnitude
-        self.length = math.sqrt(self.length)
+        self.length = sqrt(self.length)
 
 def find_matrix_max(matrix):
-    """
-    This provides the outer and inner key and the value, of the maximum value.
-    """
+    """This provides the outer and inner key and the value, of the maximum 
+    value."""
 
     max_val = 0.0
     max_i = 0
@@ -282,7 +265,7 @@ def find_matrix_max(matrix):
 
     for i in matrix.keys():
         try:
-            kvp = max(matrix[i].iteritems(), key=operator.itemgetter(1))
+            kvp = max(matrix[i].iteritems(), key=itemgetter(1))
         except ValueError:
             continue
     
@@ -313,14 +296,12 @@ def remove_matrix_entry(matrix, key):
             continue
 
 def add_matrix_entry(matrix, centroids, new_centroid, name):
-    """
-    Add this entry and comparisons to the matrix, the key to use is name.
+    """Add this entry and comparisons to the matrix, the key to use is name.
   
     Really just need to matrix[name] = {}, then for i in matrix.keys() where 
     not name, compare and add.
   
-    Please remove before you add, otherwise there can be noise in the data.
-    """
+    Please remove before you add, otherwise there can be noise in the data."""
 
     if name in matrix:
         print "enabling matrix[%s] <-- already there!" % str(name)
@@ -332,14 +313,12 @@ def add_matrix_entry(matrix, centroids, new_centroid, name):
             matrix[name][i] = similarity(centroids[i], new_centroid)
 
 def cluster_documents(documents, threshold_str="std"):
-    """
-    Given a dictionary of documents, where the key is some unique (preferably)
-    id value.  Create a centroid representation of each, and then merge the
-    centroids by their similarity scores.
+    """Given a dictionary of documents, where the key is some unique 
+    (preferably) id value.  Create a centroid representation of each, and then 
+    merge the centroids by their similarity scores.
   
     documents := dictionary of documents in tf-idf vectors.
-    threshold_str := either "std" or "avg" to set the threshold.
-    """
+    threshold_str := either "std" or "avg" to set the threshold."""
   
     centroids = {}
     arbitrary_name = 0

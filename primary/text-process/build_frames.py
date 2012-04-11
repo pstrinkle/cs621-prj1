@@ -25,7 +25,7 @@ __author__ = 'tri1@umbc.edu'
 import os
 import sys
 import sqlite3
-import calendar
+from calendar import monthrange
 from ConfigParser import SafeConfigParser
 
 sys.path.append(os.path.join("..", "tweetlib"))
@@ -208,8 +208,7 @@ where created like '%%%s%%%d%%';"""
 
     # -------------------------------------------------------------------------
     # Build a set of documents, per user, per day.
-    num_days = \
-        calendar.monthrange(year_val, int(tweetdate.MONTHS[month_str]))[1]
+    num_days = monthrange(year_val, int(tweetdate.MONTHS[month_str]))[1]
     user_data = \
         data_pull(database_file, query_prefetch % (month_str, year_val))
     full_users = frame.find_full_users(user_data, stopwords, num_days)
