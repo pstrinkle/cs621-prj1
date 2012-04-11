@@ -39,13 +39,19 @@ import vectorspace
 import centroid
 
 def usage():
-    print "usage: %s <sqlite_db> <minimum> <maximum> <stopwords> <output_folder>" \
+    """."""
+    
+    print "usage: %s <sqlite_db> <min> <max> <stopwords> <output_folder>" \
         % sys.argv[0]
 
-def thread_main(database_file, output_folder, users, users_tweets, stopwords, start, cnt):
-    """
-    What, what! : )
-    """
+def thread_main(
+                output_folder,
+                users,
+                users_tweets,
+                stopwords,
+                start,
+                cnt):
+    """What, what! : )"""
 
     # -------------------------------------------------------------------------
     # Process this thread's users.
@@ -57,9 +63,10 @@ def thread_main(database_file, output_folder, users, users_tweets, stopwords, st
 
         curr_cnt = len(users_tweets[user_id])
 
-        doc_tfidf, ignore = vectorspace.build_doc_tfidf(users_tweets[user_id], stopwords)
+        doc_tfidf, ignore = \
+            vectorspace.build_doc_tfidf(users_tweets[user_id], stopwords)
 
-        # -------------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         # Build Centroid List (this step is not actually slow.)
         centroids = centroid.import_stopwords(doc_tfidf)
 
@@ -68,22 +75,27 @@ def thread_main(database_file, output_folder, users, users_tweets, stopwords, st
             # Might be better if I just implement __str__ for Centroids.
             for cen in centroids:
                 f.write("%s\n" % centroids[cen].top_terms_tuples(10))
-            f.write("------------------------------------------------------------\n")
+            f.write("-------------------------------------------------------\n")
         
         # output from the above
         centroid_count = len(centroids)
 
-        # -------------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         # Handle data with gensim LDA modeling code.
         # Use the number of centroids as the topic count input.
-        # only words that are greater than one letter and not in the stopword list.
-        texts = [[word for word in users_tweets[user_id][tid].split() if word not in stopwords and len(word) > 1] for tid in users_tweets[user_id]]
+        # only words that are greater than one letter and not in the stopword 
+        # list.
+        texts = [[word for word in users_tweets[user_id][tid].split() \
+                  if word not in stopwords and len(word) > 1] \
+                    for tid in users_tweets[user_id]]
         
-        # -------------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         # remove words that appear only once
         all_tokens = sum(texts, [])
-        tokens_once = set(word for word in set(all_tokens) if all_tokens.count(word) == 1)
-        texts = [[word for word in text if word not in tokens_once] for text in texts]
+        tokens_once = set(word for word in set(all_tokens) \
+                          if all_tokens.count(word) == 1)
+        texts = [[word for word in text if word not in tokens_once] \
+                 for text in texts]
         
         dictionary = corpora.Dictionary(texts)
         corpus = [dictionary.doc2bow(text) for text in texts]
@@ -108,6 +120,7 @@ def thread_main(database_file, output_folder, users, users_tweets, stopwords, st
             (user_id, curr_cnt, centroid_count, duration)
 
 def main():
+    """."""
 
     # Did they provide the correct args?
     if len(sys.argv) != 6:
@@ -116,7 +129,7 @@ def main():
 
     cpus = multiprocessing.cpu_count()
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Parse the parameters.
     database_file = sys.argv[1]
     minimum = int(sys.argv[2])
@@ -159,7 +172,7 @@ parameters  :
     
     print "#cpus: %d" % cpus
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Search the database file for users.
     users = []
     users_tweets = {}
@@ -185,7 +198,7 @@ parameters  :
 
     conn.close()
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Process those tweets by user set.
 
     print "usr\tcnt\tavg\tstd\tend\tdur"
@@ -205,7 +218,6 @@ parameters  :
         t = threading.Thread(
                              target=thread_main,
                              args=(
-                                   database_file,
                                    output_folder,
                                    users,
                                    users_tweets,
@@ -217,7 +229,7 @@ parameters  :
 
         remains -= cnt
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Done.
 
 if __name__ == "__main__":

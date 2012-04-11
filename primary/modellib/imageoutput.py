@@ -11,7 +11,7 @@ __author__ = 'tri1@umbc.edu'
 #
 
 import sys
-import math
+from math import ceil
 from PIL import Image
 
 MAX_COLOR = 256**3
@@ -65,15 +65,16 @@ def image_create_color(file_name, dictionary, data, val_range):
             if sorted_terms[i] in data[sorted_docs[j]]:
                 val = data[sorted_docs[j]][sorted_terms[i]]
 
-                color = math.ceil(val / shade_range)
+                color = ceil(val / shade_range)
 
                 # not bloodly likely (until i switched to ceil)                
                 if color > MAX_COLOR-1:
                     color = MAX_COLOR-1
                 
-                y = "%06x" % color
+                tmp = "%06x" % color
                 
-                pix[j, i] = (int(y[0:2], 16), int(y[2:4], 16), int(y[4:6], 16))
+                pix[j, i] = \
+                    (int(tmp[0:2], 16), int(tmp[2:4], 16), int(tmp[4:6], 16))
             else:
                 pix[j, i] = 0 # (white) i is row, j is column.
 
@@ -149,7 +150,7 @@ def image_create(file_name, dictionary, data, val_range, background):
                 #
                 # could do pix[] = 255 - color to switch to white background.
                 
-                color = math.ceil(val / shade_range)
+                color = ceil(val / shade_range)
                 
                 # not bloodly likely (until i switched to ceil)
                 if color > MAX_GREYSCALE-1:

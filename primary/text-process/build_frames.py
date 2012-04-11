@@ -48,7 +48,10 @@ class Output():
     
     def add_terms(self, new_terms):
         """Add some new terms for this output level.  The overall terms vary
-        depending on how many you want from the top per day over the month."""
+        depending on how many you want from the top per day over the month.
+        
+        Also, new_terms is considered a set, I can wrap it in set() if I 
+        need."""
 
         self.overall_terms.extend([term for term in new_terms \
                                    if term not in self.overall_terms])

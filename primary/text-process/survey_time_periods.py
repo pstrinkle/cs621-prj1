@@ -75,14 +75,29 @@ class DateSurvey():
         
         for year in self.dates:
             for month in self.dates[year]:
-                num_days = calendar.monthrange(year, int(month))
-                if num_days[1] == len(self.dates[year][month]):
+                num_days = calendar.monthrange(year, int(month))[1]
+                if num_days == len(self.dates[year][month]):
                     yrmt = "%4d%02d" % (year, month)
                     self.full_dates[yrmt] = \
                         (self.tweetspermonth[yrmt], self.usersperday[yrmt])
-    
+
+    def compute_similar(self):
+        """Determine which dates have the most users in common."""
+        
+        length = len(self.usersperday)
+        months = self.usersperday.keys()
+        
+        for i in xrange(0, length):
+            for j in xrange(i + 1, length):
+                self.usermonths["%s:%s" % (months[i], months[j])] = \
+                    compare(
+                            self.usersperday[months[i]],
+                            self.usersperday[months[j]])
+
     def add_date(self, year, month, day):
         """Add a date to the set of survey data."""
+        
+        yearmonth = "%4d%02d" % (year, month)
         
         try:
             self.dates[year][month].add(day)
@@ -97,31 +112,27 @@ class DateSurvey():
         
         # How many tweets I collected for that day.
         try:
-            self.tweetspermonth["%4d%02d" % (year, month)] += 1
+            self.tweetspermonth[yearmonth] += 1
         except KeyError:
-            self.tweetspermonth["%4d%02d" % (year, month)] = 1
-
-    def compute_similar(self):
-        """Determine which dates have the most users in common."""
-        
-        length = len(self.usersperday)
-        months = self.usersperday.keys()
-        
-        for i in xrange(0, length):
-            for j in xrange(i + 1, length):
-                self.usermonths["%s:%s" % (months[i], months[j])] = \
-                    compare(
-                            self.usersperday[months[i]],
-                            self.usersperday[months[j]]) 
+            self.tweetspermonth[yearmonth] = 1
 
     def add_user(self, year, month, uid):
         """How many users tweeted that day."""
         
+        yearmonth = "%4d%02d" % (year, month)
+        
         try:
-            self.usersperday["%4d%02d" % (year, month)].add(uid)
+            self.usersperday[yearmonth].add(uid)
         except KeyError:
-            self.usersperday["%4d%02d" % (year, month)] = set()
-            self.usersperday["%4d%02d" % (year, month)].add(uid)
+            self.usersperday[yearmonth] = set()
+            self.usersperday[yearmonth].add(uid)
+
+    def add_dateuser(self, year, month, day, uid):
+        """Add users and date data, basically just calls add_date() and 
+        add_user()."""
+        
+        self.add_date(year, month, day)
+        self.add_user(year, month, uid)
 
 def data_pull(database_file, query):
     """Pull the data from the database."""
@@ -145,17 +156,18 @@ def data_pull(database_file, query):
             data = twt.yearmonday
 
             # Determining which months have a tweet for each day.
-            survey.add_date(year, month, day)
-            survey.add_user(year, month, uid)
+            survey.add_dateuser(year, month, day, uid)
 
             if data < survey.oldest:
                 survey.oldest = data
             if data > survey.newest:
                 survey.newest = data
+            
+            print "data point: %4d%02d%02d" % (year, month, day)
 
     conn.close()
     
-    return
+    return survey
 
 def usage():
     """Usage"""
@@ -219,7 +231,7 @@ def main():
 
         fout.write("number in common\n")
         for com in sorted_incommon:
-            fout.write("%s\n" % com)
+            fout.write("%s\n" % str(com))
 
     # -------------------------------------------------------------------------
     # Done.

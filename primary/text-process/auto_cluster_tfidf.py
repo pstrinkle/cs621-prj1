@@ -36,7 +36,8 @@ import vectorspace
 import centroid
 
 def usage():
-    print "usage: %s <sqlite_db> <minimum> <maximum> <stopwords> <output_folder>" % sys.argv[0]
+    print "usage: %s <sqlite_db> <min> <max> <stopwords> <output_folder>" \
+        % sys.argv[0]
 
 def thread_main(database_file, output_folder, users, stopwords, start, cnt):
     """
@@ -59,13 +60,14 @@ def thread_main(database_file, output_folder, users, stopwords, start, cnt):
 
         for row in conn.cursor().execute(query_tweets % user_id):
             if row['text'] is not None:
-                users_tweets[row['id']] = tweetclean.cleanup(row['text'], True, True)
+                users_tweets[row['id']] = \
+                    tweetclean.cleanup(row['text'], True, True)
 
         curr_cnt = len(users_tweets)
 
         doc_tfidf, ignore = vectorspace.build_doc_tfidf(users_tweets, stopwords)
 
-        # -------------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         centroids = centroid.cluster_documents(doc_tfidf)
 
         duration = (time.clock() - start) / 60 # for minutes
@@ -77,7 +79,7 @@ def thread_main(database_file, output_folder, users, stopwords, start, cnt):
             # Might be better if I just implement __str__ for Centroids.
             for cen in centroids:
                 f.write("%s\n" % str(centroids[cen]))
-            f.write("------------------------------------------------------------\n")
+            f.write("-------------------------------------------------------\n")
 
     conn.close()
 
@@ -90,7 +92,7 @@ def main():
 
     cpus = multiprocessing.cpu_count()
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Parse the parameters.
     database_file = sys.argv[1]
     minimum = int(sys.argv[2])
@@ -127,7 +129,7 @@ parameters  :
 
     c = conn.cursor()
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Search the database file for users.
     users = []
 
@@ -141,7 +143,7 @@ parameters  :
 
     conn.close()
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Process those tweets by user set.
 
     print "usr\tcnt\tend\tdur"
@@ -170,7 +172,7 @@ parameters  :
 
         remains -= cnt
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Done.
 
 if __name__ == "__main__":

@@ -14,7 +14,9 @@ import sys
 import sqlite3
 import logging
 
-logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+logging.basicConfig(
+                    format='%(asctime)s : %(levelname)s : %(message)s',
+                    level=logging.INFO)
 
 from gensim import corpora, models
 
@@ -35,11 +37,11 @@ def main():
     user_id = int(sys.argv[2])
     stop_file = sys.argv[3]
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Pull stop words
     stopwords = tweetclean.import_stopwords(stop_file)
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Read in the database
     query_tweets = "select id, contents as text from tweets where owner = %d;"
     users_tweets = {}
@@ -51,28 +53,40 @@ def main():
 
     for row in c.execute(query_tweets % user_id):
         if row['text'] is not None:
-            users_tweets[row['id']] = tweetclean.cleanup(row['text'], True, True)
+            users_tweets[row['id']] = \
+                tweetclean.cleanup(row['text'], True, True)
 
     conn.close()
 
     # only words that are greater than one letter and not in the stopword list.
-    texts = [[word for word in users_tweets[uid].split() if word not in stopwords and len(word) > 1] for uid in users_tweets]
+    texts = [[word for word in users_tweets[uid].split() \
+              if word not in stopwords and len(word) > 1] \
+                for uid in users_tweets]
 
     # remove words that appear only once
     all_tokens = sum(texts, [])
-    tokens_once = set(word for word in set(all_tokens) if all_tokens.count(word) == 1)
-    texts = [[word for word in text if word not in tokens_once] for text in texts]
+    tokens_once = set(word for word in set(all_tokens) \
+                      if all_tokens.count(word) == 1)
+    texts = [[word for word in text \
+              if word not in tokens_once] for text in texts]
 
     dictionary = corpora.Dictionary(texts)
-    dictionary.save('%d.dict' % user_id) # store the dictionary, for future reference
+    # store the dictionary, for future reference
+    dictionary.save('%d.dict' % user_id)
 
     corpus = [dictionary.doc2bow(text) for text in texts]
-    corpora.MmCorpus.serialize('%d.mm' % user_id, corpus) # store to disk, for later use
+    # store to disk, for later use
+    corpora.MmCorpus.serialize('%d.mm' % user_id, corpus)
 
     # is this different...
     corpus = corpora.MmCorpus('%d.mm' % user_id)
     
-    model = models.ldamodel.LdaModel(corpus, id2word=dictionary, chunksize=100, passes=20, num_topics=100)
+    model = models.ldamodel.LdaModel(
+                                     corpus,
+                                     id2word=dictionary,
+                                     chunksize=100,
+                                     passes=20,
+                                     num_topics=100)
     model.save('%d.lda' % user_id)
 
     lda = models.ldamodel.LdaModel.load('%d.lda' % user_id)
@@ -85,7 +99,7 @@ def main():
     for topic in topic_strings:
         print topic
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Done.
 
 if __name__ == "__main__":

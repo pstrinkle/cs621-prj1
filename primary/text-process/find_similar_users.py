@@ -108,7 +108,7 @@ parameters  :
 
     tfidf, dictionary = vectorspace.build_doc_tfidf(docperuser, stopwords, True)
     
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Build Centroid List
     centroids = []
 
@@ -121,9 +121,10 @@ parameters  :
     
     print "mean: %.10f\tstd: %.10f" % (average_sim, stddev_sim)
     
-    # ---------------------------------------------------------------------------
-    # Merge centroids by highest similarity of at least threshold  
-    threshold = (average_sim + stddev_sim) # the standard deviation is a distance, for the value you must position it.
+    # --------------------------------------------------------------------------
+    # Merge centroids by highest similarity of at least threshold
+    # the standard deviation is a distance, for the value you must position it.
+    threshold = (average_sim + stddev_sim)
 
     while len(centroids) > 1:
         print "centroids: %d" % len(centroids)
