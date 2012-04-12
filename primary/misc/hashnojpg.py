@@ -2,10 +2,11 @@
 
 __author__ = 'tri1@umbc.edu'
 
-# Patrick Trinkle
+##
+# @author: Patrick Trinkle
 # Summer 2011
 #
-# Stuff.
+# @summary: Stuff.
 #
 
 import os
@@ -30,25 +31,25 @@ def main():
     startpoint = sys.argv[1]
     fileHashes = {}
     
-    for file in getFile(startpoint):
+    for path in getFile(startpoint):
 
-        if file.endswith(".jpg") or file.endswith(".JPG") or file.endswith("Thumbs.db") or file.endswith(".gif"):
+        if path.endswith(".jpg") or path.endswith(".JPG") or path.endswith("Thumbs.db") or path.endswith(".gif"):
             continue
                     
-        if file.endswith(".png") or file.endswith(".bmp") or file.endswith("jpeg"):
+        if path.endswith(".png") or path.endswith(".bmp") or path.endswith("jpeg"):
             continue
             
-        with open(file, "r") as f:
-            sys.stderr.write(file + "\n")
+        with open(path, "r") as f:
+            sys.stderr.write(path + "\n")
                 
             contents = f.read()
             h = hashlib.sha512(contents).hexdigest()
             
             try:
-                fileHashes[h].append(file)
+                fileHashes[h].append(path)
             except KeyError:
                 fileHashes[h] = []
-                fileHashes[h].append(file)
+                fileHashes[h].append(path)
 
     for h in fileHashes:
         if len(fileHashes[h]) > 1:

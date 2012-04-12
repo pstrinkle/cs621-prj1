@@ -9,17 +9,17 @@ __author__ = 'tri1@umbc.edu'
 # @summary: This handles building XML data for me.
 #
 #c.execute('''create table users (id integer primary key, screen_name text, name text, lang text, location text, friends text, private integer)''')
-#c.execute('''create table tweets (id integer primary key, owner integer, created text, reply_to_user integer, reply_to_tweet integer, geo text, place_name text, place_box text, source text, contents text)''')
+#c.execute('''create table tweets (id integer primary key, owner integer, created text, reply_to_user integer, reply_to_tweet integer, geo text, place_name text, place_box text, source text, contents text, yyyymm integer)''')
 #c.execute('''create table s_users (id integer primary key, screen_name text, name text, lang text, location text, friends text)''')
-#c.execute('''create table s_tweets (id integer primary key, owner integer, created text, reply_to_user integer, reply_to_tweet integer, geo text, place_name text, place_box text, source text, contents text)''')
+#c.execute('''create table s_tweets (id integer primary key, owner integer, created text, reply_to_user integer, reply_to_tweet integer, geo text, place_name text, place_box text, source text, contents text, yyyymm integer)''')
 
 import re
 import sys
 
+import tweetdate
+
 def tweet_insert(user_id, tweet):
-    """
-    Build the tweet insert parameters.
-    """
+    """Build the tweet insert parameters."""
 
     owner = int(user_id)
     
@@ -32,6 +32,7 @@ def tweet_insert(user_id, tweet):
     text = None # some of my tweets seem to have no-text... which is weird.
     created = None
     tweet_id = None
+    yyyymm = None
 
     # Pull the parts from the tweet
     re_created = re.search("<created>(.+?)</created>", tweet)
@@ -54,6 +55,7 @@ def tweet_insert(user_id, tweet):
     
     if re_created:
         created = re_created.group(1)
+        yyyymm = tweetdate.get_yearmonint(created)
 
     if re_tweet_id:
         tweet_id = int(re_tweet_id.group(1))
@@ -89,19 +91,19 @@ def tweet_insert(user_id, tweet):
     #                                   place_name text,
     #                                   place_box text,
     #                                   source text,
-    #                                   contents text)''')
+    #                                   contents text,
+    #                                   yyyymm integer)''')
     
     ins = (tweet_id, owner, created, reply_to_user, reply_to_tweet, geo, 
-           place_name, place_box, source, text,)
+           place_name, place_box, source, text, yyyymm,)
     
-    # c.execute('insert into tweets values (?,?,?,?,?,?,?,?,?,?)', ins)
+    # c.execute('insert into tweets values (?,?,?,?,?,?,?,?,?,?,?)', ins)
         
     return ins
 
 def user_insert(user):
-    """
-    Build the user insert list from the tweetxml User.
-    """
+    """Build the user insert list from the tweetxml User."""
+    
     friend_list = None
     screen_name = None
     name = None
@@ -195,6 +197,7 @@ class DbTweet:
         self.place_name = None
         self.source = None
         self.contents = None
+        self.yyyymm = 0 # weirdly set to 0 on init.
         
         if row['place_name'] != None:
             self.place_name = row['place_name']
@@ -206,6 +209,9 @@ class DbTweet:
 
         if row['contents'] != None:
             self.contents = row['contents']
+        
+        if row['yyyymm'] != None:
+            self.yyyymm = row['yyyymm']
 
 def compare_users(txt_user, db_user):
     """Compare user object built from text and from the database.
@@ -302,6 +308,9 @@ def compare_tweets(txt_tweet, db_tweet):
         return False
     elif txt_tweet.tweet_id != db_tweet.id:
         print "invalid tweet id.."
+        return False
+    elif txt_tweet.yyyymm != db_tweet.yyyymm:
+        print "invalid yyyymm"
         return False
 
     return True

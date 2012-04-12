@@ -1,4 +1,4 @@
-#! /usr/bin/python
+"""Code for building a vectorspace model."""
 
 __author__ = 'tri1@umbc.edu'
 
@@ -10,8 +10,8 @@ __author__ = 'tri1@umbc.edu'
 # @summary: This handles the vector space model stuff.
 #
 
-import math
-import operator
+from math import log10
+from operator import itemgetter
 
 def build_dictionary(docs, stopwords):
     """docs is a dictionary of documents."""
@@ -28,20 +28,18 @@ def build_dictionary(docs, stopwords):
     return words
 
 def top_terms_tuples(vector, num):
-    """
-    Returns the num-highest tf-idf terms in the vector.
+    """Returns the num-highest tf-idf terms in the vector.
 
     This is an array of tuples [0] - term, [1] -- value.
 
     num := the number of terms to get.
 
     This is not identical to the similarly named function in the vectorspace
-    module.  It is however, identical to this exact function there.
-    """
+    module.  It is however, identical to this exact function there."""
 
     sorted_tokens = sorted(
                            vector.items(),
-                           key=operator.itemgetter(1), # (1) is value
+                           key=itemgetter(1), # (1) is value
                            reverse=True)
 
     # count to index 
@@ -53,19 +51,17 @@ def top_terms_tuples(vector, num):
     return top
 
 def top_terms(vector, num):
-    """
-    Returns the num-highest tf-idf terms in the vector.
+    """Returns the num-highest tf-idf terms in the vector.
     
     This returns the array of terms, not the values.
     
-    num := the number of terms to get.
-    """
+    num := the number of terms to get."""
 
     # This doesn't seem to work right when I used it here.  It works fine
     # in manual python testing and in the centroid library (i'm assuming).
     sorted_tokens = sorted(
                            vector.items(),
-                           key=operator.itemgetter(1), # (1) is value
+                           key=itemgetter(1), # (1) is value
                            reverse=True)
 
     # count to index
@@ -77,8 +73,7 @@ def top_terms(vector, num):
     return terms
 
 def calculate_invdf(doc_count, doc_freq):
-    """
-    Calculate the inverse document frequencies.
+    """Calculate the inverse document frequencies.
   
     The inverse document frequency is how many documents there are divided by 
     in how many documents the term appears.
@@ -89,19 +84,17 @@ def calculate_invdf(doc_count, doc_freq):
     Output: invdoc_freq := dictionary of inverse document frequencies, key'd by 
                         term
   
-    idf = log(document count / in how many documents)
-    """
+    idf = log(document count / in how many documents)"""
   
     invdoc_freq = {}
   
     for term in doc_freq:
-        invdoc_freq[term] = math.log10(float(doc_count) / doc_freq[term])
+        invdoc_freq[term] = log10(float(doc_count) / doc_freq[term])
 
     return invdoc_freq
 
 def calculate_tfidf(doc_length, doc_termfreq, invdoc_freq):
-    """
-    Calculate the tf-idf values.
+    """Calculate the tf-idf values.
   
     Input: doc_length := total frequency (not distinct count), key'd on doc id
          doc_termfreq := dictionary of term frequencies, key'd on document, 
@@ -117,8 +110,7 @@ def calculate_tfidf(doc_length, doc_termfreq, invdoc_freq):
   
     td-idf = 
         (term count / count of all terms in document) 
-            * log(document count / in how many documents)
-    """
+            * log(document count / in how many documents)"""
 
     doc_tfidf = {}
 
@@ -133,11 +125,11 @@ def calculate_tfidf(doc_length, doc_termfreq, invdoc_freq):
     return doc_tfidf
 
 def cosine_compute(vector_a, vector_b):
-    """
-    Compute the cosine similarity of two normalized vectors.
-    vector_a and vector_b are dictionaries, where the key is the term and the value
-    is the tf-idf.
-    """
+    """Compute the cosine similarity of two normalized vectors.
+    
+    vector_a and vector_b are dictionaries, where the key is the term and the 
+    value is the tf-idf."""
+    
     dotproduct = 0.0
   
     for k in vector_a.keys():
@@ -147,8 +139,7 @@ def cosine_compute(vector_a, vector_b):
     return dotproduct
 
 def dump_raw_matrix(term_dict, tfidf_dict):
-    """
-    Dump a complete term space matrix of tf-idf values.
+    """Dump a complete term space matrix of tf-idf values.
 
     The printout should look something like:
 
@@ -156,8 +147,7 @@ def dump_raw_matrix(term_dict, tfidf_dict):
     w1,  w2,  w3,  wN
     w1,  w2,  w3,  wN
   
-    Which is an NxM matrix.  It will be a sparse matrix for most cases.
-    """
+    Which is an NxM matrix.  It will be a sparse matrix for most cases."""
 
     output = ""
   
@@ -177,8 +167,7 @@ def dump_raw_matrix(term_dict, tfidf_dict):
     return output
 
 def dump_matrix(term_dict, tfidf_dict):
-    """
-    Dump a complete term space matrix of tf-idf values.
+    """Dump a complete term space matrix of tf-idf values.
   
     The printout should look something like:
     terms,day1,day2,day3,...,dayN
@@ -186,8 +175,7 @@ def dump_matrix(term_dict, tfidf_dict):
     t2,   w1,  w2,  w3,  wN
     tM,   w1,  w2,  w3,  wN
   
-    Which is an NxM matrix.  It will be a sparse matrix for most cases.
-    """
+    Which is an NxM matrix.  It will be a sparse matrix for most cases."""
 
     output = ""
 
@@ -216,8 +204,7 @@ def dump_matrix(term_dict, tfidf_dict):
     return output
 
 def build_doc_tfidf(documents, stopwords, remove_singletons=False):
-    """
-    Note: This doesn't remove singletons from the dictionary of terms, unless 
+    """Note: This doesn't remove singletons from the dictionary of terms, unless 
     you say otherwise.  With tweets there is certain value in not removing 
     singletons.
   
@@ -229,8 +216,7 @@ def build_doc_tfidf(documents, stopwords, remove_singletons=False):
 
     Returns:
         document tf-idf vectors.
-        term counts
-    """
+        term counts"""
     
     if len(documents) == 1:
         print "WARNING: Computing on 1 document means all will be singletons."

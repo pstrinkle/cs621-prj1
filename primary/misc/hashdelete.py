@@ -2,10 +2,11 @@
 
 __author__ = 'tri1@umbc.edu'
 
-# Patrick Trinkle
+##
+# @author: Patrick Trinkle
 # Summer 2011
 #
-# Stuff.
+# @summary: Stuff.
 #
 
 import os
@@ -31,16 +32,16 @@ def main():
     fileHashes = {}
     deleted = 0
     
-    for file in getFile(startpoint):
+    for path in getFile(startpoint):
         
-        if file.endswith(".jpg") or file.endswith(".JPG") or file.endswith("Thumbs.db") or file.endswith(".gif"):
+        if path.endswith(".jpg") or path.endswith(".JPG") or path.endswith("Thumbs.db") or path.endswith(".gif"):
             continue
         
-        if file.endswith(".png") or file.endswith(".bmp") or file.endswith("jpeg"):
+        if path.endswith(".png") or path.endswith(".bmp") or path.endswith("jpeg"):
             continue
         
-        with open(file, "r") as f:
-            sys.stderr.write(file + "\n")
+        with open(path, "r") as f:
+            sys.stderr.write(path + "\n")
             
             contents = f.read()
             h = hashlib.sha512(contents).hexdigest()
@@ -48,7 +49,7 @@ def main():
             if h in fileHashes:
                 sys.stderr.write("possible duplicate\n")
                 alen = os.stat(fileHashes[h]).st_size
-                blen = os.stat(file).st_size
+                blen = os.stat(path).st_size
                 
                 # They're the same size.
                 if alen == blen:
@@ -57,12 +58,12 @@ def main():
                     f2.close()
                     
                     if contents == contents2:
-                        print "deleted: %s" % file
-                        #os.unlink(file)
+                        print "deleted: %s" % path
+                        #os.unlink(path)
                         deleted += blen
                 
             else:
-                fileHashes[h] = file
+                fileHashes[h] = path
 
     print "Deleted: %d bytes" % deleted
 

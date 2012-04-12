@@ -2,10 +2,11 @@
 
 __author__ = 'tri1@umbc.edu'
 
-# Patrick Trinkle
+##
+# @author: Patrick Trinkle
 # Summer 2011
 #
-# Stuff.
+# @summary: Stuff.
 #
 
 import os
@@ -31,20 +32,20 @@ def main():
     startpoint = sys.argv[1]
     fileHashes = {}
     
-    for file in getFile(startpoint):
+    path_disqualifiers = (".jpg", ".JPG", "Thumbs.db", ".gif", ".png", ".bmp", 
+                          "jpeg")
+    
+    for path in getFile(startpoint):
         
-        if file.endswith(".jpg") or file.endswith(".JPG") or file.endswith("Thumbs.db") or file.endswith(".gif"):
-            continue
-        
-        if file.endswith(".png") or file.endswith(".bmp") or file.endswith("jpeg"):
+        if path.endswith(path_disqualifiers):
             continue
 
-        with open(file, "r") as f:
-            sys.stderr.write(file + "\n")
-            contents = f.read(20 * 1024)
+        with open(path, "r") as fin:
+            sys.stderr.write(path + "\n")
+            contents = fin.read(20 * 1024)
             h = hashlib.sha512(contents).hexdigest()
             
-            value = "%s : %d" % (file, os.stat(file).st_size)
+            value = "%s : %d" % (path, os.stat(path).st_size)
             
             try:
                 fileHashes[h].append(value)

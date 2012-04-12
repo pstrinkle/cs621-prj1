@@ -37,6 +37,16 @@ WEEKDAYS = {
     'Sat': '05',
     'Sun': '06'}
 
+def str_yearmonth(year, month):
+    """Convert a year int and month int into an int YYYYMM."""
+    
+    return "%4d%02d" % (year, month)
+
+def str_yearmonthday(year, month, day):
+    """Convert a year int, month int, and day int into an int YYYYMMDD."""
+    
+    return "%4d02%d%02d" % (year, month, day)
+
 def get_monthfromint(date_val):
     """Grab the year from a date integer, the first four digits.
         Input: YYYYMMHH...
@@ -118,6 +128,21 @@ def get_yearmondayint(date_str):
         date = -1
     else:
         date = int(day.group(3) + MONTHS[day.group(1)] + day.group(2))
+
+    return date
+
+def get_yearmonint(date_str):
+    """Build a date integer from the string.
+        Input: Fri Jan 21 09:28:12 +0000 2011
+        Output: YYYYMM"""
+
+    day = re.search('\w{3} (\w{3}) (\d{1,2}) \d{2}:\d{2}:\d{2} \+\d{4} (\d{4})', date_str)
+
+    if day == None:
+        print "regex doesn't match anything"
+        date = -1
+    else:
+        date = int(day.group(3) + MONTHS[day.group(1)])
 
     return date
 

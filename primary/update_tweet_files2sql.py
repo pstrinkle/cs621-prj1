@@ -5,8 +5,8 @@ __author__ = 'tri1@umbc.edu'
 # Patrick Trinkle
 # Summer 2011
 #
-# Because I got worried that I would hit the limit of the number of files you're allowed to have; this
-# moves the system back into a single flat file database.
+# Because I got worried that I would hit the limit of the number of files you're
+# allowed to have; this moves the system back into a single flat file database.
 #
 
 import re
@@ -19,7 +19,8 @@ sys.path.append("tweetlib")
 import tweetdatabase as td
 
 def usage():
-    sys.stderr.write("usage: %s <stream|main> <input_file> <sqlite_db>\n" % sys.argv[0])
+    sys.stderr.write("usage: %s <stream|main> <input_file> <sqlite_db>\n" \
+                     % sys.argv[0])
 
 def main():
 
@@ -55,15 +56,18 @@ def main():
     cnt = 0
 
     # ---------------------------------------------------------------------------
-    with codecs.open(input_file, "r", "utf-8") as f:
-        for tweet in f:
+    with codecs.open(input_file, "r", "utf-8") as fin:
+        
+        for tweet in fin:
             i = re.search("<user_id>(\d+)</user_id>", tweet)
+            
             if i:
                 user_id = int(i.group(1))
                 cnt += 1
                 print "%d - %d" % (user_id, cnt)
+                
                 try:
-                    c.execute("insert into %s values (?,?,?,?,?,?,?,?,?,?)" % tweetTbl, td.tweet_insert(user_id, tweet))
+                    c.execute("insert into %s values (?,?,?,?,?,?,?,?,?,?,?)" % tweetTbl, td.tweet_insert(user_id, tweet))
                 except sqlite3.IntegrityError:
                     print "already existed"
             else:

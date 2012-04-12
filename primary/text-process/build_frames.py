@@ -29,13 +29,13 @@ from calendar import monthrange
 from ConfigParser import SafeConfigParser
 
 sys.path.append(os.path.join("..", "tweetlib"))
-import tweetclean
-import tweetdate
+from tweetclean import import_stopwords, cleanup
+from tweetdate import TweetTime, MONTHS
 
 sys.path.append(os.path.join("..", "modellib"))
 import frame
-import vectorspace
-import imageoutput
+from vectorspace import dump_raw_matrix
+from imageoutput import image_create, image_create_color
 
 class Output():
     """This holds the run parameters."""
@@ -80,8 +80,8 @@ def data_pull(database_file, query):
     
     for row in conn.cursor().execute(query):
         if row['text'] is not None:
-            data = tweetclean.cleanup(row['text'], True, True)
-            twt = tweetdate.TweetTime(row['created'])
+            data = cleanup(row['text'], True, True)
+            twt = TweetTime(row['created'])
             uid = row['owner']
             
             # could probably get away with pushing this up -- like in c++.
@@ -100,7 +100,7 @@ def text_create(text_name, dictionary, data):
     """Dump the matrix as a csv file."""
 
     with open(text_name + '.txt', "w") as fout:
-        fout.write(vectorspace.dump_raw_matrix(dictionary, data))
+        fout.write(dump_raw_matrix(dictionary, data))
         fout.write("\n")
 
 def output_matrix(frames, output_set, build_csv_files, build_images):
@@ -115,18 +115,18 @@ def output_matrix(frames, output_set, build_csv_files, build_images):
                 text_create(fname, out.get_terms(), frames[day].get_tfidf())
 
             if build_images:
-                imageoutput.image_create(
-                                         fname,
-                                         out.get_terms(),         # dictionary
-                                         frames[day].get_tfidf(), # data
-                                         out.max_range,
-                                         'black')
+                image_create(
+                             fname,
+                             out.get_terms(),         # dictionary
+                             frames[day].get_tfidf(), # data
+                             out.max_range,
+                             'black')
 
-                imageoutput.image_create_color(
-                                               fname,
-                                               out.get_terms(),   # dictionary
-                                               frames[day].get_tfidf(), # data
-                                               out.max_range)
+                image_create_color(
+                                   fname,
+                                   out.get_terms(),         # dictionary
+                                   frames[day].get_tfidf(), # data
+                                   out.max_range)
 
 def usage():
     """Standard usage message."""
@@ -153,7 +153,7 @@ def main():
     build_images = config.getboolean('input', 'build_images')
     build_csv_files = config.getboolean('input', 'build_csv_files')
 
-    if month_str not in tweetdate.MONTHS:
+    if month_str not in MONTHS:
         usage()
         sys.exit(-2)
 
@@ -175,7 +175,7 @@ def main():
 
     # -------------------------------------------------------------------------
     # Pull stop words
-    stopwords = tweetclean.import_stopwords(stop_file)
+    stopwords = import_stopwords(stop_file)
 
     kickoff = \
 """
@@ -208,7 +208,7 @@ where created like '%%%s%%%d%%';"""
 
     # -------------------------------------------------------------------------
     # Build a set of documents, per user, per day.
-    num_days = monthrange(year_val, int(tweetdate.MONTHS[month_str]))[1]
+    num_days = monthrange(year_val, int(MONTHS[month_str]))[1]
     user_data = \
         data_pull(database_file, query_prefetch % (month_str, year_val))
     full_users = frame.find_full_users(user_data, stopwords, num_days)

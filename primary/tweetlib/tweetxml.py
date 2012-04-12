@@ -13,6 +13,8 @@ import re
 import sys
 import string
 
+import tweetdate
+
 # I convert these characters to nothing--I just remove them.  Strangely they 
 # are crap and somehow show up.
 INVALID_CHARS = ('\x00', '\x01', '\x02', '\x03', '\x04',
@@ -275,8 +277,22 @@ class Tweet:
     
     xml here is what is between <tweet>...</tweet>"""
 
-    def __init__(self, owner_id):
-        """From the XML file, grab details."""
+    def __init__(self, owner_id, tweet=""):
+        """Given what we so far have in the database this works.
+    
+        Input:
+        <created>"Sun Sep 04 22:16:36 +0000 2011"</created>                       <-- double-quoted
+        <id>110476379149185024</id>
+        <in_reply_to_screen_name>"FirstLadi_Lyles"</in_reply_to_screen_name>      <-- double-quoted, but don't care
+        <in_reply_to_status_id>110475524261949440</in_reply_to_status_id>
+        <in_reply_to_user_id>318206268</in_reply_to_user_id>
+        <geo>33.711488, -80.217898</geo>
+        <place_name>"South Carolina, US"</place_name>                             <-- double-quoted
+        <place_box>[[[-83.353928, 32.033454], [-78.499301, 32.033454], [-78.499301, 35.21554], [-83.353928, 35.21554]]]</place_box>
+        <source>"<a href=\"http://www.tweetcaster.com\" rel=\"nofollow\">TweetCaster for Android</a>"</source>  <-- double-quoted
+        <text>"@FirstLadi_Lyles ya...."</text> <-- double-quoted
+    
+        It unescapes the double-quotes and does completely unpack (if you will) the XML."""
         
         self.owner = owner_id
         self.reply_to_tweet = None
@@ -289,6 +305,55 @@ class Tweet:
         self.text = None
         self.created = None
         self.tweet_id = None
+        self.yyyymm = 0 # weirdly set to 0 on init.
+    
+        # Pull the parts from the tweet
+        re_created = re.search("<created>(.+?)</created>", tweet)
+        re_tweet_id = re.search("<id>(.+?)</id>", tweet)
+        # reply_to_screen_name we don't care about.
+        re_reply_tweet_id = \
+            re.search("<in_reply_to_status_id>(.+?)</in_reply_to_status_id>", tweet)
+        re_reply_user_id = \
+            re.search("<in_reply_to_user_id>(.+?)</in_reply_to_user_id>", tweet)
+        re_geo = re.search("<geo>(.+?)</geo>", tweet)
+        re_place_name = re.search("<place_name>(.+?)</place_name>", tweet)
+        re_place_box = re.search("<place_box>(.+?)</place_box>", tweet)
+        re_source = re.search("<source>(.+?)</source>", tweet)
+        re_text = re.search("<text>(.+?)</text>", tweet)
+    
+        # All tweets have this crap or else.
+        if re_created is None or re_tweet_id is None:
+            sys.stderr.write("evil abort!\n")
+            sys.exit(-1)
+    
+        if re_created:
+            self.created = re_created.group(1)
+            self.yyyymm = tweetdate.get_yearmonint(self.created)
+
+        if re_tweet_id:
+            self.tweet_id = int(re_tweet_id.group(1))
+    
+        if re_reply_tweet_id:
+            self.reply_to_tweet = int(re_reply_tweet_id.group(1))
+    
+        if re_reply_user_id:
+            self.reply_to_user = int(re_reply_user_id.group(1))
+    
+        if re_geo:
+            self.geo = re_geo.group(1)
+    
+        if re_place_name:
+            self.place_name = re_place_name.group(1)
+    
+        if re_place_box:
+            self.place_box = re_place_box.group(1)
+    
+        if re_source:
+            self.source = re_source.group(1)
+    
+        if re_text:
+            self.text = re_text.group(1)
+
 
 class TwitterUser:
     """The TwitterUser class really needs to converge at some point.
@@ -474,71 +539,6 @@ class TwitterUser:
                 if len(fid) > 0:
                     if int(fid) not in self.friends:
                         self.friends.append(int(fid))
-
-def tweet_from_xml(user_id, tweet=""):
-    """Given what we so far have in the database this works.
-    
-    Input:
-    <created>"Sun Sep 04 22:16:36 +0000 2011"</created>                       <-- double-quoted
-    <id>110476379149185024</id>
-    <in_reply_to_screen_name>"FirstLadi_Lyles"</in_reply_to_screen_name>      <-- double-quoted, but don't care
-    <in_reply_to_status_id>110475524261949440</in_reply_to_status_id>
-    <in_reply_to_user_id>318206268</in_reply_to_user_id>
-    <geo>33.711488, -80.217898</geo>
-    <place_name>"South Carolina, US"</place_name>                             <-- double-quoted
-    <place_box>[[[-83.353928, 32.033454], [-78.499301, 32.033454], [-78.499301, 35.21554], [-83.353928, 35.21554]]]</place_box>
-    <source>"<a href=\"http://www.tweetcaster.com\" rel=\"nofollow\">TweetCaster for Android</a>"</source>  <-- double-quoted
-    <text>"@FirstLadi_Lyles ya...."</text> <-- double-quoted
-    
-    It unescapes the double-quotes and does completely unpack (if you will) the XML."""
-    
-    twt = Tweet(user_id)
-    
-    # Pull the parts from the tweet
-    re_created = re.search("<created>(.+?)</created>", tweet)
-    re_tweet_id = re.search("<id>(.+?)</id>", tweet)
-    # reply_to_screen_name we don't care about.
-    re_reply_tweet_id = re.search("<in_reply_to_status_id>(.+?)</in_reply_to_status_id>", tweet)
-    re_reply_user_id = re.search("<in_reply_to_user_id>(.+?)</in_reply_to_user_id>", tweet)
-    re_geo = re.search("<geo>(.+?)</geo>", tweet)
-    re_place_name = re.search("<place_name>(.+?)</place_name>", tweet)
-    re_place_box = re.search("<place_box>(.+?)</place_box>", tweet)
-    re_source = re.search("<source>(.+?)</source>", tweet)
-    re_text = re.search("<text>(.+?)</text>", tweet)
-    
-    # All tweets have this crap or else.
-    if re_created is None or re_tweet_id is None:
-        sys.stderr.write("evil abort!\n")
-        sys.exit(-1)
-    
-    if re_created:
-        twt.created = re_created.group(1)
-
-    if re_tweet_id:
-        twt.tweet_id = int(re_tweet_id.group(1))
-    
-    if re_reply_tweet_id:
-        twt.reply_to_tweet = int(re_reply_tweet_id.group(1))
-    
-    if re_reply_user_id:
-        twt.reply_to_user = int(re_reply_user_id.group(1))
-    
-    if re_geo:
-        twt.geo = re_geo.group(1)
-    
-    if re_place_name:
-        twt.place_name = re_place_name.group(1)
-    
-    if re_place_box:
-        twt.place_box = re_place_box.group(1)
-    
-    if re_source:
-        twt.source = re_source.group(1)
-    
-    if re_text:
-        twt.text = re_text.group(1)
-
-    return twt
 
 def user_from_xml(xml=""):
     """Given what we so far have in the database this works.

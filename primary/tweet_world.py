@@ -18,24 +18,25 @@ sys.path.append("tweetlib")
 import tweetdatabase as td
 
 def addPlaces(current_places, location):
-    """
-    Add lat, long, counts from guy to current_places.
-    """
+    """Add lat, long, counts from guy to current_places."""
 
-    m = re.search("(.+?), (.+?)$", location)
-    if m:
-        lat = float(m.group(1)) # likely unnecessary thing here.
-        long = float(m.group(2))
+    latlong_m = re.search("(.+?), (.+?)$", location)
+    if latlong_m:
+        lat = float(latlong_m.group(1)) # likely unnecessary thing here.
+        longitude = float(latlong_m.group(2))
 
         try:
-            current_places["%f %f" % (long, lat)] += 1
+            current_places["%f %f" % (longitude, lat)] += 1
         except KeyError:
-            current_places["%f %f" % (long, lat)] = 1
+            current_places["%f %f" % (longitude, lat)] = 1
 
 def usage():
+    """."""
+
     print "usage: %s <database> <out_file>" % sys.argv[0]
 
 def main():
+    """."""
 
     # Did they provide the correct args?
     if len(sys.argv) != 3:
@@ -71,10 +72,10 @@ def main():
     
     conn.close()
   
-    with open(output_file, "w") as f:
-        f.write("# long lat count\n")
+    with open(output_file, "w") as fout:
+        fout.write("# long lat count\n")
         for place in places:
-            f.write("%s %d\n" % (place, places[place]))
+            fout.write("%s %d\n" % (place, places[place]))
 
     print "total runtime: ",
     print (datetime.datetime.now() - startTime)

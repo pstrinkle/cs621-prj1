@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-# Author:  Patrick Trinkle
+##
+# @author: Patrick Trinkle
 # Date:    May 20, 2010
 # Purpose: Convert basic wiki pages to LateX.
 #

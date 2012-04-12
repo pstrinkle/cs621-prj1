@@ -25,7 +25,7 @@ def main():
         sys.exit(-1)
 
     folder = sys.argv[1]
-    files = os.listdir(folder)
+    files = [name for name in os.listdir(folder) if ".data" in name]
     output = sys.argv[2]
 
     # ---------------------------------------------------------------------------
@@ -37,10 +37,11 @@ def main():
     params += "set xlabel 'km from centroid'\n"
     params += "set ylabel '# occurrences'\n"
     
-    for file in files:
-        if ".data" in file:
-            path = os.path.join(folder, file)
-            params += "plot '%s' t 'User %s geo-location posts'\n" % (path, file)
+    for name in files:
+
+        path = os.path.join(folder, name)
+            
+        params += "plot '%s' t 'User %s geo-location posts'\n" % (path, name)
     
     params += "q\n"
 

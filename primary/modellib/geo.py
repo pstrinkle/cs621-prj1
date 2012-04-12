@@ -54,12 +54,13 @@ def calculate_distance(coord_a, coord_b):
   Given two points on Earth, calculate the distance between them in kilometers.
 
   haversin(rad) = sin**2(rad * 0.5) = (1-cos(rad)) * 0.5
-  haversin(d / R) = haversin(lat2 - lat1) + cos(lat1)cos(lat2)haversin(lon2-lon1)
-  h = haversin(d / R)
-  d = 2*R*arcsin(sqrt(h)
+  haversin(d / R) = \
+      haversin(lat2 - lat1) + cos(lat1)cos(lat2)haversin(lon2-lon1)
+  haver = haversin(d / R)
+  d = 2*R*arcsin(sqrt(haver)
   
-  h = haversin(lat2 - lat1) + cos(lat1)cos(lat2)haversin(lon2-lon1)
-  d = 2*R*arcsin(sqrt(h)
+  haver = haversin(lat2 - lat1) + cos(lat1)cos(lat2)haversin(lon2-lon1)
+  d = 2*R*arcsin(sqrt(haver)
   
   Input: coord_a := point A as a coordinate tuple [lat, long]
          coord_b := point B as a coordinate tuple
@@ -82,9 +83,11 @@ def calculate_distance(coord_a, coord_b):
     # radius of Earth in kilometers
     radius = 6371
 
-    h = haversin(dynlat) + (math.cos(rlat1) * math.cos(rlat2) * haversin(dynlong))
+    haver = \
+        haversin(dynlat) + \
+            (math.cos(rlat1) * math.cos(rlat2) * haversin(dynlong))
 
-    return (2 * radius * math.asin(math.sqrt(h)))
+    return (2 * radius * math.asin(math.sqrt(haver)))
 
 def calculate_area(box, lat=0, longitude=1):
     """
@@ -118,17 +121,15 @@ def calculate_area(box, lat=0, longitude=1):
     return vert * horz
 
 def merge_box(box_a, box_b, latitude=0, longitude=1):
-    """
-  Given two rectangles of Twitter GPS coordinates, merge the boxes into the encompassing
-  rectangle.
+    """Given two rectangles of Twitter GPS coordinates, merge the boxes into the
+    encompassing rectangle.
   
   Input: box_a := rectangle of GPS coordinates.
          box_b := rectangle of GPS coordinates.
          latitude  := index of the latitude value within a coordinate
          longitude := index of the longitude value within a coordinate
   
-  Return: Encompassing box.
-    """
+  Return: Encompassing box."""
   
     if len(box_a) != 4 or len(box_b) != 4:
         return None
@@ -184,8 +185,8 @@ def merge_box(box_a, box_b, latitude=0, longitude=1):
     return lower_left, lower_right, upper_right, upper_left
 
 def within_box(box, point):
-    """
-    Given a bounding box on Earth, determine whether the specified point is within the box.
+    """Given a bounding box on Earth, determine whether the specified point is 
+    within the box.
   
     Twitter weirdly stores the place coordinates in [long, lat]
   
@@ -199,8 +200,7 @@ def within_box(box, point):
          [long, lat], [long, lat]  (upper_right, upper_left)
          point := a coordinate tuple [lat, long]
   
-    Return: True if the point is within the box; False otherwise.
-    """
+    Return: True if the point is within the box; False otherwise."""
   
     if len(box) != 4 or len(point) != 2:
         return False

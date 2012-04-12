@@ -7,19 +7,22 @@ import subprocess
 def usage():
     """."""
     
-    sys.stderr.write("%s <input file>\n" % sys.argv[0])
+    sys.stderr.write("%s <input files>\n" % sys.argv[0])
+    sys.stderr.write("\tif you provide multiple files they are run together.\n")
 
 def main():
     """."""
 
-    if len(sys.argv) != 2:
+    if len(sys.argv) < 2:
+        print "params count: %d" % len(sys.argv)
+        print "params: %s" % sys.argv[1:]
         usage()
         sys.exit(-1)
 
-    process = subprocess.Popen(
-                             ['pylint', '--rcfile=py.config', sys.argv[1]],
-                             shell=False,
-                             stdout=subprocess.PIPE)
+    args = ['pylint', '--rcfile=py.config']
+    args.extend(sys.argv[1:])
+
+    process = subprocess.Popen(args, shell=False, stdout=subprocess.PIPE)
 
     output = process.communicate()[0]
     

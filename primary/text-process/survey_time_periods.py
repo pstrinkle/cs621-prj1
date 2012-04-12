@@ -19,17 +19,7 @@ import calendar
 from operator import itemgetter
 
 sys.path.append(os.path.join("..", "tweetlib"))
-import tweetdate
-
-def str_yearmonth(year, month):
-    """."""
-    
-    return "%4d%02d" % (year, month)
-
-def str_yearmonthday(year, month, day):
-    """."""
-    
-    return "%4d02%d%02d" % (year, month, day)
+import tweetdate as td
 
 def compare(set_a, set_b):
     """Compare two sets of users, return number of in common."""
@@ -86,7 +76,7 @@ class DateSurvey():
             for month in self.dates[year]:
                 num_days = calendar.monthrange(year, int(month))[1]
                 if num_days == len(self.dates[year][month]):
-                    yrmt = str_yearmonth(year, month)
+                    yrmt = td.str_yearmonth(year, month)
                     self.full_dates[yrmt] = \
                         (self.tweetspermonth[yrmt], self.usersperday[yrmt])
 
@@ -106,7 +96,7 @@ class DateSurvey():
     def add_date(self, year, month, day):
         """Add a date to the set of survey data."""
         
-        yearmonth = str_yearmonth(year, month)
+        yearmonth = td.str_yearmonth(year, month)
         
         try:
             self.dates[year][month].add(day)
@@ -128,7 +118,7 @@ class DateSurvey():
     def add_user(self, year, month, uid):
         """How many users tweeted that day."""
         
-        yearmonth = str_yearmonth(year, month)
+        yearmonth = td.str_yearmonth(year, month)
         
         try:
             self.usersperday[yearmonth].add(uid)
@@ -157,7 +147,7 @@ def data_pull(database_file, query):
         uid = row['owner']
 
         if row['created'] is not None:
-            twt = tweetdate.TweetTime(row['created'])
+            twt = td.TweetTime(row['created'])
 
             year = twt.year
             month = twt.get_month()["val"]
@@ -172,7 +162,7 @@ def data_pull(database_file, query):
             if data > survey.newest:
                 survey.newest = data
             
-            print "data point: %s" % str_yearmonthday(year, month, day)
+            print "data point: %s" % td.str_yearmonthday(year, month, day)
 
     conn.close()
     
@@ -217,19 +207,19 @@ def main():
                              key=itemgetter(1), # (1) is value
                              reverse=True)
 
-    start_year = tweetdate.get_yearfromint(survey.oldest)
-    start_month = tweetdate.get_monthfromint(survey.oldest)
+    start_year = td.get_yearfromint(survey.oldest)
+    start_month = td.get_monthfromint(survey.oldest)
 
-    end_year = tweetdate.get_yearfromint(survey.newest)
-    end_month = tweetdate.get_monthfromint(survey.newest)
+    end_year = td.get_yearfromint(survey.newest)
+    end_month = td.get_monthfromint(survey.newest)
 
     print "building output"
 
     with open(output_file, "w") as fout:
         fout.write("data:\n")
         fout.write("start:end :: %s:%s\n" % \
-            (str_yearmonth(start_year, start_month), 
-             str_yearmonth(end_year, end_month)))
+            (td.str_yearmonth(start_year, start_month), 
+             td.str_yearmonth(end_year, end_month)))
 
         fout.write("months w/ a tweet collected from each day (at least one)\n")
         for date in sorted(full_dates):
