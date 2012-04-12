@@ -17,6 +17,7 @@ __author__ = 'tri1@umbc.edu'
 # 201107 works with the data set I have at present.
 #
 # select * from tweets where created like '%Jul%2011%';
+# select * from tweets where yyyymm = 201107; <-- so much faster. =)
 #
 # So yeah... just build tf-idf matrix for entire dictionary for the month.
 # --- or maybe find the top terms for the month..?
@@ -30,7 +31,7 @@ from ConfigParser import SafeConfigParser
 
 sys.path.append(os.path.join("..", "tweetlib"))
 from tweetclean import import_stopwords, cleanup
-from tweetdate import TweetTime, MONTHS
+from tweetdate import TweetTime, MONTHS, str_yearmonth
 
 sys.path.append(os.path.join("..", "modellib"))
 import frame
@@ -200,17 +201,20 @@ parameters  :
          str([output_set[output].get_request() for output in output_set]),
          remove_singletons) 
 
-    # this won't return the 3 columns we care about.
+    #query_prefetch = \
+#"""select owner, created, contents as text 
+#from tweets where created like '%%%s%%%d%%';"""
+
+    # now that it's an integer lookup that can be more readily searched and 
+    # indexed versus a text field search with like.
     query_prefetch = \
-"""select owner, created, contents as text
-from tweets
-where created like '%%%s%%%d%%';"""
+"""select owner, created, contents as text from tweets where yyyymm = %d;"""
 
     # -------------------------------------------------------------------------
     # Build a set of documents, per user, per day.
     num_days = monthrange(year_val, int(MONTHS[month_str]))[1]
-    user_data = \
-        data_pull(database_file, query_prefetch % (month_str, year_val))
+    yearmonth = int(str_yearmonth(year_val, int(MONTHS[month_str])))
+    user_data = data_pull(database_file, query_prefetch % yearmonth)
     full_users = frame.find_full_users(user_data, stopwords, num_days)
 
     print "data pulled"

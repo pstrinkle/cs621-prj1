@@ -35,8 +35,8 @@ def main():
     update_query = \
     """update tweets set yyyymm=%d where created like '%%%s%%%d%%';"""
 
-    conn = sqlite3.connect(database_file)
-    conn.row_factory = sqlite3.Row
+    #conn = sqlite3.connect(database_file)
+    #conn.row_factory = sqlite3.Row
 
     for year in range(2005, 2012):
         for month in MONTHS:
@@ -44,9 +44,12 @@ def main():
             # month_str, year_val
             print update_query % (yyyymm, month, year)
             
-            conn.cursor().execute(update_query % (yyyymm, month, year))
+            # Maybe it should call "executescript()" and get fed a script
+            # generated the from the loop.  Probably faster.
+            #conn.cursor().execute(update_query % (yyyymm, month, year))
 
-    conn.close()
+    #conn.commit()
+    #conn.close()
 
 if __name__ == "__main__":
     main()
