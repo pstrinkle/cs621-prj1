@@ -17,6 +17,11 @@ class Frame():
     
     def __len__(self):
         return len(self.data)
+
+    def tfidf_len(self):
+        """What is the length of the tf-idf matrix."""
+        
+        return sum([len(self.doc_tfidf[doc_id]) for doc_id in self.doc_tfidf])
     
     def add_data(self, user_id, data):
         """Add data to this frame for a user given an id value and their 

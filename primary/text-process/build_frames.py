@@ -215,11 +215,22 @@ parameters  :
     num_days = monthrange(year_val, int(MONTHS[month_str]))[1]
     yearmonth = int(str_yearmonth(year_val, int(MONTHS[month_str])))
     user_data = data_pull(database_file, query_prefetch % yearmonth)
+    
+    if len(user_data) < 2:
+        print "empty dataset."
+        sys.exit(-3)
+    
     full_users = frame.find_full_users(user_data, stopwords, num_days)
 
     print "data pulled"
     print "user count: %d" % len(user_data)
     print "full users: %d" % len(full_users)
+
+    # this is only an issue at present. mind you, because for the video 
+    # analysis code the users don't have to be full. 
+    if len(full_users) < 2:
+        print "no full users"
+        sys.exit(-4)
 
     # -------------------------------------------------------------------------
     # I don't build a master tf-idf set because the tf-idf values should... 
@@ -234,6 +245,10 @@ parameters  :
         # This is run once per day overall.
         frames[day] = frame.build_full_frame(full_users, user_data, day)
         frames[day].calculate_tfidf(stopwords, remove_singletons)
+
+        if frames[day].tfidf_len() == 0:
+            print "weird data error."
+            sys.exit(-5)
 
         # This is run once per day per output.
         for output in output_set:

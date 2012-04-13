@@ -75,6 +75,7 @@ request_value = 100
                                  stdout=subprocess.PIPE)
 
             output += process.communicate()[0]
+            #print process.communicate()[0]
 
     # --------------------------------------------------------------------------
     # Done.
