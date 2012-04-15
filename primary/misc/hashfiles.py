@@ -12,14 +12,11 @@ __author__ = 'tri1@umbc.edu'
 import os
 import sys
 import hashlib
-
-# This returns hidden files as well.
-def getFile(folder):
-    for root, dirs, files in os.walk(folder):
-        for file in files:
-            yield os.path.join(root, file)
+import misc
 
 def usage():
+    """Parameters."""
+    
     sys.stderr.write("usage: %s path\n" % sys.argv[0])
 
 def main():
@@ -29,24 +26,24 @@ def main():
         sys.exit(-1)
 
     startpoint = sys.argv[1]
-    fileHashes = {}
+    file_hashes = {}
     
-    for file in getFile(startpoint):
-        with open(file, "r") as f:
-            contents = f.read()
-            h = hashlib.sha512(contents).hexdigest()
+    for path in misc.get_file(startpoint):
+        with open(path, "r") as path:
+            contents = path.read()
+            hash = hashlib.sha512(contents).hexdigest()
             
             try:
-                fileHashes[h].append(file)
+                file_hashes[hash].append(path)
             except KeyError:
-                fileHashes[h] = []
-                fileHashes[h].append(file)
+                file_hashes[hash] = []
+                file_hashes[hash].append(path)
 
-    for h in fileHashes:
-        if len(fileHashes[h]) > 1:
+    for hash in file_hashes:
+        if len(file_hashes[hash]) > 1:
             print "found possible duplicates"
-            for f in fileHashes[h]:
-                print "\t%s" % f
+            for path in file_hashes[hash]:
+                print "\t%s" % path
             
 if __name__ == "__main__":
     main()

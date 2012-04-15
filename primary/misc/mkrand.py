@@ -12,6 +12,8 @@ import sys
 import random
 
 def usage():
+    """Parameters."""
+    
     sys.stderr.write("usage: %s num_val range <ouput>\n" % sys.argv[0])
 
 def main():
@@ -26,16 +28,13 @@ def main():
     
     # uses system time
     random.seed()
-
-    sum = 0
-
-    with open(file_out, "w") as f:
-        for i in range(num_val):
-            x = random.randint(1, range_val)
-            sum += x
-            f.write("%d\n" % x)
     
-    print "sum: %d" % sum
+    with open(file_out, "w") as f:
+        values = [random.randint(1, range_val) for i in range(num_val)]
+        
+        f.write("%d\n".join(values))
+    
+        print "sum: %d" % sum(values)
 
 if __name__ == "__main__":
     main()

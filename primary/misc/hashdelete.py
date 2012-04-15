@@ -12,14 +12,11 @@ __author__ = 'tri1@umbc.edu'
 import os
 import sys
 import hashlib
-
-def getFile(folder):
-    for root, dirs, files in os.walk(folder):
-        for file in files:
-            if file[0] != ".":
-                yield os.path.join(root, file)
+import misc
 
 def usage():
+    """Parameters."""
+    
     sys.stderr.write("usage: %s path\n" % sys.argv[0])
 
 def main():
@@ -29,31 +26,28 @@ def main():
         sys.exit(-1)
 
     startpoint = sys.argv[1]
-    fileHashes = {}
+    file_hashes = {}
     deleted = 0
     
-    for path in getFile(startpoint):
+    for path in misc.get_file(startpoint):
         
-        if path.endswith(".jpg") or path.endswith(".JPG") or path.endswith("Thumbs.db") or path.endswith(".gif"):
-            continue
-        
-        if path.endswith(".png") or path.endswith(".bmp") or path.endswith("jpeg"):
+        if path.lower().endswith(misc.PATH_DISQUALIFIERS):
             continue
         
         with open(path, "r") as f:
             sys.stderr.write(path + "\n")
             
             contents = f.read()
-            h = hashlib.sha512(contents).hexdigest()
+            hash = hashlib.sha512(contents).hexdigest()
             
-            if h in fileHashes:
+            if hash in file_hashes:
                 sys.stderr.write("possible duplicate\n")
-                alen = os.stat(fileHashes[h]).st_size
+                alen = os.stat(file_hashes[hash]).st_size
                 blen = os.stat(path).st_size
                 
                 # They're the same size.
                 if alen == blen:
-                    f2 = open(fileHashes[h])
+                    f2 = open(file_hashes[hash])
                     contents2 = f2.read()
                     f2.close()
                     
@@ -63,7 +57,7 @@ def main():
                         deleted += blen
                 
             else:
-                fileHashes[h] = path
+                file_hashes[hash] = path
 
     print "Deleted: %d bytes" % deleted
 

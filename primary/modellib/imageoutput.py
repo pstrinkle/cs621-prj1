@@ -13,9 +13,32 @@ __author__ = 'tri1@umbc.edu'
 import sys
 from math import ceil
 from PIL import Image
+from operator import itemgetter
 
 MAX_COLOR = 256**3
 MAX_GREYSCALE = 256
+
+def image_detect_rows(file_name):
+    """Given a file, open it, and then walk the rows looking for ones with the
+    highest sums.
+    
+    Returns a sorted list of the row sums, largest to smallest."""
+    
+    img = Image.open(file_name)
+    pix = img.load()
+    
+    # (width, height)
+    #print "%s" % str(img.size)
+    width, height = img.size
+    
+    rows = {}
+    
+    for i in range(height):
+        rows[i] = sum(\
+                      [int("".join(["%x" % val for val in pix[j, i]]), 16) \
+                        for j in range(width)])
+
+    return sorted(rows.items(), key=itemgetter(1), reverse=True)
 
 def image_create_color(file_name, dictionary, data, val_range):
     """Dump the matrix as a color bmp file.
@@ -23,7 +46,9 @@ def image_create_color(file_name, dictionary, data, val_range):
     file_name  is the file to create.
     dictionary is the dictionary of terms.
     data       is the document-weight dictionary.
-    val_range  is the value range, max - min."""
+    val_range  is the value range, max - min.
+    
+    Please pre-sort dictionary"""
     
     # Each column is a document within data
     # Each row is a term.
@@ -36,8 +61,7 @@ def image_create_color(file_name, dictionary, data, val_range):
 
     # This code is identical to the method used to create the text file.
     # Except because it's building bitmaps, I think it will be flipped. lol.
-    sorted_docs = sorted(data.keys())  
-    sorted_terms = sorted(dictionary)
+    sorted_docs = sorted(data.keys())
     
     # val_range value is how far the minimum value and maximum value are apart 
     # from each other.
@@ -59,11 +83,13 @@ def image_create_color(file_name, dictionary, data, val_range):
 
     # Print Term Rows
     # with L the pixel value is from 0 - 255 (black -> white)
-    for i in range(len(sorted_terms)):
+    #
+    # pix[x, y] -- x is column, y is row. y is i.
+    for i in range(len(dictionary)):
         for j in range(len(sorted_docs)):
             # for each row, for each column
-            if sorted_terms[i] in data[sorted_docs[j]]:
-                val = data[sorted_docs[j]][sorted_terms[i]]
+            if dictionary[i] in data[sorted_docs[j]]:
+                val = data[sorted_docs[j]][dictionary[i]]
 
                 color = ceil(val / shade_range)
 
@@ -87,7 +113,9 @@ def image_create(file_name, dictionary, data, val_range, background):
     dictionary is the dictionary of terms.
     data       is the document-weight dictionary.
     val_range  is the value range, max - min.
-    background is either 'white' or 'black'."""
+    background is either 'white' or 'black'.
+    
+    Please pre-sort dictionary."""
 
     # Each column is a document within data
     # Each row is a term.
@@ -108,8 +136,7 @@ def image_create(file_name, dictionary, data, val_range, background):
 
     # This code is identical to the method used to create the text file.
     # Except because it's building bitmaps, I think it will be flipped. lol.
-    sorted_docs = sorted(data.keys())  
-    sorted_terms = sorted(dictionary)
+    sorted_docs = sorted(data.keys())
     
     # val_range value is how far the minimum value and maximum value are apart 
     # from each other.
@@ -131,11 +158,11 @@ def image_create(file_name, dictionary, data, val_range, background):
 
     # Print Term Rows
     # with L the pixel value is from 0 - 255 (black -> white)
-    for i in range(len(sorted_terms)):
+    for i in range(len(dictionary)):
         for j in range(len(sorted_docs)):
             # for each row, for each column
-            if sorted_terms[i] in data[sorted_docs[j]]:
-                val = data[sorted_docs[j]][sorted_terms[i]]
+            if dictionary[i] in data[sorted_docs[j]]:
+                val = data[sorted_docs[j]][dictionary[i]]
                 
                 #print "%f" % val
                 #print "%d" % math.floor(val / shade_range)

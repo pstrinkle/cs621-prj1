@@ -15,20 +15,20 @@ def usage():
 
 def main():
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Did they provide the correct args?
     if len(sys.argv) != 2:
         usage()
         sys.exit(-1)
 
-    startTime = datetime.datetime.now()
+    start_time = datetime.datetime.now()
 
     user_file = sys.argv[1]
     
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Read in the database files and write out the giant database file.
-    with open(user_file, "r") as f:
-        for path in f:
+    with open(user_file, "r") as fin:
+        for path in fin:
             print path.strip()
             
             try:
@@ -36,11 +36,11 @@ def main():
             except Exception:
                 pass
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Done.
 
     print "total runtime: ",
-    print (datetime.datetime.now() - startTime)
+    print (datetime.datetime.now() - start_time)
 
 if __name__ == "__main__":
     main()

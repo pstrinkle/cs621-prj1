@@ -12,14 +12,11 @@ __author__ = 'tri1@umbc.edu'
 import os
 import sys
 import hashlib
-
-# This returns hidden files as well.
-def getFile(folder):
-    for root, dirs, files in os.walk(folder):
-        for file in files:
-            yield os.path.join(root, file)
+import misc
 
 def usage():
+    """Parameters."""
+
     sys.stderr.write("usage: %s path\n" % sys.argv[0])
 
 def main():
@@ -31,30 +28,27 @@ def main():
     startpoint = sys.argv[1]
     fileHashes = {}
     
-    for path in getFile(startpoint):
+    for path in misc.get_file(startpoint):
 
-        if path.endswith(".jpg") or path.endswith(".JPG") or path.endswith("Thumbs.db") or path.endswith(".gif"):
-            continue
-                    
-        if path.endswith(".png") or path.endswith(".bmp") or path.endswith("jpeg"):
+        if path.lower().endswith(misc.PATH_DISQUALIFIERS):
             continue
             
         with open(path, "r") as f:
             sys.stderr.write(path + "\n")
                 
             contents = f.read()
-            h = hashlib.sha512(contents).hexdigest()
+            hash = hashlib.sha512(contents).hexdigest()
             
             try:
-                fileHashes[h].append(path)
+                fileHashes[hash].append(path)
             except KeyError:
-                fileHashes[h] = []
-                fileHashes[h].append(path)
+                fileHashes[hash] = []
+                fileHashes[hash].append(path)
 
-    for h in fileHashes:
-        if len(fileHashes[h]) > 1:
+    for hash in fileHashes:
+        if len(fileHashes[hash]) > 1:
             print "found possible duplicates"
-            for f in fileHashes[h]:
+            for f in fileHashes[hash]:
                 print "\t%s : %d" % (f, os.stat(f).st_size)
             
 if __name__ == "__main__":

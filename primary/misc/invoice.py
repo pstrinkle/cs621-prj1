@@ -12,9 +12,7 @@ __author__ = 'tri1@umbc.edu'
 import sys
 
 class Expense:
-    """
-    Container for holding an expense.
-    """
+    """Container for holding an expense."""
 
     def __init__(self, details):
         self.name = details[0].replace("#", "\#").replace("&", "\&").strip()
@@ -31,6 +29,8 @@ class Expense:
         return float(self.effective)
 
 def usage():
+    """Parameters."""
+
     sys.stderr.write("usage: %s <in.csv> number <out.tex>\n" % sys.argv[0])
 
 def main():

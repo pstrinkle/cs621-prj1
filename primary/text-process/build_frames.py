@@ -23,20 +23,21 @@ __author__ = 'tri1@umbc.edu'
 # --- or maybe find the top terms for the month..?
 #
 
-import os
 import sys
 import sqlite3
+from os import stat, mkdir, path
+from math import floor
 from calendar import monthrange
 from ConfigParser import SafeConfigParser
 
-sys.path.append(os.path.join("..", "tweetlib"))
+sys.path.append(path.join("..", "tweetlib"))
 from tweetclean import import_stopwords, cleanup
 from tweetdate import TweetTime, MONTHS, str_yearmonth
 
-sys.path.append(os.path.join("..", "modellib"))
+sys.path.append(path.join("..", "modellib"))
 import frame
 from vectorspace import dump_raw_matrix
-from imageoutput import image_create, image_create_color
+from imageoutput import image_create_color, image_detect_rows, image_create
 
 class Output():
     """This holds the run parameters."""
@@ -100,7 +101,7 @@ def data_pull(database_file, query):
 def text_create(text_name, dictionary, data):
     """Dump the matrix as a csv file."""
 
-    with open(text_name + '.txt', "w") as fout:
+    with open(text_name + '.csv', "w") as fout:
         fout.write(dump_raw_matrix(dictionary, data))
         fout.write("\n")
 
@@ -108,26 +109,53 @@ def output_matrix(frames, output_set, build_csv_files, build_images):
     """Output the data matrix."""
 
     for day in frames:
+        # Of interest, there should be no rows of zero, and no columns of zero.
+        # This only matters for the matrix completion methods, and not the video
+        #  stuff, but still.
+        
         for output in output_set:
             out = output_set[output]
-            fname = os.path.join(out.get_folder(), "%d" % day)
+            dictionary = sorted(out.get_terms())
+            data = frames[day].get_tfidf()
+            fname = path.join(out.get_folder(), "%d" % day)
 
             if build_csv_files:
-                text_create(fname, out.get_terms(), frames[day].get_tfidf())
+                text_create(fname, dictionary, frames[day].get_tfidf())
 
-            if build_images:
+            if build_images['grey']:
+                fname = path.join(out.get_folder(), "grey")
+                
+                try:
+                    stat(fname)
+                except OSError:
+                    mkdir(fname)
+                
                 image_create(
-                             fname,
-                             out.get_terms(),         # dictionary
-                             frames[day].get_tfidf(), # data
+                             path.join(fname, "%d" % day),
+                             dictionary, # dictionary
+                             data,       # data
                              out.max_range,
                              'black')
 
+            if build_images['rgb']:
+                fname = path.join(out.get_folder(), "rgb")
+
+                try:
+                    stat(fname)
+                except OSError:
+                    mkdir(fname)
+
                 image_create_color(
-                                   fname,
-                                   out.get_terms(),         # dictionary
-                                   frames[day].get_tfidf(), # data
+                                   path.join(fname, "%d" % day),
+                                   dictionary, # dictionary
+                                   data,       # data
                                    out.max_range)
+
+                rows = \
+                    image_detect_rows(path.join(fname, "%d" % day) + '.png')
+                upper_count = int(floor(len(rows) * .01))
+
+                print [dictionary[rows[i][0]] for i in range(upper_count)]
 
 def usage():
     """Standard usage message."""
@@ -151,7 +179,9 @@ def main():
     month_str = config.get('input', 'month')
     stop_file = config.get('input', 'stopwords')
     remove_singletons = config.getboolean('input', 'remove_singletons')
-    build_images = config.getboolean('input', 'build_images')
+    build_images = {}
+    build_images['rgb'] = config.getboolean('input', 'build_rgb_images')
+    build_images['grey'] = config.getboolean('input', 'build_grey_images')
     build_csv_files = config.getboolean('input', 'build_csv_files')
 
     if month_str not in MONTHS:
@@ -170,9 +200,9 @@ def main():
                        config.getint(section, 'request_value'))
 
             try:
-                os.stat(output_folder)
+                stat(output_folder)
             except OSError:
-                os.mkdir(output_folder)
+                mkdir(output_folder)
 
     # -------------------------------------------------------------------------
     # Pull stop words
@@ -183,32 +213,28 @@ def main():
 -------------------------------------------------------------------
 parameters  :
   database  : %s
-  year      : %d
-  month     : %s
+  date      : %s
   output    : %s
   stop      : %s
   count     : %s
   remove    : %s
+  output    : %s
 -------------------------------------------------------------------
 """
 
     print kickoff % \
         (database_file, 
-         year_val,
-         month_str,
+         (month_str, year_val),
          str([output_set[output].get_folder() for output in output_set]),
          stop_file,
          str([output_set[output].get_request() for output in output_set]),
-         remove_singletons) 
-
-    #query_prefetch = \
-#"""select owner, created, contents as text 
-#from tweets where created like '%%%s%%%d%%';"""
+         remove_singletons,
+         build_images)
 
     # now that it's an integer lookup that can be more readily searched and 
     # indexed versus a text field search with like.
     query_prefetch = \
-"""select owner, created, contents as text from tweets where yyyymm = %d;"""
+    "select owner, created, contents as text from tweets where yyyymm = %d;"
 
     # -------------------------------------------------------------------------
     # Build a set of documents, per user, per day.

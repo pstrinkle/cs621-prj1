@@ -46,7 +46,8 @@ year = %d
 month = %s
 stopwords = ../stopwords.txt
 remove_singletons = True
-build_images = True
+build_rgb_images = True
+build_grey_images = False
 build_csv_files = False
 
 [run100]

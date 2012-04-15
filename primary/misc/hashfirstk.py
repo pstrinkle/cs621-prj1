@@ -12,15 +12,11 @@ __author__ = 'tri1@umbc.edu'
 import os
 import sys
 import hashlib
-
-# This returns hidden files as well.
-def getFile(folder):
-    for root, dirs, files in os.walk(folder):
-        for file in files:
-            if file[0] != ".":
-                yield os.path.join(root, file)
+import misc
 
 def usage():
+    """Parameters."""
+    
     sys.stderr.write("usage: %s path\n" % sys.argv[0])
 
 def main():
@@ -30,33 +26,30 @@ def main():
         sys.exit(-1)
 
     startpoint = sys.argv[1]
-    fileHashes = {}
+    file_hashes = {}
     
-    path_disqualifiers = (".jpg", ".JPG", "Thumbs.db", ".gif", ".png", ".bmp", 
-                          "jpeg")
-    
-    for path in getFile(startpoint):
+    for path in misc.get_file(startpoint):
         
-        if path.endswith(path_disqualifiers):
+        if path.lower().endswith(misc.PATH_DISQUALIFIERS):
             continue
 
         with open(path, "r") as fin:
             sys.stderr.write(path + "\n")
             contents = fin.read(20 * 1024)
-            h = hashlib.sha512(contents).hexdigest()
+            hash = hashlib.sha512(contents).hexdigest()
             
             value = "%s : %d" % (path, os.stat(path).st_size)
             
             try:
-                fileHashes[h].append(value)
+                file_hashes[hash].append(value)
             except KeyError:
-                fileHashes[h] = []
-                fileHashes[h].append(value)
+                file_hashes[hash] = []
+                file_hashes[hash].append(value)
 
-    for h in fileHashes:
-        if len(fileHashes[h]) > 1:
+    for hash in file_hashes:
+        if len(file_hashes[hash]) > 1:
             print "found possible duplicates:"
-            for f in fileHashes[h]:
+            for f in file_hashes[hash]:
                 print "\t%s" % f
             
 if __name__ == "__main__":
