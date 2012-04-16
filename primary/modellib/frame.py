@@ -27,7 +27,10 @@ class Frame():
         """Add data to this frame for a user given an id value and their 
         data."""
         
-        self.data[user_id] = data
+        if data is not None:
+            self.data[user_id] = data
+        else: # so that the frames are always the same size.
+            self.data[user_id] = ""
 
     def calculate_tfidf(self, stopwords, rm_singletons=False):
         """Calculate the tf-idf value for the documents involved."""
@@ -108,8 +111,10 @@ class FrameUser():
     def __len__(self):
         return len(self.data)
 
-    def valid_data(self, stopwords):
-        """Do all the days have real data."""
+    def all_valid_data(self, stopwords):
+        """Do all the days have real data.
+        
+        Must run after num_days check."""
 
         for day in self.data:
             pruned = [word for word in " ".join(self.data[day]).split(' ') \
@@ -121,6 +126,31 @@ class FrameUser():
                 return False
         
         return True
+
+    def valid_data(self, stopwords):
+        """Does at least one day have real data."""
+
+        valid_day = 0
+
+        for day in self.data:
+            if len(self.data) == 0:
+                continue
+
+            pruned = [word for word in " ".join(self.data[day]).split(' ') \
+                      if word not in stopwords and len(word) > 1]
+
+            # skip documents that only have one word.
+            # the vectorspace code skips these docs.
+            if len(pruned) < 2:
+                continue
+
+            valid_day += 1
+        
+        # Was there at least one day with a good document.
+        if valid_day:
+            return True
+        
+        return False
 
     def add_data(self, day_val, text):
         """Add a data to a user's day."""
@@ -165,7 +195,14 @@ def find_full_users(users, stopwords, num_days):
     # users is a dictionary of FrameUsers key'd on their user id.    
     return [user for user in users \
             if len(users[user]) == num_days \
-                and users[user].valid_data(stopwords)]
+                and users[user].all_valid_data(stopwords)]
+
+def find_valid_users(users, stopwords):
+    """Which users have at least some valid tweets.  This is far less 
+    restrictive than find_full_users()."""
+    
+    # users is a dictionary of FrameUsers key'd on their user id.
+    return [user for user in users if users[user].valid_data(stopwords)]
 
 def build_full_frame(user_list, user_data, day):
     """Build tf-idf for that day."""

@@ -104,6 +104,9 @@ def text_create(text_name, dictionary, data):
     with open(text_name + '.csv', "w") as fout:
         fout.write("%s\n" % dump_raw_matrix(dictionary, data))
 
+    with open(text_name + '.tab', "w") as fout:
+        fout.write("%s\n" % dump_raw_matrix(dictionary, data, "\t"))
+
 def output_matrix(frames, output_set, build_csv_files, build_images):
     """Output the data matrix."""
 
@@ -123,6 +126,7 @@ def output_matrix(frames, output_set, build_csv_files, build_images):
 
             if build_images['grey']:
                 fname = path.join(out.get_folder(), "grey")
+                pname = path.join(fname, "%d" % day)
                 
                 try:
                     stat(fname)
@@ -130,7 +134,7 @@ def output_matrix(frames, output_set, build_csv_files, build_images):
                     mkdir(fname)
                 
                 img.image_create(
-                                 path.join(fname, "%d" % day),
+                                 pname,
                                  dictionary, # dictionary
                                  data,       # data
                                  out.max_range,
@@ -138,6 +142,7 @@ def output_matrix(frames, output_set, build_csv_files, build_images):
 
             if build_images['rgb']:
                 fname = path.join(out.get_folder(), "rgb")
+                pname = path.join(fname, "%d" % day)
 
                 try:
                     stat(fname)
@@ -145,23 +150,19 @@ def output_matrix(frames, output_set, build_csv_files, build_images):
                     mkdir(fname)
 
                 img.image_create_color(
-                                       path.join(fname, "%d" % day),
+                                       pname,
                                        dictionary, # dictionary
                                        data,       # data
                                        out.max_range)
 
-                rows = \
-                    img.image_detect_important(
-                                               path.join(fname, "%d" % day) \
-                                               + '.png')
+                rows = img.image_detect_important(pname + '.png')
 
                 upper_count = int(floor(len(rows) * .01))
 
                 print "important: %s" \
                     % [dictionary[rows[i][0]] for i in range(upper_count)]
 
-                rows = \
-                    img.image_detect_rows(path.join(fname, "%d" % day) + '.png')
+                rows = img.image_detect_rows(pname + '.png')
                 
                 print "busiest: %s" \
                     % [dictionary[rows[i][0]] for i in range(upper_count)] 
@@ -178,7 +179,7 @@ def main():
         usage()
         sys.exit(-1)
 
-    # -------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Parse the parameters.
     config = SafeConfigParser()
     config.read(sys.argv[1])
@@ -192,6 +193,7 @@ def main():
     build_images['rgb'] = config.getboolean('input', 'build_rgb_images')
     build_images['grey'] = config.getboolean('input', 'build_grey_images')
     build_csv_files = config.getboolean('input', 'build_csv_files')
+    full_users_only = config.getboolean('input', 'full_users')
 
     if month_str not in MONTHS:
         usage()
@@ -213,7 +215,7 @@ def main():
             except OSError:
                 mkdir(output_folder)
 
-    # -------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Pull stop words
     stopwords = import_stopwords(stop_file)
 
@@ -228,6 +230,7 @@ parameters  :
   count     : %s
   remove    : %s
   output    : %s
+  full only : %s
 -------------------------------------------------------------------
 """
 
@@ -238,14 +241,15 @@ parameters  :
          stop_file,
          str([output_set[output].get_request() for output in output_set]),
          remove_singletons,
-         build_images)
+         build_images,
+         full_users_only)
 
     # now that it's an integer lookup that can be more readily searched and 
     # indexed versus a text field search with like.
     query_prefetch = \
     "select owner, created, contents as text from tweets where yyyymm = %d;"
 
-    # -------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Build a set of documents, per user, per day.
     num_days = monthrange(year_val, int(MONTHS[month_str]))[1]
     user_data = \
@@ -258,18 +262,22 @@ parameters  :
         print "empty dataset."
         sys.exit(-3)
     
-    full_users = frame.find_full_users(user_data, stopwords, num_days)
+    # you want full users only if you're running matrix completion stuff.
+    if full_users_only:
+        users = frame.find_full_users(user_data, stopwords, num_days)
+    else:
+        users = frame.find_valid_users(user_data, stopwords)
 
     print "data pulled"
-    print "user count: %d\tfull users: %d" % (len(user_data), len(full_users))
+    print "user count: %d\tframe users: %d" % (len(user_data), len(users))
 
     # this is only an issue at present. mind you, because for the video 
     # analysis code the users don't have to be full. 
-    if len(full_users) < 2:
+    if len(users) < 2:
         print "no full users"
         sys.exit(-4)
 
-    # -------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # I don't build a master tf-idf set because the tf-idf values should... 
     # evolve.  albeit, I don't think I'm correctly adjusting them -- I'm just 
     # recalculating then.
@@ -280,7 +288,7 @@ parameters  :
 
     for day in range(1, num_days + 1):
         # This is run once per day overall.
-        frames[day] = frame.build_full_frame(full_users, user_data, day)
+        frames[day] = frame.build_full_frame(users, user_data, day)
         frames[day].calculate_tfidf(stopwords, remove_singletons)
 
         if frames[day].tfidf_len() == 0:
@@ -312,11 +320,11 @@ parameters  :
     # the users.  If there is literally no overlap then each user will have 
     # their own 250 terms each day.
 
-    # -------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Dump the matrix.
     output_matrix(frames, output_set, build_csv_files, build_images)
 
-    # -------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Done.
 
 if __name__ == "__main__":

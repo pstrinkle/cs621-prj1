@@ -66,6 +66,9 @@ def top_terms(vector, num):
 
     # count to index
     terms = []
+
+    # terms = \
+    #     [sorted_tokens[i][0] for i in xrange(0, min(num, len(sorted_tokens))]
   
     for i in xrange(0, min(num, len(sorted_tokens))):
         terms.append(sorted_tokens[i][0])
@@ -129,16 +132,18 @@ def cosine_compute(vector_a, vector_b):
     
     vector_a and vector_b are dictionaries, where the key is the term and the 
     value is the tf-idf."""
-    
+
     dotproduct = 0.0
-  
+
+    # dot = sum([vector_a[k] * vector_b[k] for k in vector_a if k in vector_b])
+
     for k in vector_a.keys():
         if k in vector_b.keys():
             dotproduct += vector_a[k] * vector_b[k]
-  
+
     return dotproduct
 
-def dump_raw_matrix(term_dict, tfidf_dict):
+def dump_raw_matrix(term_dict, tfidf_dict, delimiter = ","):
     """Dump a complete term space matrix of tf-idf values.
 
     The printout should look something like:
@@ -156,12 +161,15 @@ def dump_raw_matrix(term_dict, tfidf_dict):
   
     # Print Term Rows
     for term in sorted_terms:
+        row = []
         for doc in sorted_docs:
 
             if term in tfidf_dict[doc]:
-                output += str(tfidf_dict[doc][term]) + ","
+                row.append(str(tfidf_dict[doc][term]))
             else:
-                output += str(0.0) + ","
+                row.append(str(0.0))
+
+        output += delimiter.join(row)
         output += "\n"
 
     return output
