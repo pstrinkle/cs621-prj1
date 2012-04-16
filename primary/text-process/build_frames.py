@@ -22,6 +22,10 @@ __author__ = 'tri1@umbc.edu'
 # So yeah... just build tf-idf matrix for entire dictionary for the month.
 # --- or maybe find the top terms for the month..?
 #
+# full_users only means user must have a tweet per day in the month.
+# otherwise, user must have a tweet in the month.  -- so, there are no full zero
+#  frames.
+#
 
 import sys
 import sqlite3
@@ -107,6 +111,54 @@ def text_create(text_name, dictionary, data):
     with open(text_name + '.tab', "w") as fout:
         fout.write("%s\n" % dump_raw_matrix(dictionary, data, "\t"))
 
+def output_frame_images(out, day, data, dictionary, build_images):
+    """Output the data matrix as images, etc."""
+    
+    max_range = out.max_range
+    
+    if build_images['grey']:
+        fname = path.join(out.get_folder(), "grey")
+        pname = path.join(fname, "%d" % day)
+                
+        try:
+            stat(fname)
+        except OSError:
+            mkdir(fname)
+                
+        img.image_create(
+                         pname,
+                         dictionary, # dictionary
+                         data,       # data
+                         max_range,
+                         'black')
+
+    if build_images['rgb']:
+        fname = path.join(out.get_folder(), "rgb")
+        pname = path.join(fname, "%d" % day)
+
+        try:
+            stat(fname)
+        except OSError:
+            mkdir(fname)
+
+        img.image_create_color(
+                               pname,
+                               dictionary, # dictionary
+                               data,       # data
+                               max_range)
+
+        rows = img.image_detect_important(pname + '.png')
+
+        upper_count = int(floor(len(rows) * .01))
+
+        print "important: %s" \
+            % [dictionary[rows[i][0]] for i in range(upper_count)]
+
+        rows = img.image_detect_rows(pname + '.png')
+                
+        print "busiest: %s" \
+            % [dictionary[rows[i][0]] for i in range(upper_count)]
+
 def output_matrix(frames, output_set, build_csv_files, build_images):
     """Output the data matrix."""
 
@@ -119,53 +171,14 @@ def output_matrix(frames, output_set, build_csv_files, build_images):
             out = output_set[output]
             dictionary = sorted(out.get_terms())
             data = frames[day].get_tfidf()
-            fname = path.join(out.get_folder(), "%d" % day)
 
             if build_csv_files:
-                text_create(fname, dictionary, frames[day].get_tfidf())
+                text_create(
+                            path.join(out.get_folder(), "%d" % day),
+                            dictionary,
+                            frames[day].get_tfidf())
 
-            if build_images['grey']:
-                fname = path.join(out.get_folder(), "grey")
-                pname = path.join(fname, "%d" % day)
-                
-                try:
-                    stat(fname)
-                except OSError:
-                    mkdir(fname)
-                
-                img.image_create(
-                                 pname,
-                                 dictionary, # dictionary
-                                 data,       # data
-                                 out.max_range,
-                                 'black')
-
-            if build_images['rgb']:
-                fname = path.join(out.get_folder(), "rgb")
-                pname = path.join(fname, "%d" % day)
-
-                try:
-                    stat(fname)
-                except OSError:
-                    mkdir(fname)
-
-                img.image_create_color(
-                                       pname,
-                                       dictionary, # dictionary
-                                       data,       # data
-                                       out.max_range)
-
-                rows = img.image_detect_important(pname + '.png')
-
-                upper_count = int(floor(len(rows) * .01))
-
-                print "important: %s" \
-                    % [dictionary[rows[i][0]] for i in range(upper_count)]
-
-                rows = img.image_detect_rows(pname + '.png')
-                
-                print "busiest: %s" \
-                    % [dictionary[rows[i][0]] for i in range(upper_count)] 
+            output_frame_images(out, day, data, dictionary, build_images)
 
 def usage():
     """Standard usage message."""

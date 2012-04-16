@@ -47,7 +47,7 @@ def main():
 
     print "tweets: %d" % len(tweets)
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Process tweets
     for i in tweets:
         info = tweetclean.extract(i)
@@ -70,7 +70,7 @@ def main():
     # End of: "for i in tweets:"
     # Thanks to python and not letting me use curly braces.
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Process the collected tweets
     print "tweet days: %d" % len(daysTweets)
     gramSize = 3
@@ -120,7 +120,7 @@ def main():
         print "similarity(%s, %s) = " % (str(sorted_days[i]), str(sorted_days[i + 1])),
         print vectorspace.cosineCompute(daysHisto[sorted_days[i]], daysHisto[sorted_days[i + 1]])
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Done.
 
 if __name__ == "__main__":

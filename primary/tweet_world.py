@@ -47,7 +47,7 @@ def main():
 
     startTime = datetime.datetime.now()
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Parse the parameters.
     database = sys.argv[1]
     output_file = sys.argv[2]
@@ -57,7 +57,7 @@ def main():
 
     c = conn.cursor()
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Search the database file for certain things.
     for row in c.execute("select geo from tweets where geo is not null"):
         addPlaces(places, row['geo'])
@@ -67,7 +67,7 @@ def main():
 
     # if I swap the row thing out for the row_factor it might work better?
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Done.
     
     conn.close()

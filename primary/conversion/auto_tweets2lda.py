@@ -54,11 +54,11 @@ def main():
     stop_file = sys.argv[3]
     output_folder = sys.argv[4]
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Pull stop words
     stopwords = tweetclean.importStopWords(stop_file)
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Read in the database
     query_collect = "select owner from tweets group by owner having count(*) >= %d;"
     query_tweets = "select id, contents as text from tweets where owner = %d;"
@@ -73,7 +73,7 @@ def main():
         users.append(row['owner'])
 
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Process those tweets by user set.
     for u in users:
 
@@ -84,7 +84,7 @@ def main():
         for row in c.execute(query_tweets % u):
             users_tweets[row['id']] = row['text']
 
-        # ---------------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         # Process tweets
         for id in users_tweets:
 
@@ -118,12 +118,12 @@ def main():
 
         vocab.sort()
 
-        # ---------------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         # Build the vocab.txt file
         with open(os.path.join(output_folder, "%d.vocab" % u), 'w') as f:
             f.write("\n".join(vocab))
     
-        # ---------------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         # Given the vocab array, build the document term index + counts:
         sorted_tweets = sorted(docTermFreq.keys())
         data = ""
@@ -145,7 +145,7 @@ def main():
     
     # end for each user.
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Done.
     conn.close()
 

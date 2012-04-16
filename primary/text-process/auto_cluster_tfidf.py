@@ -49,7 +49,7 @@ def thread_main(database_file, output_folder, users, stopwords, start, cnt):
     conn = sqlite3.connect(database_file)
     conn.row_factory = sqlite3.Row
 
-    # -------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Process this thread's users.
     for u in xrange(start, start + cnt):
         user_id = users[u]

@@ -139,7 +139,7 @@ def data_pull(database_file, query):
     conn = sqlite3.connect(database_file)
     conn.row_factory = sqlite3.Row
 
-    # -------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Search the database file for users.
     survey = DateSurvey()
 
@@ -193,7 +193,7 @@ def main():
 
     survey = data_pull(database_file, query % (minimum, maximum))
 
-    # -------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Search the dates stored and identify which months have tweets on each 
     # day.
     #
@@ -229,7 +229,7 @@ def main():
         for com in sorted_incommon:
             fout.write("%s\n" % str(com))
 
-    # -------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Done.
 
 if __name__ == "__main__":

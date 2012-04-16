@@ -43,7 +43,7 @@ def main():
     start_file = sys.argv[1]
     output_file = sys.argv[3]
 
-    # -------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Parse the starting file, because the _friends.txt files only have the 
     # user id in the names and no other details -- so this should have the 
     # user's details.
@@ -70,7 +70,7 @@ def main():
 
     print "users: %d" % len(users)
 
-    # -------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Pull Tweet Collection, there could be multiple xml files for the same 
     # user.
     xml_files = glob.glob(os.path.join(sys.argv[2], "*_friends.txt"))
@@ -122,7 +122,7 @@ def main():
 
                 users_list[uid].add_friends(sub_list)
 
-    # -------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # users_list should now have all the users from the starting point and 
     # each _friends.txt file.
     
@@ -157,7 +157,7 @@ def main():
 
             out.write(output)
 
-    # -------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Done.
 
 if __name__ == "__main__":

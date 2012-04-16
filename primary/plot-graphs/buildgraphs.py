@@ -28,7 +28,7 @@ def main():
     files = [name for name in os.listdir(folder) if ".data" in name]
     output = sys.argv[2]
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Build gnuplot input.
     
     params = "set terminal postscript\n"
@@ -49,7 +49,7 @@ def main():
 
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Done.
 
 if __name__ == "__main__":

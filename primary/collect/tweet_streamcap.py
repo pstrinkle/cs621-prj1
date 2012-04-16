@@ -33,7 +33,7 @@ def main():
     output = sys.argv[2]
     file_kill = sys.argv[3]
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Grab sample stream of tweets, likely only 1% of all tweets.
 
     count = 0
@@ -60,7 +60,7 @@ def main():
     except tweetstream.ConnectionError, e:
         print "Disconnected from twitter. Reason:", e.reason
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Done.
 
 if __name__ == "__main__":

@@ -63,7 +63,7 @@ def main():
 
     print "tweets: %d" % len(tweets)
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Process tweets
     for i in tweets:
         # Each tweet has <created>DATE-TIME</created> and <text>DATA</text>.
@@ -95,7 +95,7 @@ def main():
     # End of: "for i in tweets:"
     # Thanks to python and not letting me use curly braces.
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Process the collected tweets
     print "tweet days: %d" % len(daysTweets)
     
@@ -125,7 +125,7 @@ def main():
             except KeyError:
                 docFreq[w] = 1
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Dump how many unique terms were identified by spacing splitting.
     # Dump how many days of tweets we collected.
     # For each day of tweets, dump how many unique terms were identified by space splitting.
@@ -138,7 +138,7 @@ def main():
         print "sizeof docTermFreq[%s]: %d" % (str(day), len(docTermFreq[day])) # this is how many unique terms were in that day
         #print docTermFreq[day]
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Remove singletons -- standard practice.
     # Skipped with tweets for now...
 
@@ -182,7 +182,7 @@ def main():
             f.write("similarity(%s, %s) = " % (str(sorted_days[i]), str(sorted_days[i + 1])))
             f.write(str(vectorspace.cosineCompute(docTfIdf[sorted_days[i]], docTfIdf[sorted_days[i + 1]])) + "\n")
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Done.
 
 if __name__ == "__main__":

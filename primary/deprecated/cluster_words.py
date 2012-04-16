@@ -65,7 +65,7 @@ def main():
     for i in xrange(0, len(stopwords)):
         stopwords[i] = stopwords[i].strip()
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Process tweets
     for i in tweets:
         # Each tweet has <id>DATE-TIME</id> and <text>DATA</text>.
@@ -84,7 +84,7 @@ def main():
 
     docLength = {}
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Process the collected tweets
     for id in cleanTweets.keys():
         # Calculate Term Frequencies for this id/document.
@@ -116,13 +116,13 @@ def main():
             except KeyError:
                 docFreq[w] = 1
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Dump how many unique terms were identified by spacing splitting.
     print "Total Count of Terms: %s" % docLength
     print "Unique Terms: %d" % len(docFreq)
     print "How many Documents: %d" % len(docTermFreq)
     
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Remove singletons -- standard practice.
     # Skipped with tweets for now...
 
@@ -132,7 +132,7 @@ def main():
     # Calculate the tf-idf values.
     docTfIdf = vectorspace.calculate_tfidf(docLength, docTermFreq, invdocFreq)
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Recap of everything we have stored.
     # docLength is the total count of all terms
     # cleanTweets    is the dictionary of the tweets by id as string
@@ -141,7 +141,7 @@ def main():
     # docTermFreq    is the dictionary of term frequencies by date as integer
     # docTfIdf       is similar to docTermFreq, but holds the tf-idf values
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Build Centroid List
     centroids = []
 
@@ -154,7 +154,7 @@ def main():
     
     print "mean: %.10f\tstd: %.10f" % (average_sim, stddev_sim)
     
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Merge centroids by highest similarity of at least threshold  
     threshold = (average_sim + stddev_sim)
 
@@ -176,7 +176,7 @@ def main():
     for cen in centroids:
         print centroid.topTerms(cen, 10)
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Done.
 
 if __name__ == "__main__":

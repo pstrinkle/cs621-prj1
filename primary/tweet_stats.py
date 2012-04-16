@@ -27,7 +27,7 @@ def main():
         usage()
         sys.exit(-1)
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Parse the parameters.
     database_folder = sys.argv[1]
     output = sys.argv[2]
@@ -42,7 +42,7 @@ def main():
                       'user_frd_count' : 0  # number of users with friends (identified)
                       }
     
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Search the database file for certain things.
     for input_file in td.fileWalk(database_folder):
         #print "processing: %s, len(since_ids): %d" % (input_file, len(since_ids))
@@ -61,14 +61,14 @@ def main():
                 sys.stderr.write("invalid user file: %s" % input_file)
                 sys.exit(-1)
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Output results.
     
     with open(output, "w") as f:
         for x in stats:
             f.write("%s:%d\n" % (x, stats[x]))
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Done.
 
 if __name__ == "__main__":

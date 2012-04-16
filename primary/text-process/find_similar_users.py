@@ -53,7 +53,7 @@ def main():
         usage()
         sys.exit(-1)
 
-    # -------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Parse the parameters.
     database_file = sys.argv[1]
     minimum = int(sys.argv[2])
@@ -94,7 +94,7 @@ parameters  :
     print "data pulled"
     print "user count: %d" % len(user_tweets)
 
-    # -------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Convert to a documents into one document per user.
 
     docperuser = {} # array representing all the tweets for each user.
@@ -174,7 +174,7 @@ parameters  :
         #fout.write(vectorspace.dump_raw_matrix(dictionary, tfidf) + "\n")
         fout.write(vectorspace.dump_raw_matrix(top_dict, tfidf) + "\n")
 
-    # -------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Done.
 
 if __name__ == "__main__":

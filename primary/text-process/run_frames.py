@@ -30,12 +30,12 @@ def main():
     
     output = ""
 
-    # -------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Build list of config files.
 
     configs = [cfg for cfg in os.listdir(input_folder) if cfg.endswith('.cfg')]
 
-    # -------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Launch framemaker for each configuration file.
     for config in configs:
         config_file = os.path.join(input_folder, config)
@@ -47,7 +47,7 @@ def main():
 
         output += process.communicate()[0]
 
-    # -------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Done.
 
     with open(output_file, 'w') as fout:

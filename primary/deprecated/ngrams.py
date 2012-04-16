@@ -45,7 +45,7 @@ def main():
 
     print "tweets: %d" % len(tweets)
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Process tweets
     for i in tweets:
         # Each tweet has <created>DATE-TIME</created> and <text>DATA</text>.
@@ -74,7 +74,7 @@ def main():
     # End of: "for i in tweets:"
     # Thanks to python and not letting me use curly braces.
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Process the collected tweets
     print "tweet days: %d" % len(daysTweets)
     gramSize = 3
@@ -121,7 +121,7 @@ def main():
     # Dump the matrix.
     print vectorspace.dumpMatrix(docFreq, daysHisto) + "\n"
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Done.
 
 if __name__ == "__main__":

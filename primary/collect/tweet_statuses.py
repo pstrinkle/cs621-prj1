@@ -73,7 +73,7 @@ def main():
         usage()
         sys.exit(-1)
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Read in user list file.
     with open(file_input, "r") as f:
         users_raw = f.readlines()
@@ -92,7 +92,7 @@ def main():
     fin = open(file_fin, "w") # open success log
     sta = open(file_sta, "w") # open status log
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # For each user in the users input file.
     users.sort(key=lambda request: request.user_id)
     
@@ -203,7 +203,7 @@ def main():
     err.close()
     sta.close()
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Done.
 
     print "total runtime: ",

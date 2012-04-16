@@ -70,12 +70,12 @@ def main():
 
     startTime = datetime.datetime.now()
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Parse the parameters.
     database_folder = sys.argv[2]
     output_folder = sys.argv[3]
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Search the database file for certain things.
     for input_file in td.fileWalk(database_folder):
         with codecs.open(input_file, "r", 'utf-8') as f:
@@ -111,7 +111,7 @@ def main():
                         # output as it goes.
                         output(param, output_folder, int(usr.group(1)), guy)    
 
-    # ---------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Done.
     
     print "total runtime: ",

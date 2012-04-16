@@ -343,7 +343,7 @@ def cluster_documents(documents, threshold_str="std"):
     else:
         return None
 
-    # -------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Merge centroids
     while len(centroids) > 1:
         i, j, sim = find_matrix_max(sim_matrix)
