@@ -37,7 +37,7 @@ from tweetdate import TweetTime, MONTHS, str_yearmonth
 sys.path.append(path.join("..", "modellib"))
 import frame
 from vectorspace import dump_raw_matrix
-from imageoutput import image_create_color, image_detect_rows, image_create
+import imageoutput as img # I use all the functions in it. =)
 
 class Output():
     """This holds the run parameters."""
@@ -102,8 +102,7 @@ def text_create(text_name, dictionary, data):
     """Dump the matrix as a csv file."""
 
     with open(text_name + '.csv', "w") as fout:
-        fout.write(dump_raw_matrix(dictionary, data))
-        fout.write("\n")
+        fout.write("%s\n" % dump_raw_matrix(dictionary, data))
 
 def output_matrix(frames, output_set, build_csv_files, build_images):
     """Output the data matrix."""
@@ -130,12 +129,12 @@ def output_matrix(frames, output_set, build_csv_files, build_images):
                 except OSError:
                     mkdir(fname)
                 
-                image_create(
-                             path.join(fname, "%d" % day),
-                             dictionary, # dictionary
-                             data,       # data
-                             out.max_range,
-                             'black')
+                img.image_create(
+                                 path.join(fname, "%d" % day),
+                                 dictionary, # dictionary
+                                 data,       # data
+                                 out.max_range,
+                                 'black')
 
             if build_images['rgb']:
                 fname = path.join(out.get_folder(), "rgb")
@@ -145,17 +144,27 @@ def output_matrix(frames, output_set, build_csv_files, build_images):
                 except OSError:
                     mkdir(fname)
 
-                image_create_color(
-                                   path.join(fname, "%d" % day),
-                                   dictionary, # dictionary
-                                   data,       # data
-                                   out.max_range)
+                img.image_create_color(
+                                       path.join(fname, "%d" % day),
+                                       dictionary, # dictionary
+                                       data,       # data
+                                       out.max_range)
 
                 rows = \
-                    image_detect_rows(path.join(fname, "%d" % day) + '.png')
+                    img.image_detect_important(
+                                               path.join(fname, "%d" % day) \
+                                               + '.png')
+
                 upper_count = int(floor(len(rows) * .01))
 
-                print [dictionary[rows[i][0]] for i in range(upper_count)]
+                print "important: %s" \
+                    % [dictionary[rows[i][0]] for i in range(upper_count)]
+
+                rows = \
+                    img.image_detect_rows(path.join(fname, "%d" % day) + '.png')
+                
+                print "busiest: %s" \
+                    % [dictionary[rows[i][0]] for i in range(upper_count)] 
 
 def usage():
     """Standard usage message."""
@@ -239,8 +248,11 @@ parameters  :
     # -------------------------------------------------------------------------
     # Build a set of documents, per user, per day.
     num_days = monthrange(year_val, int(MONTHS[month_str]))[1]
-    yearmonth = int(str_yearmonth(year_val, int(MONTHS[month_str])))
-    user_data = data_pull(database_file, query_prefetch % yearmonth)
+    user_data = \
+        data_pull(
+                  database_file,
+                  query_prefetch % \
+                    int(str_yearmonth(year_val, int(MONTHS[month_str]))))
     
     if len(user_data) < 2:
         print "empty dataset."
@@ -249,8 +261,7 @@ parameters  :
     full_users = frame.find_full_users(user_data, stopwords, num_days)
 
     print "data pulled"
-    print "user count: %d" % len(user_data)
-    print "full users: %d" % len(full_users)
+    print "user count: %d\tfull users: %d" % (len(user_data), len(full_users))
 
     # this is only an issue at present. mind you, because for the video 
     # analysis code the users don't have to be full. 

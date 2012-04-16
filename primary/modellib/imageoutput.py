@@ -20,15 +20,35 @@ MAX_GREYSCALE = 256
 
 def image_detect_rows(file_name):
     """Given a file, open it, and then walk the rows looking for ones with the
-    highest sums.
+    highest non-zero values.
     
-    Returns a sorted list of the row sums, largest to smallest."""
+    Returns a sorted list of the row sums, largest to smallest.
+    
+    Only works on rgb images."""
     
     img = Image.open(file_name)
     pix = img.load()
+    width, height = img.size
     
-    # (width, height)
-    #print "%s" % str(img.size)
+    rows = {}
+    
+    for i in range(height):
+        rows[i] = sum(\
+                      [int("".join(["%x" % val for val in pix[j, i]]), 16) \
+                        for j in range(width) if pix[j, i] != (0, 0, 0)])
+
+    return sorted(rows.items(), key=itemgetter(1), reverse=True)
+
+def image_detect_important(file_name):
+    """Given a file, open it, and then walk the rows looking for ones with the
+    highest sums.
+    
+    Returns a sorted list of the row sums, largest to smallest.
+    
+    Only works on rgb images."""
+    
+    img = Image.open(file_name)
+    pix = img.load()
     width, height = img.size
     
     rows = {}
