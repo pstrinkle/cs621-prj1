@@ -5,8 +5,8 @@ __author__ = 'tri1@umbc.edu'
 # Patrick Trinkle
 # Spring 2011/Summer 2011
 #
-# The goal of this simple script is to run various queries against Twitter through
-# the published API, using the python-twitter open source library.
+# The goal of this simple script is to run various queries against Twitter 
+# through the published API, using the python-twitter open source library.
 #
 
 import os
@@ -17,17 +17,17 @@ import time
 import calendar
 import twitter
 import codecs
-import urllib2 # for the exception
-import httplib # for the exception
+from urllib2 import URLError
+from httplib import BadStatusLine
 
 sys.path.append(os.path.join("..", "tweetlib"))
-import tweetxml
-import tweetrequest
+from tweetxml import xml_status
+from tweetrequest import get_rate_status, RequestTuple
 
 def usage():
-    usageStr = \
+    usage_str = \
     """
-    usage: %s (-ts|-both) <users_input_filename> <output_folder> <error_log> <kill_file> <success_log>
+usage: %s (-ts|-both) <users_input_filename> <output_folder> <error_log> <kill_file> <success_log>
     
             -ts := pull tweets
             users_input_filename := this is a file of the following format: "<id>id</id>..."
@@ -37,7 +37,8 @@ def usage():
             error_log := this will hold the exceptions that we catch during processing.
             kill_file := if this file suddenly exists the program will cleaning stop executing.
     """
-    print usageStr % sys.argv[0]
+
+    print usage_str % sys.argv[0]
 
 def main():
 
@@ -45,51 +46,48 @@ def main():
         usage()
         sys.exit(-1)
     
-    startTime = datetime.datetime.now()
+    start_time = datetime.datetime.now()
     
-    # Looks like I need to update the library or figure out how to get to the oauth stuff from it;
-    # I built my own application thing and have my own oauth stuff.
+    # Looks like I need to update the library or figure out how to get to the 
+    # oauth stuff from it; I built my own application thing and have my own 
+    # oauth stuff.
     #
     api = twitter.Api()
 
     users = []
-    
-    paramaters = sys.argv[1]
+
     file_input = sys.argv[2]
     folder_output = sys.argv[3]
     file_errors = sys.argv[4]
     file_kill = sys.argv[5]
     file_fin = sys.argv[6]
-    
-    pull_statuses = 0
-    pull_friends = 0
-    
-    if paramaters == "-ts":
-        pull_statuses = 1
-    else:
-        usage()
-        sys.exit(-1)
 
     # --------------------------------------------------------------------------
     # Read in user list file.
-    with open(file_input, "r") as f:
-        users_raw = f.readlines()
+    with open(file_input, "r") as fin:
+        users_raw = fin.readlines()
+        
         for i in users_raw:
             urs = re.search(r"<id>(\d+?)</id><last_since_id>(\d+?)</last_since_id><oldest_id>(\d+?)</oldest_id>", i)
             onlyid = re.search("<id>(\d+?)</id>", i)
+
             if urs and urs.group(1) not in users:
-                # In this case we want to make since_id to be 0 so we can go back in time
-                # and we set max_id to be the last time we pulled.. in the future this will be the
-                # oldest tweet_id.
+                # In this case we want to make since_id to be 0 so we can go 
+                # back in time and we set max_id to be the last time we pulled..
+                #  in the future this will be the oldest tweet_id.
                 #
-                # Once we've run backlog on our users we don't really need to go too far into the past;
-                # Albeit it'd be a good idea to properly handle going back in time to an extent if we
-                # miss some.
+                # Once we've run backlog on our users we don't really need to go
+                # too far into the past; Albeit it'd be a good idea to properly 
+                # handle going back in time to an extent if we miss some.
                 #
                 # Ugh.  I need to get some work done on this.
-                users.append(tweetrequest.RequestTuple(int(urs.group(1)), 0, int(urs.group(3))))
+                users.append(RequestTuple(
+                                          int(urs.group(1)),    
+                                          0,
+                                          int(urs.group(3))))
+
             elif onlyid and onlyid.group(1) not in users:
-                users.append(tweetrequest.RequestTuple(int(onlyid.group(1))))
+                users.append(RequestTuple(int(onlyid.group(1))))
     
     print "users to pull: %d" % len(users)
     
@@ -108,8 +106,9 @@ def main():
         
         print "processing: %d" % user.user_id
         
-        # FYI, this API can only get me 3500 tweets back--that being said, I want to hit each user
-        # repeatedly until no more come out, even if the last one is a wasted call.
+        # FYI, this API can only get me 3500 tweets back--that being said, I 
+        # want to hit each user repeatedly until no more come out, even if the 
+        # last one is a wasted call.
         done = False
         
         while done == False:
@@ -119,7 +118,7 @@ def main():
                 break
         
             # Do we need to wait?
-            rate_status = tweetrequest.getRateStatus(api)
+            rate_status = get_rate_status(api)
             remains = rate_status['remaining_hits']
         
             if remains < 1:
@@ -134,15 +133,18 @@ def main():
             else:
                 time.sleep(6) # 3600 / 350 ~ 10, so 6.
         
-            # If this runs overnight, then the pulls will be from the date I kicked off the script.
+            # If this runs overnight, then the pulls will be from the date I 
+            # kicked off the script.
             ext = "_%s.xml" % datetime.date.today().isoformat().replace("-", "")
 
             # Given a since_id we know where to start pulling the future.
             # Given a max_id we know where to start pulling the past. 
             try:
-                print "\tprocessing: %d, since: %d, max: %d" % (user.user_id, user.since_id, user.max_id)
+                print "\tprocessing: %d, since: %d, max: %d" \
+                    % (user.user_id, user.since_id, user.max_id)
             
-                # Get the timeline (and an updated user information view, sans friends)
+                # Get the timeline (and an updated user information view, sans 
+                # friends)
                 statuses = \
                     api.GetUserTimeline(
                                         user_id=user.user_id,
@@ -152,20 +154,30 @@ def main():
                                         include_entities='true')
 
                 if len(statuses) > 0:
-                    with codecs.open(os.path.join(folder_output, str(user) + ext), "a", 'utf-8') as f:
+                    with codecs.open(
+                                     os.path.join(
+                                                  folder_output,
+                                                  str(user) + ext),
+                                     "a",
+                                     'utf-8') as fout:
                         for s in statuses:
-                            f.write(tweetxml.xmlStatus(s))
-                            # originally the newline was added, but I think this was inadvertently converting it to a string..?
-                            f.write("\n")
+                            fout.write(xml_status(s))
+                            # originally the newline was added, but I think this
+                            # was inadvertently converting it to a string..?
+                            fout.write("\n")
+
                     user.max_id = statuses[len(statuses) - 1].id
                     user.count += len(statuses)
                     print "\ttotal: %d retrieved: %d, new max_id: %d" \
-                        % (statuses[0].user.statuses_count, len(statuses), user.max_id)
+                        % (statuses[0].user.statuses_count,
+                           len(statuses),
+                           user.max_id)
                 
-                # what if this is a valid new tweet?... I'm fairly certain this tends to be the
-                # tweet with max_id == id or something.
-                # originally this was only checking for == 1, but the it ran all night and did nothing
-                # with user 13, and I'm assuming this was because it returned 0.
+                # what if this is a valid new tweet?... I'm fairly certain this 
+                # tends to be the tweet with max_id == id or something.
+                # originally this was only checking for == 1, but the it ran all
+                #  night and did nothing with user 13, and I'm assuming this was
+                # because it returned 0.
                 if len(statuses) == 1 or len(statuses) == 0:
                     print "len(statuses) == %d, done with user" % len(statuses)
                     fin.write("<id>%s</id>\n" % str(user))
@@ -182,9 +194,9 @@ def main():
                     err.write("%s on <id>%d</id>\n" % (e.message, user.user_id))
                     err.flush()
                     done = True
-            except urllib2.URLError, e:
+            except URLError, e:
                 print "%s" % e.message
-            except httplib.BadStatusLine, e:
+            except BadStatusLine, e:
                 print "%s" % e.message
 
     fin.close()
@@ -194,7 +206,7 @@ def main():
     # Done.
 
     print "total runtime: ",
-    print (datetime.datetime.now() - startTime)
+    print (datetime.datetime.now() - start_time)
 
 if __name__ == "__main__":
     main()

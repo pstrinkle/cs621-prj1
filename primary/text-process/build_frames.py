@@ -147,17 +147,17 @@ def output_frame_images(out, day, data, dictionary, build_images):
                                data,       # data
                                max_range)
 
-        rows = img.image_detect_important(pname + '.png')
+        #rows = img.image_detect_important(pname + '.png')
 
-        upper_count = int(floor(len(rows) * .01))
+        #upper_count = int(floor(len(rows) * .01))
 
-        print "important: %s" \
-            % [dictionary[rows[i][0]] for i in range(upper_count)]
+        #print "important: %s" \
+        #    % [dictionary[rows[i][0]] for i in range(upper_count)]
 
-        rows = img.image_detect_rows(pname + '.png')
+        #rows = img.image_detect_rows(pname + '.png')
                 
-        print "busiest: %s" \
-            % [dictionary[rows[i][0]] for i in range(upper_count)]
+        #print "busiest: %s" \
+        #    % [dictionary[rows[i][0]] for i in range(upper_count)]
 
 def output_matrix(frames, output_set, build_csv_files, build_images):
     """Output the data matrix."""

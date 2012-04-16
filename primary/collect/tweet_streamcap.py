@@ -45,12 +45,15 @@ def main():
                     if os.path.exists(file_kill):
                         print "prematurely killing"
                         break
+                    
                     if "user" in tweet:
-                        print "Got tweet from %-16s\t(tweet %d, rate %.1f tweets/sec)" % (tweet["user"]["screen_name"], stream.count, stream.rate)          
+                        print "Got tweet from %-16s\t(tweet %d, rate %.1f tweets/sec)" \
+                            % (tweet["user"]["screen_name"], stream.count, stream.rate)
+
                         if "retweeted_status" in tweet:
                             pass
                         else:
-                            f.write(tx.statusStrFromDict(tweet) + u"\n")
+                            f.write(tx.status_str_from_dict(tweet) + u"\n")
                             f.flush()
                             count += 1
 

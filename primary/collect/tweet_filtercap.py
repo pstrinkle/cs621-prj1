@@ -69,7 +69,7 @@ def main():
                         if "retweeted_status" in tweet:
                             pass
                         else:
-                            f.write(tx.statusStrFromDict(tweet) + u"\n")
+                            f.write(tx.status_str_from_dict(tweet) + u"\n")
                             f.flush()
                             count += 1
 

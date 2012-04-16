@@ -5,16 +5,15 @@ __author__ = 'tri1@umbc.edu'
 # Patrick Trinkle
 # Spring 2011
 #
-# The goal of this simple script is to run various queries against Twitter through
-# the published API, using the python-twitter open source library.
+# The goal of this simple script is to run various queries against Twitter 
+# through the published API, using the python-twitter open source library.
 #
-# TODO: Note, this doesn't really seem to do anything useful yet as each call seems
-# to retrieve the same 20 tweets... whereas I would imagine each call would have many
-# things.
+# TODO: Note, this doesn't really seem to do anything useful yet as each call 
+# seems to retrieve the same 20 tweets... whereas I would imagine each call 
+# would have many things.
 
 import os
 import sys
-import re
 import datetime
 import time
 import calendar
@@ -22,36 +21,27 @@ import calendar
 import twitter
 
 sys.path.append(os.path.join("..", "tweetlib"))
-import tweetxml
 import tweetrequest
 
 def usage():
-    usageStr = \
-    """
-    usage: %s <public requests> <output_tweets.xml> <output_users.xml>
+    """Parameters."""
     
-            users_input_filename := this is a file of the following format: "id name:..."
-            output_folder := where you want the paired files created:
-                    the statuses are placed in files, id_date.xml
-                    the friends are placed in files, id_friends.txt
-            error_log := this will hold the exceptions that we catch during processing.
-    """
-    print usageStr % sys.argv[0]
+    print "usage: %s <public requests>" % sys.argv[0]
 
 def main():
+    """Main execution path."""
 
-    if len(sys.argv) != 4:
+    if len(sys.argv) != 2:
         usage()
         sys.exit(-1)
     
-    publicRequest = int(sys.argv[1])
-    output_tweets = sys.argv[2]
-    output_users = sys.argv[3]
+    public_request = int(sys.argv[1])
     
-    startTime = datetime.datetime.now()
+    start_time = datetime.datetime.now()
     
-    # Looks like I need to update the library or figure out how to get to the oauth stuff from it;
-    # I built my own application thing and have my own oauth stuff.
+    # Looks like I need to update the library or figure out how to get to the 
+    # oauth stuff from it; I built my own application thing and have my own 
+    # oauth stuff.
     #
     api = twitter.Api(
                       consumer_key=tweetrequest.CONSUMER_KEY,
@@ -63,15 +53,14 @@ def main():
     # --------------------------------------------------------------------------
     # Collect Tweets.
 
-    tweets_collected = []
-    rate_status = tweetrequest.getRateStatus(api)
+    tweets_collected = []    
+    public_cnt = 0
     
-    publicCnt = 0
-    
-    while publicCnt < publicRequest:
-        rate_status = tweetrequest.getRateStatus(api)
-        print "publicCnt: %d" % publicCnt
+    while public_cnt < public_request:
+        rate_status = tweetrequest.get_rate_status(api)
         remains = rate_status['remaining_hits']
+
+        print "public_cnt: %d" % public_cnt
         print "remains: %d" % remains
         
         if remains < 2:
@@ -92,28 +81,27 @@ def main():
             
             print "retrieved: %d" % len(statuses)
 
-            for s in statuses:
-                if s not in tweets_collected:
-                    print "new tweet"
-                    tweets_collected.append(s)
+            tweets_collected.extend([s for s in statuses \
+                                     if s not in tweets_collected])
 
         except twitter.TwitterError, e:
             if e.message == "Capacity Error":
                 pass
-        publicCnt += 1
+
+        public_cnt += 1
 
     # --------------------------------------------------------------------------
     # Process Tweets.
 
-    for t in tweets_collected:
-        print "%s" % t.text.encode('utf-8')
+    for tweet in tweets_collected:
+        print "%s" % tweet.text.encode('utf-8')
 
 
     # --------------------------------------------------------------------------
     # Done.
     
     print "total runtime: ",
-    print (datetime.datetime.now() - startTime)
+    print (datetime.datetime.now() - start_time)
 
 if __name__ == "__main__":
     main()

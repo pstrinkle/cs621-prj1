@@ -5,20 +5,21 @@ __author__ = 'tri1@umbc.edu'
 # Patrick Trinkle
 # Spring 2011
 #
-# The goal of this simple script is to run various queries against Twitter through
-# the published API, using the python-twitter open source library.
+# The goal of this simple script is to run various queries against Twitter 
+# through the published API, using the python-twitter open source library.
 #
 # TwitterError
 
 import os
 import sys
 import re
+import time
+import calendar
 import twitter
-import urllib2 # for the exception
-import httplib # for the exception
 
 sys.path.append(os.path.join("..", "tweetlib"))
-import tweetxml
+from tweetxml import xml_user
+import tweetrequest
 
 def usage():
     print "usage: %s <input file name> <known friends> <output filename>" % sys.argv[0]
@@ -43,11 +44,12 @@ def main():
     new_users = []
     known_users = []
 
-    with open(sys.argv[1], "r") as f:
-        users_raw = f.readlines()
+    with open(sys.argv[1], "r") as fin:
+        users_raw = fin.readlines()
 
-    with open(sys.argv[2], "r") as f:
-        known_raw = f.readlines()
+    with open(sys.argv[2], "r") as fin:
+        known_raw = fin.readlines()
+        
         for i in known_raw:
             urs = re.search(r"(\d+?) ", i)
             if urs and urs.group(1) not in known_users:
@@ -55,16 +57,19 @@ def main():
 
     for i in users_raw:
         urs = re.search(r"(\d+?) ", i)
-        if urs and urs.group(1) not in input_users and urs.group(1) not in known_users:
+        if urs and urs.group(1) not in input_users \
+        and urs.group(1) not in known_users:
             input_users.append(int(urs.group(1)))
     
-    with open(sys.argv[3], "w") as f:
+    with open(sys.argv[3], "w") as fout:
         for user in input_users:
             
-            print user # this is basically a progress counter so I know where to kick it off next time.
+            # this is basically a progress counter so I know where to kick it 
+            # off next time.
+            print user
             
             # Do we need to wait?
-            rate_status = tweetrequest.getRateStatus(api)
+            rate_status = tweetrequest.get_rate_status(api)
             remains = rate_status['remaining_hits']
         
             if remains < 1:
@@ -82,20 +87,23 @@ def main():
             
             their_users = api.GetFriends(user=user)
             
-            for u in their_users:
-                    # Only pull in friends who share their tweets.
-                    if u not in input_users and u not in new_users:              
-                        if u.lang.encode('utf-8') == "en":
-                            new_users.append(u.id)
-                            f.write(tweetxml.getUser(u) + "\n")
-                            # non english language user.  
+            for user in their_users:
+                # Only pull in friends who share their tweets.
+                if user not in input_users and user not in new_users:              
+                    if user.lang.encode('utf-8') == "en":
+                        new_users.append(user.id)
+                        fout.write(xml_user(user) + "\n")
+                        # non english language user.
+
             remaining = api.GetRateLimitStatus()['remaining_hits']
             if remaining == 0:
                 break
 
-    # This will tell me how many more times I can hit their server in the time period.
+    # This will tell me how many more times I can hit their server in the time 
+    # period.
     # GetRateLimitStatus() returns a dictionary:
-    print "How many more hits I can take: %d" % api.GetRateLimitStatus()['remaining_hits']
+    print "How many more hits I can take: %d" \
+        % api.GetRateLimitStatus()['remaining_hits']
 
 if __name__ == "__main__":
     main()

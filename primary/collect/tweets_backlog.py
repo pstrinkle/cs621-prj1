@@ -17,6 +17,8 @@ import time
 import calendar
 import twitter
 import codecs
+from urllib2 import URLError
+from httplib import BadStatusLine
 
 sys.path.append(os.path.join("..", "tweetlib"))
 import tweetxml
@@ -113,7 +115,7 @@ def main():
                 break
         
             # Do we need to wait?
-            rate_status = tweetrequest.getRateStatus(api)
+            rate_status = tweetrequest.get_rate_status(api)
             remains = rate_status['remaining_hits']
         
             if remains < 1:
@@ -178,9 +180,9 @@ def main():
                     err.write("%s on <id>%d</id>\n" % (e.message, user.user_id))
                     err.flush()
                     done = True
-            except urllib2.URLError, e:
+            except URLError, e:
                 print "exception: %s" % e.message
-            except httplib.BadStatusLine, e:
+            except BadStatusLine, e:
                 print "exception: %s" % e.message
 
     fin.close()

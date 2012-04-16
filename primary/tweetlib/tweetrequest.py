@@ -30,7 +30,7 @@ class RequestTuple:
     def __str__(self):
         return str(self.user_id)
 
-def getRateStatus(api):
+def get_rate_status(api):
     """Given an api object, call GetRateLimitStatus() and if it throws a 
     "Capacity Error" continue calling until it doesn't, with a 2 second pause.  
     
@@ -50,7 +50,7 @@ def getRateStatus(api):
             success = 1
         except twitter.TwitterError, e:
             if e.message == "Capacity Error":
-                print "capacity error on getRateStatus"
+                print "capacity error on get_rate_status"
                 pass
             else:
                 break
