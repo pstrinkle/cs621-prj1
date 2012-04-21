@@ -207,6 +207,10 @@ def main():
     build_images['grey'] = config.getboolean('input', 'build_grey_images')
     build_csv_files = config.getboolean('input', 'build_csv_files')
     full_users_only = config.getboolean('input', 'full_users')
+    
+    # XXX: If full_users_only is not set to True, the images and such have 
+    # varying dimensions... which is bad.  So, there is a bug here and I have
+    # yet to fully investigate it.
 
     if month_str not in MONTHS:
         usage()

@@ -9,15 +9,15 @@ __author__ = 'tri1@umbc.edu'
 # @summary: This program builds a tf-idf matrix.
 #
 
-import os
+from os import path
 import sys
 import sqlite3
 
-sys.path.append(os.path.join("..", "tweetlib"))
-import tweetclean
+sys.path.append(path.join("..", "tweetlib"))
+from tweetclean import cleanup, import_stopwords
 
-sys.path.append(os.path.join("..", "modellib"))
-import vectorspace
+sys.path.append(path.join("..", "modellib"))
+from vectorspace import build_doc_tfidf, top_terms, dump_raw_matrix
 
 def data_pull(database_file, query):
     """Pull the data from the database."""
@@ -28,7 +28,7 @@ def data_pull(database_file, query):
     
     for row in conn.cursor().execute(query):
         if row['text'] is not None:
-            data = tweetclean.cleanup(row['text'], True, True)
+            data = cleanup(row['text'], True, True)
             try:
                 user_tweets[row['owner']].append(data)
             except KeyError:
@@ -65,7 +65,7 @@ def main():
         sys.exit(-2)
 
     # Pull stop words
-    stopwords = tweetclean.import_stopwords(stop_file)
+    stopwords = import_stopwords(stop_file)
 
     kickoff = \
 """
@@ -104,7 +104,7 @@ parameters  :
         sys.stderr.write("Insufficient data for tf-idf, only 1 document\n")
         sys.exit(-3)
 
-    tfidf, dictionary = vectorspace.build_doc_tfidf(docperuser, stopwords, True)
+    tfidf, dictionary = build_doc_tfidf(docperuser, stopwords, True)
 
     # Maybe I should determine the top tf-idf values per document and then make
     # that my dictionary of terms. =)
@@ -115,7 +115,7 @@ parameters  :
     top_dict = set()
 
     for doc_id in tfidf:
-        terms = vectorspace.top_terms(tfidf[doc_id], 250)
+        terms = top_terms(tfidf[doc_id], 250)
         for term in terms:
             top_dict.add(term)
 
@@ -124,7 +124,7 @@ parameters  :
 
     # Dump the matrix.
     with open(output_file, "w") as fout:
-        fout.write(vectorspace.dump_raw_matrix(top_dict, tfidf) + "\n")
+        fout.write(dump_raw_matrix(top_dict, tfidf) + "\n")
 
     # --------------------------------------------------------------------------
     # Done.
