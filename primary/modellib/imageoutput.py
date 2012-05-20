@@ -60,16 +60,15 @@ def image_detect_important(file_name):
 
     return sorted(rows.items(), key=itemgetter(1), reverse=True)
 
-def image_create_color(file_name, dictionary, data, val_range):
-    """Dump the matrix as a color bmp file.
-
-    file_name  is the file to create.
+def data_to_color(dictionary, data, val_range):
+    """Return the matrix as a color image.
+    
     dictionary is the dictionary of terms.
     data       is the document-weight dictionary.
     val_range  is the value range, max - min.
     
     Please pre-sort dictionary"""
-    
+
     # Each column is a document within data
     # Each row is a term.
 
@@ -123,11 +122,38 @@ def image_create_color(file_name, dictionary, data, val_range):
                     (int(tmp[0:2], 16), int(tmp[2:4], 16), int(tmp[4:6], 16))
             else:
                 pix[j, i] = 0 # (white) i is row, j is column.
+    
+    return img
 
+def image_create_rgb2l(file_name, dictionary, data, val_range):
+    """Dump the matrix as a color png file.
+
+    file_name  is the file to create.
+    dictionary is the dictionary of terms.
+    data       is the document-weight dictionary.
+    val_range  is the value range, max - min.
+    
+    Please pre-sort dictionary"""
+    
+    img = data_to_color(dictionary, data, val_range)
+    img = img.convert("L")
+    img.save(file_name + '.png')
+
+def image_create_color(file_name, dictionary, data, val_range):
+    """Dump the matrix as a color png file.
+
+    file_name  is the file to create.
+    dictionary is the dictionary of terms.
+    data       is the document-weight dictionary.
+    val_range  is the value range, max - min.
+    
+    Please pre-sort dictionary"""
+    
+    img = data_to_color(dictionary, data, val_range)
     img.save(file_name + '.png')
 
 def image_create(file_name, dictionary, data, val_range, background):
-    """Dump the matrix as a grey-scale bmp file.
+    """Dump the matrix as a grey-scale png file.
     
     file_name  is the file to create.
     dictionary is the dictionary of terms.

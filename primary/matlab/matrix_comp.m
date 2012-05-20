@@ -35,7 +35,9 @@ Y = nan(size(X1)); % This will fill Y with NaN's as a matrix NxN.
 % leaving Y(3) == NaN
 %
 % What is non-obvious is that the indices go from 0th column, 0th row down to 
-% 1st row, 0th column, so top to bottom, left to right.
+% 1st row, 0th column, so top to bottom, left to right.....
+%
+% fyi, indexing seems to start at 1 and not 0.
 omega = find(X1);
 Y(omega) = X(omega);
 disp('The "NaN" entries represent unobserved values');

@@ -125,12 +125,14 @@ def output_frame_images(out, day, data, dictionary, build_images):
         except OSError:
             mkdir(fname)
                 
-        img.image_create(
-                         pname,
-                         dictionary, # dictionary
-                         data,       # data
-                         max_range,
-                         'black')
+        #img.image_create(
+        #                 pname,
+        #                 dictionary, # dictionary
+        #                 data,       # data
+        #                 max_range,
+        #                 'black')
+
+        img.image_create_rgb2l(pname, dictionary, data, max_range)
 
     if build_images['rgb']:
         fname = path.join(out.get_folder(), "rgb")
