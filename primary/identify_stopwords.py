@@ -51,6 +51,7 @@ def main():
     stopwords = []
     
     for row in c.execute(query):
+        print row['id']
         docs[row['id']] = row['text']
 
     tfidf, dictionary = vectorspace.build_doc_tfidf(docs, stopwords, True)
