@@ -64,10 +64,7 @@ def main():
 
     try:
         with codecs.open(output, "w", 'utf-8') as fout:
-            with FilterStream(
-                              userpass[0]["user"],
-                              userpass[0]["pass"],
-                              locations=locations["US and Canada"]) as stream:
+            with FilterStream("profoundalias", "tschusisgerman1", locations=locations["Boston"]) as stream:
                 for tweet in stream:
                     if os.path.exists(file_kill):
                         print "prematurely killing"

@@ -211,24 +211,18 @@ def dump_matrix(term_dict, tfidf_dict):
 
     return output
 
-def build_doc_tfidf(documents, stopwords, remove_singletons=False):
-    """Note: This doesn't remove singletons from the dictionary of terms, unless 
-    you say otherwise.  With tweets there is certain value in not removing 
-    singletons.
-  
-    Input:
-        documents := a dictionary of documents, by an doc_id value.
-        stopwords := a list of stopwords.
-        remove_singletons := boolean value of whether we should remove stop 
-                             words.
+def build_singletons(doc_freq):
+    """Note: this builds the list of singletons.  doc_freq comes out of
+    build_termfreqs."""
 
-    Returns:
-        document tf-idf vectors.
-        term counts"""
+    return [word for word in doc_freq.keys() if doc_freq[word] == 1]
+
+def build_termfreqs(documents, stopwords):
+    """Build doc_length, doc_freq, doc_termfreq dictionaries.
     
-    if len(documents) == 1:
-        print "WARNING: Computing on 1 document means all will be singletons."
-
+    Returns: doc_length, doc_freq, doc_termfreq
+    """
+    
     doc_length = {}   # total count of all terms, keyed on document
     doc_freq = {}     # dictionary of in how many documents the "word" appears
     doc_termfreq = {} # dictionary of term frequencies by date as integer
@@ -267,6 +261,28 @@ def build_doc_tfidf(documents, stopwords, remove_singletons=False):
                 doc_freq[word] += 1
             except KeyError:
                 doc_freq[word] = 1
+                
+    return doc_length, doc_freq, doc_termfreq
+
+def build_doc_tfidf(documents, stopwords, remove_singletons=False):
+    """Note: This doesn't remove singletons from the dictionary of terms, unless 
+    you say otherwise.  With tweets there is certain value in not removing 
+    singletons.
+  
+    Input:
+        documents := a dictionary of documents, by an doc_id value.
+        stopwords := a list of stopwords.
+        remove_singletons := boolean value of whether we should remove 
+                             singletons.
+
+    Returns:
+        document tf-idf vectors.
+        term counts"""
+    
+    if len(documents) == 1:
+        print "WARNING: Computing on 1 document means all will be singletons."
+
+    doc_length, doc_freq, doc_termfreq = build_termfreqs(documents, stopwords)
 
     if remove_singletons:
         singles = [word for word in doc_freq.keys() if doc_freq[word] == 1]
