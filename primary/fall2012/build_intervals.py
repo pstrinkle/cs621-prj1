@@ -3,13 +3,10 @@
 __author__ = 'tri1@umbc.edu'
 
 # Patrick Trinkle
-# Spring 2012
+# Fall 2012
 #
-# This attempts to collate the tweet files and remove duplicates
-# given an entire folder of xml files, instead of using sort/uniq
-# on a per file basis.
-#
-# Run tweets_by_user.py
+# This appears to be the code I was using before I transitioned to 
+# master_control.
 
 import sys
 import sqlite3
@@ -17,108 +14,10 @@ from json import dumps, loads, JSONEncoder
 from operator import itemgetter
 from datetime import datetime, timedelta
 
-sys.path.append("modellib")
+import boringmatrix
+
+sys.path.append("../modellib")
 import vectorspace
-
-class BoringMatrix():
-    """This is a boring matrix."""
-
-    def get_json(self):
-        dct = {"__BoringMatrix__" : True}
-        dct["matrix"] = self.term_matrix
-        dct["weights"] = self.term_weights
-        dct["count"] = self.total_count
-        
-        return dct
-
-    def __init__(self, matrix, weights, count):
-        """Create from whatever."""
-        self.term_matrix = matrix
-        self.term_weights = weights
-        self.total_count = count
-
-    def __init__(self, bag_of_words):
-        """Initialize this structure with a long string."""
-        
-        self.term_matrix = {}
-        self.term_weights = {}
-        self.total_count = 0
-        self.add_bag(bag_of_words)
-
-    def compute(self):
-        """Run the basic term weight calculation."""
-        
-        # None of these are zero.
-        for term in self.term_matrix:
-            self.term_weights[term] = (float(self.term_matrix[term]) / self.total_count)
-    
-    def add_bag(self, bag_of_words):
-        """Add a bag of words to the current matrix."""
-        
-        if bag_of_words is None:
-            return
-        
-        for word in bag_of_words.split(" "):
-            try:
-                self.term_matrix[word] += 1
-            except KeyError:
-                self.term_matrix[word] = 1
-            self.total_count += 1
-
-def as_boring(dct):
-    """Build a boring object from a dictionary from a boring matrix."""
-    if '__BoringMatrix__' in dct:
-        return BoringMatrix(dct["matrix"], dct["weights"], dct["count"])
-    return dct
-
-class BoringMatrixEncoder(JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, BoringMatrix):
-            return obj.get_json()
-        return JSONEncoder.default(self, obj)
-
-# consider moving this to a library since it lives here and in identify_stopwords.
-def localclean(text):
-    """Locally clean the stuff, replace #'s and numbers."""
-    
-    neat = text.replace("#", " ")
-    neat = neat.replace("$", " ")
-    neat = neat.replace("`", " ")
-    neat = neat.replace("%", " ")
-    
-    neat = neat.replace("0", " ")
-    neat = neat.replace("1", " ")
-    neat = neat.replace("2", " ")
-    neat = neat.replace("3", " ")
-    neat = neat.replace("4", " ")
-    neat = neat.replace("5", " ")
-    neat = neat.replace("6", " ")
-    neat = neat.replace("7", " ")
-    neat = neat.replace("8", " ")
-    neat = neat.replace("9", " ")
-    
-    neat = neat.replace("-", "")
-    
-    return neat
-
-def datetime_from_long(timestamp):
-    """Convert a timestamp to a datetime.datetime."""
-
-    timeasstr = str(timestamp)
-
-    year = int(timeasstr[0:4])
-    month = int(timeasstr[4:6])
-    day = int(timeasstr[6:8])
-    hour = int(timeasstr[8:10])
-    minute = int(timeasstr[10:12])
-    second = int(timeasstr[12:14])
-
-    return datetime(year, month, day, hour, minute, second)
-
-def long_from_datetime(dt):
-    """Convert a datetime object to an integer."""
-    
-    return int(dt.strftime("%Y%m%d%H%M%S"))
 
 def usage():
     """."""
@@ -222,18 +121,18 @@ def main():
             # list, neatly also provided by the user.
 
             for row in curr.execute(query % (note_begins, start, end)):
-                results[start].append(localclean(row['cleaned_text']))
+                results[start].append(boringmatrix.localclean(row['cleaned_text']))
             
             tmp_local = " ".join(results[start]) # join into one line
             # then split and strip out bad words.
-            results[start] = BoringMatrix(" ".join([word for word in tmp_local.split(" ") if word not in remove_em and len(word) > 2]))
+            results[start] = boringmatrix.BoringMatrix(" ".join([word for word in tmp_local.split(" ") if word not in remove_em and len(word) > 2]))
             results[start].compute()
             
             #print dumps(results, cls=BoringMatrixEncoder, indent=4)
             #sys.exit(0)
 
     with open(output_name, 'w') as fout:
-        fout.write(dumps(results, cls=BoringMatrixEncoder, indent=4))
+        fout.write(dumps(results, cls=boringmatrix.BoringMatrixEncoder, indent=4))
     
     # results = json.loads(results.in, object_hook=as_boring)
 

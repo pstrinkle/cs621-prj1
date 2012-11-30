@@ -16,31 +16,10 @@ import sqlite3
 from json import dumps
 from operator import itemgetter
 
-sys.path.append("modellib")
-import vectorspace
+import boringmatrix
 
-def localclean(text):
-    """Locally clean the stuff, replace #'s and numbers."""
-    
-    neat = text.replace("#", " ")
-    neat = neat.replace("$", " ")
-    neat = neat.replace("`", " ")
-    neat = neat.replace("%", " ")
-    
-    neat = neat.replace("0", " ")
-    neat = neat.replace("1", " ")
-    neat = neat.replace("2", " ")
-    neat = neat.replace("3", " ")
-    neat = neat.replace("4", " ")
-    neat = neat.replace("5", " ")
-    neat = neat.replace("6", " ")
-    neat = neat.replace("7", " ")
-    neat = neat.replace("8", " ")
-    neat = neat.replace("9", " ")
-    
-    neat = neat.replace("-", "")
-    
-    return neat
+sys.path.append("../modellib")
+import vectorspace
 
 def usage():
     """."""
@@ -86,7 +65,7 @@ def main():
     for row in curr.execute(query):
         # skip ones that have no value, also instead of having to re-clean.
         if len(row['cleaned_text']) > 0:
-            docs[row['id']] = localclean(row['cleaned_text'])
+            docs[row['id']] = boringmatrix.localclean(row['cleaned_text'])
 
     print "processing %d docs" % len(docs)
     doc_length, doc_freq, doc_termfreq = vectorspace.build_termfreqs(docs, stopwords)

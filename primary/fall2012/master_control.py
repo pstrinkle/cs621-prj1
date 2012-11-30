@@ -3,68 +3,28 @@
 __author__ = 'tri1@umbc.edu'
 
 # Patrick Trinkle
-# Spring 2012
+# Fall 2012
 #
-# This attempts to collate the tweet files and remove duplicates
-# given an entire folder of xml files, instead of using sort/uniq
-# on a per file basis.
-#
-# Run tweets_by_user.py
 
 import sys
 import sqlite3
-import math
-from json import dumps, loads, JSONEncoder
+from json import dumps, loads
 from operator import itemgetter
-from datetime import datetime, timedelta
+from datetime import timedelta
+from math import log10
+import subprocess
 
-sys.path.append("modellib")
+import boringmatrix
+
+sys.path.append("../modellib")
 import vectorspace
 
-class BoringMatrix():
-    """This is a boring matrix."""
-
-    def get_json(self):
-        dct = {"__BoringMatrix__" : True}
-        dct["matrix"] = self.term_matrix
-        dct["weights"] = self.term_weights
-        dct["count"] = self.total_count
-        
-        return dct
-
-    def __init__(self, bag_of_words):
-        """Initialize this structure with a long string."""
-        
-        self.term_matrix = {}
-        self.term_weights = {}
-        self.total_count = 0
-        self.add_bag(bag_of_words)
-
-    def compute(self):
-        """Run the basic term weight calculation."""
-        
-        # None of these are zero.
-        for term in self.term_matrix:
-            self.term_weights[term] = (float(self.term_matrix[term]) / self.total_count)
-    
-    def add_bag(self, bag_of_words):
-        """Add a bag of words to the current matrix."""
-        
-        if bag_of_words is None:
-            return
-        
-        for word in bag_of_words.split(" "):
-            try:
-                self.term_matrix[word] += 1
-            except KeyError:
-                self.term_matrix[word] = 1
-            self.total_count += 1
+note_begins = ("i495", "boston")
 
 def output_distinct_graphs(vector, graph_title, output):
     """Prints a series of distinct term counts for each time interval.
     
     The vector is as such: vector[timestart]."""
-    import subprocess
     
     skey = sorted(vector.keys())
     start = skey[0]
@@ -91,7 +51,6 @@ def output_distinct_graphs(vector, graph_title, output):
 def output_similarity_gnuplot(vector, output):
     """vector here is a dictionary keyed on the datetimestamp as long, with the
     value as the cosine (or other) similarity."""
-    import subprocess
 
     skey = sorted(vector.keys())
     start = skey[0]
@@ -113,6 +72,39 @@ def output_similarity_gnuplot(vector, output):
     params += "q\n"
 
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
+
+def output_basic_entropy(entropies, output):
+    """Output the basic entropy chart."""
+
+    skey = sorted(entropies[note_begins[0]].keys())
+    start = skey[0]
+    end = skey[-1]
+
+    out = []
+    path = "local.tmp.data"
+    for idx in range(0, len(skey)):
+        out.append("%d %f %f" % (idx, entropies[note_begins[0]][skey[idx]], entropies[note_begins[1]][skey[idx]]))
+    with open(path, 'w') as fout:
+        fout.write("\n".join(out))
+
+    params = "set terminal postscript\n"
+    params += "set output '%s'\n" % output
+    #params += "set log xy\n"
+    params += "set xlabel 't'\n"
+    params += "set ylabel 'entropy scores'\n"
+    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', '%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" % (path, note_begins[0], start, end, path, note_begins[1], start, end)
+    params += "q\n"
+    
+    subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
+
+def basic_entropy(boring_a):
+    """Compute the H(P) for the given model."""
+    
+    entropy = 0.0
+    for term in boring_a.term_matrix:
+        entropy += (boring_a.term_weights[term] * log10(1.0/boring_a.term_weights[term]))
+    
+    return entropy
 
 def cooccurrence_terms(boring_a, boring_b):
     """Return a list of terms that appear in both model instances."""
@@ -137,71 +129,100 @@ def cooccurrence_weights(boring_a, boring_b):
     
     return coterms
 
-def as_boring(dct):
-    """Build a boring object from a dictionary from a boring matrix."""
-    if '__BoringMatrix__' in dct:
-        x = BoringMatrix(None)
-        x.term_matrix = dct["matrix"]
-        x.term_weights = dct["weights"]
-        x.total_count = dct["count"]
-        return x
-    return dct
+def build_basic_model(stopwords_file, singletons_file, database_file, interval, output_name):
+    """Build the output model."""
 
-class BoringMatrixEncoder(JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, BoringMatrix):
-            return obj.get_json()
-        return JSONEncoder.default(self, obj)
+    remove_em = []
 
-# consider moving this to a library since it lives here and in identify_stopwords.
-def localclean(text):
-    """Locally clean the stuff, replace #'s and numbers."""
+    with open(stopwords_file, 'r') as fin:
+        remove_em.extend(loads(fin.read()))
+
+    with open(singletons_file, 'r') as fin:
+        remove_em.extend(loads(fin.read()))
+
+    # this won't return the 3 columns we care about.
+    # XXX: This doesn't select by note.
+    query = "select id, cleaned_text from tweets where note like '%s%%' and (yyyymmddhhmmss >= %d and yyyymmddhhmmss < %d);"
+
+    # --------------------------------------------------------------------------
+    # Search the database file for the earliest timestamp and latest.
+
+    early_query = "select min(yyyymmddhhmmss) as early, max(yyyymmddhhmmss) as late from tweets;"
+    earliest = 0
+    latest = 0
+
+    with sqlite3.connect(database_file) as conn: 
+        conn.row_factory = sqlite3.Row
+        curr = conn.cursor()
+        curr.execute(early_query)
+        row = curr.fetchone()
+
+        earliest = row['early']
+        latest = row['late']
+
+        # the timestamps are YYYYMMDDHHMMSS -- so I need to convert them into 
+        # datetime.datetime objects; easy.
+        # okay, so they want the timestamps to step forward slowly.
+        # can use datetime.timedelta correctly updates the datetime value, which
+        # we'll then need to convert back to the timestamp long.
+
+    starttime = boringmatrix.datetime_from_long(earliest)
+    endtime = boringmatrix.datetime_from_long(latest)
+    currtime = starttime
+    delta = timedelta(0, interval)
+
+    # datetime.timedelta(0, 1) (days, seconds)
+    # you can just add these to datetime.datetime objects.
+    #
+    # (endtime - starttime) gives you a datetime.timedelta object.
+
+    print "starttime: %s" % starttime
+    print "endtime: %s" % endtime
     
-    neat = text.replace("#", " ")
-    neat = neat.replace("$", " ")
-    neat = neat.replace("`", " ")
-    neat = neat.replace("%", " ")
-    
-    neat = neat.replace("0", " ")
-    neat = neat.replace("1", " ")
-    neat = neat.replace("2", " ")
-    neat = neat.replace("3", " ")
-    neat = neat.replace("4", " ")
-    neat = neat.replace("5", " ")
-    neat = neat.replace("6", " ")
-    neat = neat.replace("7", " ")
-    neat = neat.replace("8", " ")
-    neat = neat.replace("9", " ")
-    
-    neat = neat.replace("-", "")
-    
-    return neat
+    results = {}
+    for note in note_begins:
+        results[note] = {}
 
-def datetime_from_long(timestamp):
-    """Convert a timestamp to a datetime.datetime."""
+    # --------------------------------------------------------------------------
+    # Search the database file for certain things.
+    with sqlite3.connect(database_file) as conn:
+        conn.row_factory = sqlite3.Row
+        curr = conn.cursor()
+        
+        while currtime + delta < endtime:
+            start = boringmatrix.long_from_datetime(currtime)
+            currtime += delta
+            end = boringmatrix.long_from_datetime(currtime)
 
-    timeasstr = str(timestamp)
+            print "range: %d %d" % (start, end)
 
-    year = int(timeasstr[0:4])
-    month = int(timeasstr[4:6])
-    day = int(timeasstr[6:8])
-    hour = int(timeasstr[8:10])
-    minute = int(timeasstr[10:12])
-    second = int(timeasstr[12:14])
+            # build the text for that time-slice into one document, removing
+            # the stopwords provided by the user as well as the singleton
+            # list, neatly also provided by the user.            
+            for note in note_begins:
+                local_cluster = []
 
-    return datetime(year, month, day, hour, minute, second)
+                for row in curr.execute(query % (note, start, end)):
+                    local_cluster.append(boringmatrix.localclean(row['cleaned_text']))
 
-def long_from_datetime(dto):
-    """Convert a datetime object to an integer."""
-    
-    return int(dto.strftime("%Y%m%d%H%M%S"))
+                tmp_local = " ".join(local_cluster) # join into one line
+                    # then split and strip out bad words.
+                # why join and then split immediately thereafter, :P
+                # in creating the BoringMatrix it splits, so why not just feed
+                # it an array.
+                results[note][start] = boringmatrix.BoringMatrix(" ".join([word for word in tmp_local.split(" ") if word not in remove_em and len(word) > 2]))
+
+    with open(output_name, 'w') as fout:
+        # added items, you then cast result afterwards.
+        # fout.write(dumps(results.items(), cls=BoringMatrixEncoder, sort_keys=True, indent=4))
+        fout.write(dumps(results, cls=boringmatrix.BoringMatrixEncoder, sort_keys=True, indent=4))
 
 def usage():
     """."""
 
-    print "usage: %s -in <model_data> [-out <output_file>] [-gh <graph>]" % sys.argv[0]
+    print "usage: %s -in <model_data> [-out <output_file>] [-gh <graph>] [-en <basic>]" % sys.argv[0]
     print "usage: %s -out <output_file> -db <sqlite_db> -sw <stopwords.in> -si <singletons.in> -i <interval in seconds>" % sys.argv[0]
-    
+
     # XXX: I would use pickle, but these are human-readable.
     print "\tmodel_data := don't build the model, this is a dictionary of BoringMatrix instances"
     print "\tsqlite_db := the input database."
@@ -209,6 +230,7 @@ def usage():
     print "\tsingletons.in := json dump of a single word array."
     print "\toutput_file := currently just dumps whatever the current meaning of results is."
     print "\tinterval in seconds := is the time slicing to use."
+    print "\t-en := 'basic' or ... this outputs the basic entropy for each note for each t."
 
 def main():
     """."""
@@ -220,7 +242,7 @@ def main():
 
     # --------------------------------------------------------------------------
     # Parse the parameters.
-    
+
     model_file = None
     output_name = None
     database_file = None
@@ -247,111 +269,25 @@ def main():
             interval = int(sys.argv[idx + 1])
         elif "-gh" == sys.argv[idx]:
             graph_out = sys.argv[idx + 1]
-
-    note_begins = ("i495", "boston")
+        elif "-en" == sys.argv[idx]:
+            entropy_out = sys.argv[idx + 1]
 
     if len(note_begins) != 2:
         sys.stderr.write("use this to compare two sets.\n")
         sys.exit(-1)
 
     if build_model:
-        remove_em = []
-
-        with open(stopwords_file, 'r') as fin:
-            remove_em.extend(loads(fin.read()))
-
-        with open(singletons_file, 'r') as fin:
-            remove_em.extend(loads(fin.read()))
-
-        # this won't return the 3 columns we care about.
-        # XXX: This doesn't select by note.
-        query = "select id, cleaned_text from tweets where note like '%s%%' and (yyyymmddhhmmss >= %d and yyyymmddhhmmss < %d);"
-
-        # --------------------------------------------------------------------------
-        # Search the database file for the earliest timestamp and latest.
-
-        early_query = "select min(yyyymmddhhmmss) as early, max(yyyymmddhhmmss) as late from tweets;"
-        earliest = 0
-        latest = 0
-
-        with sqlite3.connect(database_file) as conn: 
-            conn.row_factory = sqlite3.Row
-            curr = conn.cursor()
-            curr.execute(early_query)
-            row = curr.fetchone()
-
-            earliest = row['early']
-            latest = row['late']
-
-        # the timestamps are YYYYMMDDHHMMSS -- so I need to convert them into 
-        # datetime.datetime objects; easy.
-        # okay, so they want the timestamps to step forward slowly.
-        # can use datetime.timedelta correctly updates the datetime value, which
-        # we'll then need to convert back to the timestamp long.
-
-        starttime = datetime_from_long(earliest)
-        endtime = datetime_from_long(latest)
-        currtime = starttime
-        delta = timedelta(0, interval)
-
-        # datetime.timedelta(0, 1) (days, seconds)
-        # you can just add these to datetime.datetime objects.
-        #
-        # (endtime - starttime) gives you a datetime.timedelta object.
-
-        print "starttime: %s" % starttime
-        print "endtime: %s" % endtime
-    
-        results = {}
-        for note in note_begins:
-            results[note] = {}
-
-        # --------------------------------------------------------------------------
-        # Search the database file for certain things.
-        with sqlite3.connect(database_file) as conn:
-            conn.row_factory = sqlite3.Row
-            curr = conn.cursor()
-        
-            while currtime + delta < endtime:
-                start = long_from_datetime(currtime)
-                currtime += delta
-                end = long_from_datetime(currtime)
-
-                print "range: %d %d" % (start, end)
-
-                # build the text for that time-slice into one document, removing
-                # the stopwords provided by the user as well as the singleton
-                # list, neatly also provided by the user.            
-                for note in note_begins:
-                    local_cluster = []
-
-                    for row in curr.execute(query % (note, start, end)):
-                        local_cluster.append(localclean(row['cleaned_text']))
-
-                    tmp_local = " ".join(local_cluster) # join into one line
-                        # then split and strip out bad words.
-                    # why join and then split immediately thereafter, :P
-                    # in creating the BoringMatrix it splits, so why not just feed
-                    # it an array.
-                    results[note][start] = BoringMatrix(" ".join([word for word in tmp_local.split(" ") if word not in remove_em and len(word) > 2]))
-                    #results[note][start].compute()
-
-        with open(output_name, 'w') as fout:
-            # added items, you then cast result afterwards.
-            # fout.write(dumps(results.items(), cls=BoringMatrixEncoder, sort_keys=True, indent=4))
-            fout.write(dumps(results, cls=BoringMatrixEncoder, sort_keys=True, indent=4))
-
+        build_basic_model(stopwords_file, singletons_file, database_file, interval, output_name)
     else: # not building the model.
-
         neato_out = []
         vector_sums = {}
         results = None
-        
+
         if model_file is None:
             sys.exit(-1)
 
         with open(model_file, 'r') as moin:
-            results = loads(moin.read(), object_hook=as_boring)
+            results = loads(moin.read(), object_hook=boringmatrix.as_boring)
             # dict(loads(moin.read(), object_hook=as_boring))
 
         # compute the term weights.
@@ -364,6 +300,14 @@ def main():
             for start in results[note]:
                 results[note][start].compute()
 
+#        for start in results[note_begins[0]]:
+#            for note in note_begins:
+#                total = 0.0
+#                for term in results[note][start].term_weights:
+#                    total += results[note][start].term_weights[term]
+#                print total,
+# 1.0 is the total weight, yay.
+
         # compute the cosine similarities.
         for start in results[note_begins[0]]:
             vector_sums[int(start)] = \
@@ -374,7 +318,18 @@ def main():
             output_similarity_gnuplot(vector_sums, "%s_%s.eps" % (graph_out, "sims"))
             output_distinct_graphs(results[note_begins[0]], note_begins[0], "%s_%s.eps" % (graph_out, note_begins[0]))
             output_distinct_graphs(results[note_begins[1]], note_begins[1], "%s_%s.eps" % (graph_out, note_begins[1]))
-        
+
+            # compute the basic entropy of each model.
+            # this computes the entropy for the model within the windows, which
+            # is the maximum timeframe at this point.  I need to check and make sure
+            # we don't have an incorrect last segment.
+            if entropy_out is not None:
+                entropies = {note_begins[0] : {}, note_begins[1] : {}}
+                for start in results[note_begins[0]]:
+                    entropies[note_begins[0]][start] = basic_entropy(results[note_begins[0]][start])
+                    entropies[note_begins[1]][start] = basic_entropy(results[note_begins[1]][start])
+                output_basic_entropy(entropies, "%s_entropy.eps" % graph_out)
+
         if output_name is not None:
             sorted_sums = sorted(vector_sums.items(),
                                  key=itemgetter(1), # (1) is value
@@ -390,7 +345,7 @@ def main():
                 #wcnt = min(10, int(math.floor(len(sorted_weights) * 0.10)))
                 wcnt = min(10, len(sorted_weights))
 
-                neato_out.append((str(datetime_from_long(itempair[0])),
+                neato_out.append((str(boringmatrix.datetime_from_long(itempair[0])),
                                   itempair[1],
                                   len(sorted_weights),
                                   sorted_weights[0:wcnt]))
