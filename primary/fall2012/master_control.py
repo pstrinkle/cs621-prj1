@@ -6,6 +6,14 @@ __author__ = 'tri1@umbc.edu'
 # Fall 2012
 #
 
+# python master_control.py \
+#    -in ~/dissert/tweets/2012_02_Fall_boston_i495/processed/900_out \
+#    -gh ~/dissert/tweets/2012_02_Fall_boston_i495/processed/900_graph \
+#    -en basic \
+#    -gb ~/dissert/tweets/2012_02_Fall_boston_i495/processed/900_global \
+#    -pm perm_out
+
+
 import sys
 import sqlite3
 from json import dumps, loads
@@ -73,6 +81,32 @@ def output_similarity_gnuplot(vector, output):
 
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
 
+def output_global_entropy(entropies, output):
+    """Output the basic global entropy chart."""
+
+    skey = sorted(entropies.keys())
+    start = skey[0]
+    end = skey[-1]
+
+    out = []
+    path = "local.tmp.data"
+
+    for idx in range(0, len(skey)):
+        out.append("%d %f" % (idx, entropies[skey[idx]]))
+
+    with open(path, 'w') as fout:
+        fout.write("\n".join(out))
+
+    params = "set terminal postscript\n"
+    params += "set output '%s'\n" % output
+    #params += "set log xy\n"
+    params += "set xlabel 't'\n"
+    params += "set ylabel 'entropy scores'\n"
+    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red'\n" % (path, "global", start, end)
+    params += "q\n"
+
+    subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
+
 def output_basic_entropy(entropies, output):
     """Output the basic entropy chart."""
 
@@ -82,8 +116,12 @@ def output_basic_entropy(entropies, output):
 
     out = []
     path = "local.tmp.data"
+
     for idx in range(0, len(skey)):
-        out.append("%d %f %f" % (idx, entropies[note_begins[0]][skey[idx]], entropies[note_begins[1]][skey[idx]]))
+        out.append("%d %f %f" % (idx,
+                                 entropies[note_begins[0]][skey[idx]],
+                                 entropies[note_begins[1]][skey[idx]]))
+
     with open(path, 'w') as fout:
         fout.write("\n".join(out))
 
@@ -96,6 +134,15 @@ def output_basic_entropy(entropies, output):
     params += "q\n"
     
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
+
+def basic_dict_entropy(dictionary):
+    """Given a P(x) dictionary, return H(P)."""
+
+    entropy = 0.0
+    for entry in dictionary:
+        entropy += (dictionary[entry] * log10(1.0/dictionary[entry]))
+
+    return entropy
 
 def basic_entropy(boring_a):
     """Compute the H(P) for the given model."""
@@ -129,16 +176,63 @@ def cooccurrence_weights(boring_a, boring_b):
     
     return coterms
 
-def build_basic_model(stopwords_file, singletons_file, database_file, interval, output_name):
+def non_zero_count(list_of_counts):
+    """Returns the number of non-zero entries, this is similar to the matlab
+    method."""
+
+    count = 0
+    non_zeros = [value for value in list_of_counts if value > 0]
+
+    for value in non_zeros:
+        count += 1
+
+    return count
+
+def sorted_indices(full_list):
+    """Return a list of the sorted indices for full_list."""
+    
+    return [i[0] for i in sorted(enumerate(full_list), key=lambda x:x[1])]
+
+def build_termlist(result_dict):
+    """Given a results dictionary, go through each "note" within it and each 
+    BoringMatrix and pull out the terms and build a dictionary thing.
+    
+    This returns a list of the terms in sorted order.
+    
+    If you take all the BoringMatrix data sets and given a dictionary return
+    the tuples with the term counts then you should be able to do some 
+    permutation entropy stuff.
+    
+    There may be better ways to do this; like when I build the models ---
+    actually build_intervals may already output this stuff."""
+
+    terms = {}
+    for note in result_dict:
+        for start in result_dict[note]:
+            for term in result_dict[note][start].term_matrix:
+                try:
+                    terms[term] += 1
+                except KeyError:
+                    terms[term] = 1
+    
+    return sorted(terms.keys())
+
+def build_basic_model(stopwords_file,
+                      singletons_file,
+                      database_file,
+                      interval,
+                      output_name):
     """Build the output model."""
 
     remove_em = []
 
-    with open(stopwords_file, 'r') as fin:
-        remove_em.extend(loads(fin.read()))
+    if stopwords_file is not None:
+        with open(stopwords_file, 'r') as fin:
+            remove_em.extend(loads(fin.read()))
 
-    with open(singletons_file, 'r') as fin:
-        remove_em.extend(loads(fin.read()))
+    if singletons_file is not None:
+        with open(singletons_file, 'r') as fin:
+            remove_em.extend(loads(fin.read()))
 
     # this won't return the 3 columns we care about.
     # XXX: This doesn't select by note.
@@ -220,8 +314,8 @@ def build_basic_model(stopwords_file, singletons_file, database_file, interval, 
 def usage():
     """."""
 
-    print "usage: %s -in <model_data> [-out <output_file>] [-gh <graph>] [-en <basic>]" % sys.argv[0]
-    print "usage: %s -out <output_file> -db <sqlite_db> -sw <stopwords.in> -si <singletons.in> -i <interval in seconds>" % sys.argv[0]
+    print "usage: %s -in <model_data> [-out <output_file>] [-gh <graph> [-en <basic>]] [-gb global] [-pm permutation_output]" % sys.argv[0]
+    print "usage: %s -out <output_file> -db <sqlite_db> [-sw <stopwords.in>] [-si <singletons.in>] -i <interval in seconds>" % sys.argv[0]
 
     # XXX: I would use pickle, but these are human-readable.
     print "\tmodel_data := don't build the model, this is a dictionary of BoringMatrix instances"
@@ -236,7 +330,7 @@ def main():
     """."""
 
     # Did they provide the correct args?
-    if len(sys.argv) < 5:
+    if len(sys.argv) < 3:
         usage()
         sys.exit(-1)
 
@@ -251,6 +345,8 @@ def main():
     interval = None
     build_model = False
     graph_out = None
+    global_out = None
+    permutation_out = None
 
     # could use the stdargs parser, but that is meh.
     for idx in range(1, len(sys.argv)):
@@ -271,13 +367,21 @@ def main():
             graph_out = sys.argv[idx + 1]
         elif "-en" == sys.argv[idx]:
             entropy_out = sys.argv[idx + 1]
+        elif "-gb" == sys.argv[idx]:
+            global_out = sys.argv[idx + 1]
+        elif "-pm" == sys.argv[idx]:
+            permutation_out = sys.argv[idx + 1]
 
     if len(note_begins) != 2:
         sys.stderr.write("use this to compare two sets.\n")
         sys.exit(-1)
 
     if build_model:
-        build_basic_model(stopwords_file, singletons_file, database_file, interval, output_name)
+        build_basic_model(stopwords_file,
+                          singletons_file,
+                          database_file,
+                          interval,
+                          output_name)
     else: # not building the model.
         neato_out = []
         vector_sums = {}
@@ -290,7 +394,7 @@ def main():
             results = loads(moin.read(), object_hook=boringmatrix.as_boring)
             # dict(loads(moin.read(), object_hook=as_boring))
 
-        # compute the term weights.
+        # Compute the term weights.
         for note in note_begins:
             # this crap only matters for the key thing.
             keys = results[note].keys()
@@ -308,16 +412,56 @@ def main():
 #                print total,
 # 1.0 is the total weight, yay.
 
-        # compute the cosine similarities.
+        # ---------------------------------------------------------------------
+        # Compute the cosine similarities. 
         for start in results[note_begins[0]]:
             vector_sums[int(start)] = \
                 vectorspace.cosine_compute(results[note_begins[0]][start].term_weights,
                                            results[note_begins[1]][start].term_weights)
 
+        # ---------------------------------------------------------------------
+        # Compute the permutation entropy for the window.
+        if permutation_out is not None:
+            term_list = build_termlist(results)
+            #print len(term_list)
+
+            for note in note_begins:
+                sorted_indices_dict = {}
+                for start in results[note]:
+                    full_list = results[note][start].build_fulllist(term_list)
+                    indices = sorted_indices(full_list)
+                    try:
+                        sorted_indices_dict[str(indices)] += 1
+                    except KeyError:
+                        sorted_indices_dict[str(indices)] = 1
+
+        # ---------------------------------------------------------------------
+        # Compute the entropy value for the global hierarchical model given the
+        # two input models.
+        if global_out is not None:
+            globals = {}
+            entropies = {}
+            # Hierarchical model builder.
+            for start in results[note_begins[0]]:
+                globals[start] = boringmatrix.HierarchBoring(results[note_begins[0]][start],
+                                                             results[note_begins[1]][start])
+                globals[start].compute()
+                entropies[start] = basic_entropy(globals[start])
+            output_global_entropy(entropies, "%s_entropy.eps" % global_out)
+
+        # ---------------------------------------------------------------------
+        # Compute the similarity and counts for the given models as well as the
+        # entropy.
         if graph_out is not None:
-            output_similarity_gnuplot(vector_sums, "%s_%s.eps" % (graph_out, "sims"))
-            output_distinct_graphs(results[note_begins[0]], note_begins[0], "%s_%s.eps" % (graph_out, note_begins[0]))
-            output_distinct_graphs(results[note_begins[1]], note_begins[1], "%s_%s.eps" % (graph_out, note_begins[1]))
+            # Consider using a few panes.
+            output_similarity_gnuplot(vector_sums,
+                                      "%s_%s.eps" % (graph_out, "sims"))
+            output_distinct_graphs(results[note_begins[0]],
+                                   note_begins[0],
+                                   "%s_%s.eps" % (graph_out, note_begins[0]))
+            output_distinct_graphs(results[note_begins[1]],
+                                   note_begins[1],
+                                   "%s_%s.eps" % (graph_out, note_begins[1]))
 
             # compute the basic entropy of each model.
             # this computes the entropy for the model within the windows, which
@@ -330,6 +474,8 @@ def main():
                     entropies[note_begins[1]][start] = basic_entropy(results[note_begins[1]][start])
                 output_basic_entropy(entropies, "%s_entropy.eps" % graph_out)
 
+        # ---------------------------------------------------------------------
+        # 
         if output_name is not None:
             sorted_sums = sorted(vector_sums.items(),
                                  key=itemgetter(1), # (1) is value

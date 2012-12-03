@@ -1,6 +1,7 @@
 """Boring matrix model."""
 
 from json import JSONEncoder
+from datetime import datetime
 
 def datetime_from_long(timestamp):
     """Convert a timestamp to a datetime.datetime."""
@@ -70,6 +71,21 @@ class BoringMatrix():
         for term in self.term_matrix:
             self.term_weights[term] = (float(self.term_matrix[term]) / self.total_count)
     
+    def build_fulllist(self, full_terms):
+        """Return a list of term frequencies where anything absent is 0.
+        
+        Consider having this build a list of tuples which includes the index."""
+
+        full_list = []
+
+        for term in full_terms:
+            if term in self.term_matrix:
+                full_list.append(self.term_matrix[term])
+            else:
+                full_list.append(0)
+
+        return full_list
+
     def add_bag(self, bag_of_words):
         """Add a bag of words to the current matrix."""
         
@@ -99,5 +115,69 @@ class BoringMatrixEncoder(JSONEncoder):
             return obj.get_json()
         return JSONEncoder.default(self, obj)
 
+class HierarchBoring():
+    """This builds a hierarchical version of the model given two BoringMatrix
+    unigram language models."""
+    
+    def __init__(self, boringmatrix_a, boringmatrix_b):
+        """Initialize the hierarchical model given two boring matrix."""
+
+        # global variables.
+        self.term_matrix = {}
+        self.term_weights = {}
+        self.total_count = 0
+
+        self.boring_a = BoringMatrix(None)
+        self.boring_a.term_matrix = boringmatrix_a.term_matrix.copy()
+        self.boring_a.term_weights = boringmatrix_a.term_weights.copy()
+        self.boring_a.total_count = boringmatrix_a.total_count
+
+        self.boring_b = BoringMatrix(None)
+        self.boring_b.term_matrix = boringmatrix_b.term_matrix.copy()
+        self.boring_b.term_weights = boringmatrix_b.term_weights.copy()
+        self.boring_b.total_count = boringmatrix_b.total_count        
+        
+        deletes = []
+        
+        for akey in self.boring_a.term_matrix:
+            if akey in self.boring_b.term_matrix:
+                akey_count = (self.boring_a.term_matrix[akey] + self.boring_b.term_matrix[akey])
+                
+                self.term_matrix[akey] = akey_count
+                self.total_count += akey_count
+                
+                self.boring_a.total_count -= self.boring_a.term_matrix[akey]
+                self.boring_b.total_count -= self.boring_b.term_matrix[akey]
+                
+        for delete in deletes:
+            try:
+                del self.boring_a.term_matrix[akey]
+            except KeyError:
+                pass
+                
+            try:
+                del self.boring_a.term_weights[akey]
+            except KeyError:
+                pass
+                
+            try:
+                del self.boring_b.term_matrix[akey]
+            except KeyError:
+                pass
+                
+            try:
+                del self.boring_b.term_weights[akey]
+            except KeyError:
+                pass
+
+    def compute(self):
+        """Run the basic term weight calculation."""
+
+        # None of these are zero.
+        for term in self.term_matrix:
+            self.term_weights[term] = (float(self.term_matrix[term]) / self.total_count)
+
+        self.boring_a.compute()
+        self.boring_b.compute()
 
 
