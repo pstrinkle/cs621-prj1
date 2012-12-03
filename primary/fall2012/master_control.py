@@ -13,7 +13,6 @@ __author__ = 'tri1@umbc.edu'
 #    -gb ~/dissert/tweets/2012_02_Fall_boston_i495/processed/900_global \
 #    -pm perm_out
 
-
 import sys
 import sqlite3
 from json import dumps, loads
@@ -148,19 +147,16 @@ def basic_entropy(boring_a):
     """Compute the H(P) for the given model."""
     
     entropy = 0.0
+    # could probably do sum(value for term in terms[value])
     for term in boring_a.term_matrix:
         entropy += (boring_a.term_weights[term] * log10(1.0/boring_a.term_weights[term]))
-    
+
     return entropy
 
 def cooccurrence_terms(boring_a, boring_b):
     """Return a list of terms that appear in both model instances."""
 
-    coterms = []
-
-    for term in boring_a.term_matrix:
-        if term in boring_b.term_matrix:
-            coterms.append(term)
+    coterms = [term for term in boring_a.term_matrix if term in boring_b.term_matrix]
 
     return coterms
 
@@ -349,32 +345,39 @@ def main():
     permutation_out = None
 
     # could use the stdargs parser, but that is meh.
-    for idx in range(1, len(sys.argv)):
-        if "-in" == sys.argv[idx]:
-            model_file = sys.argv[idx + 1]
-        elif "-out" == sys.argv[idx]:
-            output_name = sys.argv[idx + 1]
-        elif "-db" == sys.argv[idx]:
-            database_file = sys.argv[idx + 1]
-            build_model = True
-        elif "-sw" == sys.argv[idx]:
-            stopwords_file = sys.argv[idx + 1]
-        elif "-si" == sys.argv[idx]:
-            singletons_file = sys.argv[idx + 1]
-        elif "-i" == sys.argv[idx]:
-            interval = int(sys.argv[idx + 1])
-        elif "-gh" == sys.argv[idx]:
-            graph_out = sys.argv[idx + 1]
-        elif "-en" == sys.argv[idx]:
-            entropy_out = sys.argv[idx + 1]
-        elif "-gb" == sys.argv[idx]:
-            global_out = sys.argv[idx + 1]
-        elif "-pm" == sys.argv[idx]:
-            permutation_out = sys.argv[idx + 1]
+    try:
+        for idx in range(1, len(sys.argv)):
+            if "-in" == sys.argv[idx]:
+                model_file = sys.argv[idx + 1]
+            elif "-out" == sys.argv[idx]:
+                output_name = sys.argv[idx + 1]
+            elif "-db" == sys.argv[idx]:
+                database_file = sys.argv[idx + 1]
+                build_model = True
+            elif "-sw" == sys.argv[idx]:
+                stopwords_file = sys.argv[idx + 1]
+            elif "-si" == sys.argv[idx]:
+                singletons_file = sys.argv[idx + 1]
+            elif "-i" == sys.argv[idx]:
+                interval = int(sys.argv[idx + 1])
+            elif "-gh" == sys.argv[idx]:
+                graph_out = sys.argv[idx + 1]
+            elif "-en" == sys.argv[idx]:
+                entropy_out = sys.argv[idx + 1]
+            elif "-gb" == sys.argv[idx]:
+                global_out = sys.argv[idx + 1]
+            elif "-pm" == sys.argv[idx]:
+                permutation_out = sys.argv[idx + 1]
+    except IndexError:
+        usage()
+        sys.exit(-2)
 
     if len(note_begins) != 2:
         sys.stderr.write("use this to compare two sets.\n")
         sys.exit(-1)
+
+    # --------------------------------------------------------------------------
+    # Do the stuff.
 
     if build_model:
         build_basic_model(stopwords_file,
@@ -382,7 +385,8 @@ def main():
                           database_file,
                           interval,
                           output_name)
-    else: # not building the model.
+    else:
+        # not building the model.
         neato_out = []
         vector_sums = {}
         results = None
@@ -394,6 +398,7 @@ def main():
             results = loads(moin.read(), object_hook=boringmatrix.as_boring)
             # dict(loads(moin.read(), object_hook=as_boring))
 
+        # ----------------------------------------------------------------------
         # Compute the term weights.
         for note in note_begins:
             # this crap only matters for the key thing.
@@ -412,14 +417,14 @@ def main():
 #                print total,
 # 1.0 is the total weight, yay.
 
-        # ---------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         # Compute the cosine similarities. 
         for start in results[note_begins[0]]:
             vector_sums[int(start)] = \
                 vectorspace.cosine_compute(results[note_begins[0]][start].term_weights,
                                            results[note_begins[1]][start].term_weights)
 
-        # ---------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         # Compute the permutation entropy for the window.
         if permutation_out is not None:
             term_list = build_termlist(results)
@@ -435,7 +440,7 @@ def main():
                     except KeyError:
                         sorted_indices_dict[str(indices)] = 1
 
-        # ---------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         # Compute the entropy value for the global hierarchical model given the
         # two input models.
         if global_out is not None:
@@ -449,7 +454,7 @@ def main():
                 entropies[start] = basic_entropy(globals[start])
             output_global_entropy(entropies, "%s_entropy.eps" % global_out)
 
-        # ---------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         # Compute the similarity and counts for the given models as well as the
         # entropy.
         if graph_out is not None:
@@ -474,7 +479,7 @@ def main():
                     entropies[note_begins[1]][start] = basic_entropy(results[note_begins[1]][start])
                 output_basic_entropy(entropies, "%s_entropy.eps" % graph_out)
 
-        # ---------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         # 
         if output_name is not None:
             sorted_sums = sorted(vector_sums.items(),
