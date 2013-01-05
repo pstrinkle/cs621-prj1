@@ -93,6 +93,11 @@ def cleanup(tweet, lowercase=True, to_ascii=False):
     if url != None:
         new_tweet = new_tweet.replace(url.group(1), '')
     
+    url2 = re.search(r'(https://\S+)', new_tweet, flags=re.IGNORECASE)
+
+    if url2 != None:
+        new_tweet = new_tweet.replace(url2.group(1), '')
+
     # Could for the most part just use ascii char available.
     new_tweet = new_tweet.replace("&gt;", ">") # html to character
     new_tweet = new_tweet.replace("&lt;", "<") # html to character
