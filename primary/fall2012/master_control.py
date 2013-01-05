@@ -560,7 +560,7 @@ def build_basic_model(stopwords_file,
 def usage():
     """Print the massive usage information."""
 
-    print "usage: %s -in <model_data> -out <output_file> [-short] [-gh [-en]] [-gb] [-pm] [-sr] [-nt]  [-ftm] [-mtm] [-notes] [-pca1] [-pca3]" % sys.argv[0]
+    print "usage: %s -in <model_data> -out <output_file> [-short] [-gh [-en]] [-gb] [-pm] [-sr] [-nt]  [-ftm] [-mtm] [-notes] [-pca1] [-docs]" % sys.argv[0]
     print "usage: %s -out <output_file> -db <sqlite_db> [-sw <stopwords.in>] [-si <singletons.in>] -i <interval in seconds> [-step]" % sys.argv[0]
 
     print "-short - terms that appear more than once in at least one slice are used for any other things you output."
@@ -570,6 +570,8 @@ def usage():
     print "-stm - output the matrix using the short list, forces short"
     print "-frm - output full_term_matrix_out"
     print "-mtm - output merged_term_matrix_out, uses stm for output, merges the two locations into one model for each t."
+
+    print "-docs - convert the time series into just a bunch of documents."
 
     # the PCA C code currently doesn't support floating point.
     print "-pca1 - Output folder of files, one per document for full term set, as term counts"
@@ -616,6 +618,7 @@ def main():
     step_intervals = False
     pca1_out = False
     use_short_terms = False
+    build_doc_dict = False
 
     # could use the stdargs parser, but that is meh.
     try:
@@ -660,6 +663,8 @@ def main():
                 step_intervals = True
             elif "-pca1" == sys.argv[idx]:
                 pca1_out = True
+            elif "-docs" == sys.argv[idx]:
+                build_doc_dict = True
     except IndexError:
         usage()
         sys.exit(-2)
@@ -751,30 +756,44 @@ def main():
                     results[note][start].compute()
 
         # ----------------------------------------------------------------------
+        # Just build a dictionary of the documents.
+        results_as_dict = {}
+        if build_doc_dict:
+            for note in note_begins:
+                for start in results[note]:
+                    results_as_dict["%s-%d" % (note, start)] = results[note][start].term_matrix.copy()
+
+        # ----------------------------------------------------------------------
         # Output each slice for each area as a new-line broken up term count
         # file.  These values aren't normalized, so they're not terribly useful
         # yet.
         if pca1_out:
             outdir = "%s_%s" % (output_name, "pca1")
             os.mkdir(outdir)
+
             for note in note_begins:
-                for slice in results[note]:
-                    filename = "%s-%d" % (note, slice)
+                for start in results[note]:
+                    filename = "%s-%d" % (note, start)
+
                     with open(os.path.join(outdir, filename), 'w') as fout:
+                        values = []
                         if use_short_terms:
                             for term in sterm_list:
-                                if term in results[note][slice].term_matrix:
-                                    value = results[note][slice].term_matrix[term]
+                                if term in results[note][start].term_matrix:
+                                    value = results[note][start].term_matrix[term]
                                 else:
                                     value = 0
-                                fout.write("%d\n" % value)
+                                values.append(value)
+                                
                         else:
                             for term in term_list:
-                                if term in results[note][slice].term_matrix:
-                                    value = results[note][slice].term_matrix[term]
+                                if term in results[note][start].term_matrix:
+                                    value = results[note][start].term_matrix[term]
                                 else:
                                     value = 0
-                                fout.write("%d\n" % value)
+                                values.append(value)
+
+                        fout.write("%s" % "".join(["%d\n" % value in values]))
 
             if use_short_terms:
                 print "params: %d %d" % (len(results[note]) * 2, len(sterm_list))

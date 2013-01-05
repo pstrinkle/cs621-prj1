@@ -38,28 +38,18 @@
 static int
 process_file(const char *filepath);
 
-/* this holds the terms for a user */
-typedef struct
-{
-    /**
-     * @brief This gets malloc'd given the input indicating the number of terms 
-     * per user.
-     */
-	uint32_t *counts;
-} userContainer;
-
 /**
- * @brief global container for current user
+ * @brief This will hold the counts for the file that's being read in.
  */
-userContainer user_terms;
+static uint32_t *user_terms_counts;
 
 #define SIGN(a, b) ( (b) < 0 ? -fabs(a) : fabs(a) )
 
 static float *vector(int n);
 static float **matrix(int n, int m);
 
-static void free_matrix(float **mat, int n, int m);
-static void free_vector(float *v, int n);
+static void free_matrix(float **mat, int n);
+static void free_vector(float *v);
 
 static void tred2(float **a, int n, float *d, float *e);
 static void tqli(float d[], float e[], int n, float **z);
@@ -104,7 +94,7 @@ int main(int argc, char *argv[])
     n = atoi(argv[1]); // n is the number of users (documents).
     m = atoi(argv[2]); // m is the number of terms.
 
-    user_terms.counts = malloc(m * sizeof(uint32_t));
+    user_terms_counts = malloc(m * sizeof(uint32_t));
 
     char option='V';
     char names[n+1][MAX_PATH_LENGTH];
@@ -144,7 +134,7 @@ int main(int argc, char *argv[])
             {
                 fprintf(stderr, "failed to process file, aborting!\n");
 
-                free(user_terms.counts);
+                free(user_terms_counts);
                 closedir(user);
 
                 goto exit;
@@ -154,14 +144,14 @@ int main(int argc, char *argv[])
 
             for (j = 0; j < m; j++)
             {
-                data[i][j+1] = user_terms.counts[j];
+                data[i][j+1] = user_terms_counts[j];
             }
             
             i++;
 		}
 	}
     
-    free(user_terms.counts);
+    free(user_terms_counts);
 	closedir(user);
 
 	symmat = matrix(m, m);  /* Allocation of correlation (etc.) matrix */
@@ -172,18 +162,18 @@ int main(int argc, char *argv[])
 	{
         case 'R':
         case 'r':
-            //printf("Analysis of correlations chosen.\n");
+            printf("Analysis of correlations chosen.\n");
             corcol(data, n, m, symmat);
             break;
         case 'V':
         case 'v':
-            //printf("Analysis of variances-covariances chosen.\n");
+            printf("Analysis of variances-covariances chosen.\n");
             covcol(data, n, m, symmat);
             break;
         case 'S':
         case 's':
-            //printf("Analysis of sums-of-squares-cross-products");
-            //printf(" matrix chosen.\n");
+            printf("Analysis of sums-of-squares-cross-products");
+            printf(" matrix chosen.\n");
             scpcol(data, n, m, symmat);
             break;
         default:
@@ -196,13 +186,14 @@ int main(int argc, char *argv[])
 	}
 
 	/*********************************************************************
-	Eigen-reduction
-	**********************************************************************/
+	 * Eigen-reduction
+	 **********************************************************************/
 
 	/* Allocate storage for dummy and new vectors. */
 	evals = vector(m);     /* Storage alloc. for vector of eigenvalues */
 	interm = vector(m);    /* Storage alloc. for 'intermediate' vector */
 	symmat2 = matrix(m, m);  /* Duplicate of correlation (etc.) matrix */
+
 	for (i = 1; i <= m; i++)
     {
 		for (j = 1; j <= m; j++)
@@ -225,6 +216,7 @@ int main(int argc, char *argv[])
     {
 		printf("%18.5f\n", evals[j]);
     }
+
 	printf("\n(Eigenvalues should be strictly positive; limited\n");
 	printf("precision machine arithmetic may affect this.\n");
 	printf("Eigenvalues are often expressed as cumulative\n");
@@ -233,6 +225,7 @@ int main(int argc, char *argv[])
 
 	printf("\nEigenvectors:\n");
 	printf("(First three; their definition in terms of original vbes.)\n");
+
 	for (j = 1; j <= m; j++)
     {
 		for (i = 1; i <= 3; i++)
@@ -347,15 +340,15 @@ int main(int argc, char *argv[])
 
 exit:
     if (data)
-        free_matrix(data, n, m);
+        free_matrix(data, n);
     if (symmat)
-        free_matrix(symmat, m, m);
+        free_matrix(symmat, m);
     if (symmat2)
-        free_matrix(symmat2, m, m);
+        free_matrix(symmat2, m);
     if (evals)
-        free_vector(evals, m);
+        free_vector(evals);
     if (interm)
-        free_vector(interm, m);
+        free_vector(interm);
 
     return 0;
 }
@@ -562,7 +555,16 @@ static float *vector(int n)
 	float *v;
 
 	v = (float *) malloc ((unsigned) n*sizeof(float));
-	if (!v) erhand("Allocation failure in vector().");
+
+	if (!v)
+	{
+	    erhand("Allocation failure in vector().");
+	}
+
+	/*
+	 * They do this because they don't allocate n+1 items, they just return a
+	 * pointer to the memory before the array and never index 0.  Really dumb.
+	 */
 	return v-1;
 }
 
@@ -604,16 +606,18 @@ static float **matrix(int n, int m)
 
 /* Free a float vector allocated by vector(). */
 static void
-free_vector(float *v, int n)
+free_vector(float *v)
 {
 	free((char*) (v+1));
+
+	return;
 }
 
 /**  Deallocate float matrix storage  ***************************/
 
 /* Free a float matrix allocated by matrix(). */
 static void
-free_matrix(float **mat, int n, int m)
+free_matrix(float **mat, int n)
 {
 	int i;
 
@@ -623,6 +627,8 @@ free_matrix(float **mat, int n, int m)
 	}
 
 	free ((char*) (mat+1));
+
+	return;
 }
 
 /**  Reduce a real, symmetric matrix to a symmetric, tridiag. matrix. */
@@ -646,6 +652,7 @@ tred2(float **a, int n, float *d, float *e)
 	{
 		l = i - 1;
 		h = scale = 0.0;
+
 		if (l > 1)
 		{
 			for (k = 1; k <= l; k++)
@@ -666,7 +673,7 @@ tred2(float **a, int n, float *d, float *e)
 				}
                 
 				f = a[i][l];
-				g = f>0 ? -sqrt(h) : sqrt(h);
+				g = f > 0 ? -sqrt(h) : sqrt(h);
 				e[i] = scale * g;
 				h -= f * g;
 				a[i][l] = f - g;
@@ -678,10 +685,14 @@ tred2(float **a, int n, float *d, float *e)
 					g = 0.0;
                     
 					for (k = 1; k <= j; k++)
+					{
 						g += a[j][k] * a[i][k];
+					}
                     
 					for (k = j+1; k <= l; k++)
+					{
 						g += a[k][j] * a[i][k];
+					}
                     
 					e[j] = g / h;
 					f += e[j] * a[i][j];
@@ -695,7 +706,9 @@ tred2(float **a, int n, float *d, float *e)
 					e[j] = g = e[j] - hh * f;
                     
 					for (k = 1; k <= j; k++)
+					{
 						a[j][k] -= (f * e[k] + g * a[i][k]);
+					}
 				}
 			}
 		}
@@ -712,6 +725,7 @@ tred2(float **a, int n, float *d, float *e)
 	for (i = 1; i <= n; i++)
 	{
 		l = i - 1;
+
 		if (d[i])
 		{
 			for (j = 1; j <= l; j++)
@@ -719,10 +733,14 @@ tred2(float **a, int n, float *d, float *e)
 				g = 0.0;
                 
 				for (k = 1; k <= l; k++)
+				{
 					g += a[i][k] * a[k][j];
+				}
                 
 				for (k = 1; k <= l; k++)
+				{
 					a[k][j] -= g * a[k][i];
+				}
 			}
 		}
         
@@ -730,8 +748,12 @@ tred2(float **a, int n, float *d, float *e)
 		a[i][i] = 1.0;
         
 		for (j = 1; j <= l; j++)
+		{
 			a[j][i] = a[i][j] = 0.0;
+		}
 	}
+
+	return;
 }
 
 /**  Tridiagonal QL algorithm -- Implicit  **********************/
@@ -758,11 +780,13 @@ tqli(float d[], float e[], int n, float **z)
 			for (m = l; m <= n-1; m++)
 			{
 				dd = fabs(d[m]) + fabs(d[m+1]);
+
 				if (fabs(e[m]) + dd == dd)
                 {
                     break;
                 }
 			}
+
 			if (m != l)
 			{
 				if (iter++ == 30)
@@ -816,6 +840,8 @@ tqli(float d[], float e[], int n, float **z)
 			}
 		} while (m != l);
 	}
+
+	return;
 }
 
 static int
@@ -839,7 +865,7 @@ process_file(
     
     while ((linelen = getline(&line, &linecap, fd)) > 0)
     {
-        user_terms.counts[i] = atoi(line);
+        user_terms_counts[i] = atoi(line);
         
         i++;
     }
