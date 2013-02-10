@@ -75,6 +75,32 @@ def top_terms(vector, num):
 
     return terms
 
+def top_terms_overall(doc_tfidf, count):
+    """Get the top terms overall for the entire set of columns.
+
+    len(terms) is actually count -- taken from frame module."""
+
+    # Interestingly, many columns can have similar top terms -- with 
+    # different positions in the list...  So, this will have to be taken 
+    # into account.  Build the overall list and then sort it, then get the
+    # first count of the unique...
+    #
+    terms = {}
+
+    for doc_id in doc_tfidf:
+        new_tuples = top_terms_tuples(doc_tfidf[doc_id], count)
+
+        # These are the top tuples for doc_id; if they are not new, then 
+        # increase their value to the new max.            
+        for kvp in new_tuples:
+            if kvp[0] in terms:
+                terms[kvp[0]] = max(kvp[1], terms[kvp[0]])
+            else:
+                terms[kvp[0]] = kvp[1]
+
+    # terms is effectively a document now, so we can use this.
+    return top_terms(terms, count)
+
 def calculate_invdf(doc_count, doc_freq):
     """Calculate the inverse document frequencies.
   
@@ -264,7 +290,7 @@ def build_termfreqs(documents, stopwords):
                 
     return doc_length, doc_freq, doc_termfreq
 
-def build_doc_tfidf(documents, stopwords, remove_singletons=False):
+def build_doc_tfidf(documents, stopwords = [], remove_singletons=False):
     """Note: This doesn't remove singletons from the dictionary of terms, unless 
     you say otherwise.  With tweets there is certain value in not removing 
     singletons.

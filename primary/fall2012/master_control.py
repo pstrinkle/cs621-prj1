@@ -22,6 +22,7 @@ sys.path.append("../modellib")
 import vectorspace
 
 note_begins = ("i495", "boston")
+TOP_TERM_CNT = 1000
 
 def output_new_terms(results, output):
     """At each X, indicate on the Y axis how many new terms were introduced."""
@@ -299,8 +300,8 @@ def output_top_model_entropy(results, entropies, output):
             out2 = 0.0
 
         if out1 > 0.05 or out2 > 0.05:
-            output_model[skey[idx]] = (top_terms(results[note_begins[0]][skey[idx]]),
-                                       top_terms(results[note_begins[1]][skey[idx]]))
+            output_model[skey[idx]] = (vectorspace.top_terms(results[note_begins[0]][skey[idx]].term_weights, 10),
+                                       vectorspace.top_terms(results[note_begins[1]][skey[idx]].term_weights, 10))
 
     with open(output, 'w') as fout:
         fout.write(dumps(output_model, indent=4))
@@ -313,11 +314,6 @@ def output_full_matrix(terms, vectors, output):
 
     with open(output, 'w') as fout:
         fout.write(x)
-
-def top_terms(boring_a):
-    """Return a list of the top terms."""
-
-    return vectorspace.top_terms(boring_a.term_weights, 10)
 
 def basic_dict_entropy(dictionary):
     """Given a P(x) dictionary, return H(P)."""
@@ -576,6 +572,7 @@ def usage():
     # the PCA C code currently doesn't support floating point.
     print "-pca1 - Output folder of files, one per document for full term set, as term counts"
     print "-short -pca1 is pca1 but using the short list."
+    print "-docs -pca1 is pca1 but using the top 10% list - check before use."
     #print "-pca2 - Output folder of files, one per document for full term set, as term weights"
 
     print "\tmodel_data := don't build the model, this is a dictionary of BoringMatrix instances"
@@ -586,6 +583,8 @@ def usage():
     print "\tinterval in seconds := is the time slicing to use."
     print "\t-en := 'basic' or ... this outputs the basic entropy for each note for each t."
     print "\t-step := should it do half-step t models -- sliding window."
+    
+    # Need to consider having the output fall out in sets for varied windows...
 
 def main():
     """."""
@@ -750,7 +749,7 @@ def main():
         # ----------------------------------------------------------------------
         # Prune out low term counts; re-compute.
         if use_short_terms:
-            for note in note_begins:
+            for note in results:
                 for start in results[note]:
                     results[note][start].drop_not_in(sterm_list)
                     results[note][start].compute()
@@ -758,10 +757,44 @@ def main():
         # ----------------------------------------------------------------------
         # Just build a dictionary of the documents.
         results_as_dict = {}
+        doc_length = {}
+        doc_freq = {}
+        top_terms_slist = None
+
         if build_doc_dict:
-            for note in note_begins:
+            for note in results:
                 for start in results[note]:
-                    results_as_dict["%s-%d" % (note, start)] = results[note][start].term_matrix.copy()
+                    
+                    doc_id = "%s-%d" % (note, start)
+
+                    results_as_dict[doc_id] = results[note][start].term_matrix.copy()
+                    doc_length[doc_id] = results[note][start].total_count
+
+                    for term in results_as_dict[doc_id]:
+                        try:
+                            doc_freq[term] += 1
+                        except KeyError:
+                            doc_freq[term] = 1
+
+            invdoc_freq = vectorspace.calculate_invdf(len(results_as_dict), doc_freq)
+            doc_tfidf = vectorspace.calculate_tfidf(doc_length, results_as_dict, invdoc_freq)
+
+            with open("%s_%s" % (output_name, "top_tfidf.json"), 'w') as fout:
+                fout.write(dumps(vectorspace.top_terms_overall(doc_tfidf, TOP_TERM_CNT)))
+
+            top_terms_slist = vectorspace.top_terms_overall(results_as_dict, int(len(doc_freq)*.10))
+
+            with open("%s_%s" % (output_name, "top_tf.json"), 'w') as fout:
+                fout.write(dumps(top_terms_slist, indent=4))
+
+            for note in results:
+                for start in results[note]:
+                    results[note][start].drop_not_in(top_terms_slist)
+                    results[note][start].compute()
+                
+                output_full_matrix(top_terms_slist,
+                                   results[note],
+                                   "%s_%s_tops.csv" % (output_name, note))
 
         # ----------------------------------------------------------------------
         # Output each slice for each area as a new-line broken up term count
@@ -769,36 +802,44 @@ def main():
         # yet.
         if pca1_out:
             outdir = "%s_%s" % (output_name, "pca1")
-            os.mkdir(outdir)
 
-            for note in note_begins:
+            if os.path.exists(outdir):
+                os.rmdir(outdir)
+
+            os.mkdir(outdir)
+            
+            if build_doc_dict:
+                the_terms = top_terms_slist
+            elif use_short_terms:
+                the_terms = sterm_list
+            else:
+                the_terms = term_list
+
+            for note in results:
                 for start in results[note]:
                     filename = "%s-%d" % (note, start)
 
-                    with open(os.path.join(outdir, filename), 'w') as fout:
-                        values = []
-                        if use_short_terms:
-                            for term in sterm_list:
-                                if term in results[note][start].term_matrix:
-                                    value = results[note][start].term_matrix[term]
-                                else:
-                                    value = 0
-                                values.append(value)
-                                
+                    values = []
+
+                    for term in the_terms:
+                        # Could probably just index with a try/catch.
+                        if term in results[note][start].term_matrix:
+                            value = results[note][start].term_matrix[term]
                         else:
-                            for term in term_list:
-                                if term in results[note][start].term_matrix:
-                                    value = results[note][start].term_matrix[term]
-                                else:
-                                    value = 0
-                                values.append(value)
+                            value = 0
+                        values.append(value)
 
-                        fout.write("%s" % "".join(["%d\n" % value in values]))
+                    try:
+                        data_str = "\n".join(["%d" % value for value in values])
+                    except TypeError, e:
+                        print type(values), type(values[0]), values[0], values[1]
+                        print e
+                        sys.exit(-2)
+                    
+                    with open(os.path.join(outdir, filename), 'w') as fout:
+                        fout.write(data_str)
 
-            if use_short_terms:
-                print "params: %d %d" % (len(results[note]) * 2, len(sterm_list))
-            else:
-                print "params: %d %d" % (len(results[note]) * 2, len(term_list))
+            print "params: %d %d" % (len(results[note]) * 2, len(the_terms))
 
         # ----------------------------------------------------------------------
         # Output a CSV with a model built from merging boston and i495 for each
@@ -822,16 +863,23 @@ def main():
 
                 x.compute()
                 merged[start] = x
+
             if use_short_terms:
-                output_full_matrix(sterm_list, merged, "%s_%s.csv" % (output_name, "merged"))
+                output_full_matrix(sterm_list,
+                                   merged,
+                                   "%s_%s.csv" % (output_name, "merged"))
             else:
-                output_full_matrix(term_list, merged, "%s_%s.csv" % (output_name, "merged"))
+                output_full_matrix(term_list,
+                                   merged,
+                                   "%s_%s.csv" % (output_name, "merged"))
 
         # ----------------------------------------------------------------------
         # Output the matrices as CSVs... Hopefully as input to matlab.
         if sfull_term_matrix_out:
-            for note in note_begins:
-                output_full_matrix(sterm_list, results[note], "%s_%s.csv" % (output_name, note))
+            for note in results:
+                output_full_matrix(sterm_list,
+                                   results[note],
+                                   "%s_%s.csv" % (output_name, note))
 
         # ----------------------------------------------------------------------
         # Compute the entropy value for the global hierarchical model given the
@@ -849,9 +897,13 @@ def main():
 
             gterm_list = build_gtermlist(global_views)
 
-            output_global_entropy(entropies, "%s_global_entropy.eps" % output_name)
-            output_global_inverse_entropy(entropies, "%s_inv_global_entropy.eps" % output_name)
-            output_full_matrix(gterm_list, global_views, "%s_%s.csv" % (output_name, "global"))
+            output_global_entropy(entropies,
+                                  "%s_global_entropy.eps" % output_name)
+            output_global_inverse_entropy(entropies,
+                                          "%s_inv_global_entropy.eps" % output_name)
+            output_full_matrix(gterm_list,
+                               global_views,
+                               "%s_%s.csv" % (output_name, "global"))
 
         # ----------------------------------------------------------------------
         # Compute the cosine similarities. 
@@ -860,24 +912,18 @@ def main():
             vector_sums[int(start)] = vectorspace.cosine_compute(results[note_begins[0]][start].term_weights,
                                                                  results[note_begins[1]][start].term_weights)
 
-            # These are identical... as they should be.  Really, I should be using these.
-            # Totally different than those above.
-            count_cosine[int(start)] =  boringmatrix.boring_count_similarity(results[note_begins[0]][start],
-                                                                             results[note_begins[1]][start])
-
-            weight_cosine[int(start)] = boringmatrix.boring_weight_similarity(results[note_begins[0]][start],
-                                                                              results[note_begins[1]][start])
-
         # ----------------------------------------------------------------------
         # Compute the permutation entropy for the window.
         #
         # Use set resemblance to get entropy probability value.
         if permutation_out:
-            for note in note_begins:
+            for note in results:
+
                 sorted_indices_dict = {}
                 for start in results[note]:
                     full_list = results[note][start].build_fulllist(term_list)
                     indices = sorted_indices(full_list)
+
                     try:
                         sorted_indices_dict[str(indices)] += 1
                     except KeyError:
@@ -890,8 +936,10 @@ def main():
         if set_resemblance_out:        
             termSets = {}
             for start in results[note_begins[0]]:
-                set_a = termset.TermSet(results[note_begins[0]][start], "%s.%s" % (note_begins[0], str(start)))
-                set_b = termset.TermSet(results[note_begins[1]][start], "%s.%s" % (note_begins[1], str(start)))
+                set_a = termset.TermSet(results[note_begins[0]][start],
+                                        "%s.%s" % (note_begins[0], str(start)))
+                set_b = termset.TermSet(results[note_begins[1]][start],
+                                        "%s.%s" % (note_begins[1], str(start)))
 
                 termSets[start] = termset.set_resemblance(set_a, set_b)
 
@@ -906,9 +954,10 @@ def main():
             # in T, the bin ID of Xt, Yt | counts --> so I have probabilities 
             # to build the entropy computation for the window.
             termSetsFull = []
-            for note in note_begins:
+            for note in results:
                 for start in results[note]:
-                    termSetsFull.append(termset.TermSet(results[note][start], "%s.%s" % (note, str(start))))
+                    termSetsFull.append(termset.TermSet(results[note][start],
+                                                        "%s.%s" % (note, str(start))))
 
             resem_matrix = {}
             length = len(termSetsFull)
@@ -971,10 +1020,23 @@ def main():
         # Compute the similarity and counts for the given models as well as the
         # entropy.
         if graph_out:
+            
+            for start in results[note_begins[0]]:
+                # These are identical... as they should be.  Really, I should be using these.
+                # Totally different than those above.
+                count_cosine[int(start)] = boringmatrix.boring_count_similarity(results[note_begins[0]][start],
+                                                                                 results[note_begins[1]][start])
+
+                weight_cosine[int(start)] = boringmatrix.boring_weight_similarity(results[note_begins[0]][start],
+                                                                                  results[note_begins[1]][start])
+            
             # Consider using a few panes.
-            output_similarity_gnuplot(vector_sums, "%s_%s.eps" % (output_name, "sims"))
-            output_similarity_gnuplot(count_cosine, "%s_%s.eps" % (output_name, "sims_count"))
-            output_similarity_gnuplot(weight_cosine, "%s_%s.eps" % (output_name, "sims_weight"))
+            output_similarity_gnuplot(vector_sums,
+                                      "%s_%s.eps" % (output_name, "sims"))
+            output_similarity_gnuplot(count_cosine,
+                                      "%s_%s.eps" % (output_name, "sims_count"))
+            output_similarity_gnuplot(weight_cosine,
+                                      "%s_%s.eps" % (output_name, "sims_weight"))
             output_distinct_graphs(results[note_begins[0]],
                                    results[note_begins[1]],
                                    "%s_distinct.eps" % (output_name))
@@ -984,8 +1046,7 @@ def main():
             # is the maximum timeframe at this point.  I need to check and make sure
             # we don't have an incorrect last segment.
             if entropy_out:
-                entropies = {note_begins[0] : {},
-                             note_begins[1] : {}}
+                entropies = {note_begins[0] : {}, note_begins[1] : {}}
 
                 for start in results[note_begins[0]]:
                     entropies[note_begins[0]][start] = basic_entropy(results[note_begins[0]][start])

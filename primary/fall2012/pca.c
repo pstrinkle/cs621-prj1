@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
 		if (strncmp(xp->d_name, ".", 1) != 0)
         {
             filenamelen = strlen(xp->d_name);
-            printf("file: %s\n", xp->d_name);
+            //printf("file: %s\n", xp->d_name);
             
             strncpy(ftmp, argv[3], pathlen);
             strncat(ftmp, "/", 1);
@@ -153,6 +153,8 @@ int main(int argc, char *argv[])
     
     free(user_terms_counts);
 	closedir(user);
+
+	printf("Finished processing input.\n");
 
 	symmat = matrix(m, m);  /* Allocation of correlation (etc.) matrix */
 
@@ -190,10 +192,11 @@ int main(int argc, char *argv[])
 	 **********************************************************************/
 
 	/* Allocate storage for dummy and new vectors. */
-	evals = vector(m);     /* Storage alloc. for vector of eigenvalues */
-	interm = vector(m);    /* Storage alloc. for 'intermediate' vector */
-	symmat2 = matrix(m, m);  /* Duplicate of correlation (etc.) matrix */
+	evals = vector(m);      /* Storage alloc. for vector of eigenvalues */
+	interm = vector(m);     /* Storage alloc. for 'intermediate' vector */
+	symmat2 = matrix(m, m); /* Duplicate of correlation (etc.) matrix */
 
+	/* They could have just looped the i's and memcpy'd the data. */
 	for (i = 1; i <= m; i++)
     {
 		for (j = 1; j <= m; j++)
@@ -209,6 +212,8 @@ int main(int argc, char *argv[])
      * evals now contains the eigenvalues,
 	 * columns of symmat now contain the associated eigenvectors.
      */
+
+	printf("eigenvalues computed.\n");
     
 #ifdef PRINT_STATUS
 	printf("\nEigenvalues:\n");
@@ -240,6 +245,7 @@ int main(int argc, char *argv[])
 	/* Store in 'data', overwriting original data. */
 	for (i = 1; i <= n; i++)
     {
+	    /* memcpy would have worked as well. */
 		for (j = 1; j <= m; j++)
         {
 			interm[j] = data[i][j];
@@ -263,9 +269,9 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
     
-#ifdef PRINT_STATUS
+//#ifdef PRINT_STATUS
 	printf("\nCreating rowpts.dat file - Projections of row-points on first 3 prin. comps.:\n");
-#endif
+//#endif
     
 	for (i = 1; i <= n; i++)
     {
@@ -290,6 +296,7 @@ int main(int argc, char *argv[])
 	/* Store in 'symmat2', overwriting what was stored in this. */
 	for (j = 1; j <= m; j++)
     {
+	    /* memcpy */
 		for (k = 1; k <= m; k++)
         {
 			interm[k] = symmat2[j][k];
@@ -384,7 +391,7 @@ corcol(float **data, int n, int m, float **symmat)
 	printf("\nMeans of column vectors:\n");
 	for (j = 1; j <= m; j++)
     {
-		printf("%7.1f",mean[j]);
+		printf("%7.1f", mean[j]);
     }
     printf("\n");
 #endif
@@ -401,9 +408,10 @@ corcol(float **data, int n, int m, float **symmat)
         
         stddev[j] /= (float)n;
         stddev[j] = sqrt(stddev[j]);
-        /* The following in an inelegant but usual way to handle
-        near-zero std. dev. values, which below would cause a zero-
-        divide. */
+        /*
+         * The following in an inelegant but usual way to handle near-zero
+         * std. dev. values, which below would cause a zero-divide.
+         */
         if (stddev[j] <= eps)
         {
             stddev[j] = 1.0;
@@ -439,7 +447,7 @@ corcol(float **data, int n, int m, float **symmat)
             symmat[j1][j2] = 0.0;
             for (i = 1; i <= n; i++)
             {
-                symmat[j1][j2] += ( data[i][j1] * data[i][j2]);
+                symmat[j1][j2] += (data[i][j1] * data[i][j2]);
             }
             symmat[j2][j1] = symmat[j1][j2];
         }
@@ -459,11 +467,9 @@ covcol(float **data, int n, int m, float **symmat)
 	int i, j, j1, j2;
 
 	/* Allocate storage for mean vector */
-
 	mean = vector(m);
 
 	/* Determine mean of column vectors of input data matrix */
-
 	for (j = 1; j <= m; j++)
 	{
 		mean[j] = 0.0;
@@ -484,7 +490,6 @@ covcol(float **data, int n, int m, float **symmat)
 #endif
     
     /* Center the column vectors. */
-
     for (i = 1; i <= n; i++)
     {
         for (j = 1; j <= m; j++)
@@ -519,16 +524,17 @@ scpcol(float **data, int n, int m, float **symmat)
 	int i, j1, j2;
 
 	/* Calculate the m * m sums-of-squares-and-cross-products matrix. */
-
 	for (j1 = 1; j1 <= m; j1++)
 	{
 		for (j2 = j1; j2 <= m; j2++)
 		{
 			symmat[j1][j2] = 0.0;
+
 			for (i = 1; i <= n; i++)
 			{
 				symmat[j1][j2] += data[i][j1] * data[i][j2];
 			}
+
 			symmat[j2][j1] = symmat[j1][j2];
 		}
 	}
@@ -541,9 +547,9 @@ scpcol(float **data, int n, int m, float **symmat)
 /* Error handler */
 static void erhand(char err_msg[])
 {
-	fprintf(stderr,"Run-time error:\n");
-	fprintf(stderr,"%s\n", err_msg);
-	fprintf(stderr,"Exiting to system.\n");
+	fprintf(stderr, "Run-time error:\n%s\n", err_msg);
+	fprintf(stderr, "Exiting to system.\n");
+
 	exit(1);
 }
 
@@ -849,20 +855,19 @@ process_file(
     const char *filepath)
 {
     /* Open file, read in each number. */
-    
 	FILE *fd = fopen(filepath, "r");
 	if (fd == NULL)
     {
 		printf("could not open: %s\n", filepath);
 		return -1;
 	}
-    
+
     int i = 0;
-    
+
     char *line = NULL;
     size_t linecap = 0;
     ssize_t linelen;
-    
+
     while ((linelen = getline(&line, &linecap, fd)) > 0)
     {
         user_terms_counts[i] = atoi(line);
