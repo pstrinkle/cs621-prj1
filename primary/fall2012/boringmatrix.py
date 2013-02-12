@@ -2,8 +2,7 @@
 
 from json import JSONEncoder
 from datetime import datetime
-
-from math import sqrt
+from math import sqrt, log10
 
 def datetime_from_long(timestamp):
     """Convert a timestamp to a datetime.datetime."""
@@ -230,6 +229,67 @@ def dump_weights_matrix(term_dict, dict_of_boring, delimiter = ","):
         output += "\n"
 
     return output
+
+def basic_entropy(boring_a):
+    """Compute the H(P) for the given model."""
+    
+    term_count = len(boring_a.term_matrix)
+    if term_count == 0:
+        return 0.0
+    
+    entropy = 0.0
+    # could probably do sum(value for term in terms[value])
+    for term in boring_a.term_matrix:
+        entropy += (boring_a.term_weights[term] * log10(1.0/boring_a.term_weights[term]))
+    
+    if entropy == 0.0:
+        return 0.0
+
+    return entropy / log10(term_count)
+
+def build_termlist(result_dict):
+    """Given a results dictionary, go through each "note" within it and each 
+    BoringMatrix and pull out the terms and build a dictionary thing.
+    
+    This returns a list of the terms in sorted order.
+    
+    If you take all the BoringMatrix data sets and given a dictionary return
+    the tuples with the term counts then you should be able to do some 
+    permutation entropy stuff.
+    
+    There may be better ways to do this; like when I build the models ---
+    actually build_intervals may already output this stuff."""
+
+    terms = {}
+    for note in result_dict:
+        for start in result_dict[note]:
+            for term in result_dict[note][start].term_matrix:
+                try:
+                    terms[term] += 1
+                except KeyError:
+                    terms[term] = 1
+    
+    return sorted(terms.keys())
+
+def build_termlist2(result_dict):
+    """Tries to build list but only uses terms that appeared more than once 
+    within a model instance.
+    
+    If a term appeared more than once in any instance of the model it is kept,
+    whereas a lot of the code drops all terms that only occur once in an 
+    instance and this isn't quite the same list."""
+
+    terms = {}
+    for note in result_dict:
+        for start in result_dict[note]:
+            for term in result_dict[note][start].term_matrix:
+                if result_dict[note][start].term_matrix[term] > 1:
+                    try:
+                        terms[term] += 1
+                    except KeyError:
+                        terms[term] = 1
+
+    return sorted(terms.keys())
 
 class HierarchBoring():
     """This builds a hierarchical version of the model given two BoringMatrix

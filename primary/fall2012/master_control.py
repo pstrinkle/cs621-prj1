@@ -11,9 +11,8 @@ import sqlite3
 from json import dumps, loads
 from operator import itemgetter
 from datetime import timedelta
-from math import log10, log, pow
+from math import log10, log
 import subprocess
-import os
 
 import boringmatrix
 import termset
@@ -120,62 +119,6 @@ def output_similarity_gnuplot(vector, output):
     params += "set xlabel 't'\n"
     params += "set ylabel 'similarity scores'\n"
     params += "plot '%s' t '%d - %d'\n" % (path, start, end)
-    params += "q\n"
-
-    subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
-
-def output_global_entropy(entropies, output):
-    """Output the basic global entropy chart."""
-
-    skey = sorted(entropies.keys())
-    start = skey[0]
-    end = skey[-1]
-
-    out = []
-    path = "local.tmp.data"
-
-    for idx in range(0, len(skey)):
-        out.append("%d %f" % (idx, entropies[skey[idx]]))
-
-    with open(path, 'w') as fout:
-        fout.write("\n".join(out))
-
-    params = "set terminal postscript\n"
-    params += "set output '%s'\n" % output
-    #params += "set log xy\n"
-    params += "set xlabel 't'\n"
-    params += "set ylabel 'entropy (nats)'\n"
-    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red'\n" % (path, "global", start, end)
-    params += "q\n"
-
-    subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
-
-def output_global_inverse_entropy(entropies, output):
-    """Output the basic global entropy chart."""
-
-    skey = sorted(entropies.keys())
-    start = skey[0]
-    end = skey[-1]
-
-    out = []
-    path = "local.tmp.data"
-
-    for idx in range(0, len(skey)):
-        val = entropies[skey[idx]]
-        if val > 0.0:
-            out.append("%d %f" % (idx, 1.0 - val))
-        else:
-            out.append("%d %f" % (idx, 0.0))
-
-    with open(path, 'w') as fout:
-        fout.write("\n".join(out))
-
-    params = "set terminal postscript\n"
-    params += "set output '%s'\n" % output
-    #params += "set log xy\n"
-    params += "set xlabel 't'\n"
-    params += "set ylabel '(1 - entropy) (nats)'\n"
-    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red'\n" % (path, "global", start, end)
     params += "q\n"
 
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
@@ -324,23 +267,6 @@ def basic_dict_entropy(dictionary):
 
     return entropy
 
-def basic_entropy(boring_a):
-    """Compute the H(P) for the given model."""
-    
-    term_count = len(boring_a.term_matrix)
-    if term_count == 0:
-        return 0.0
-    
-    entropy = 0.0
-    # could probably do sum(value for term in terms[value])
-    for term in boring_a.term_matrix:
-        entropy += (boring_a.term_weights[term] * log10(1.0/boring_a.term_weights[term]))
-    
-    if entropy == 0.0:
-        return 0.0
-
-    return entropy / log10(term_count)
-
 def renyi_entropy(boring_a, alpha):
     """Compute the Renyi entropy for the given model."""
     
@@ -391,63 +317,6 @@ def sorted_indices(full_list):
     """Return a list of the sorted indices for full_list."""
     
     return [i[0] for i in sorted(enumerate(full_list), key=lambda x:x[1])]
-
-def build_termlist2(result_dict):
-    """Tries to build list but only uses terms that appeared more than once 
-    within a model instance.
-    
-    If a term appeared more than once in any instance of the model it is kept,
-    whereas a lot of the code drops all terms that only occur once in an 
-    instance and this isn't quite the same list."""
-
-    terms = {}
-    for note in result_dict:
-        for start in result_dict[note]:
-            for term in result_dict[note][start].term_matrix:
-                if result_dict[note][start].term_matrix[term] > 1:
-                    try:
-                        terms[term] += 1
-                    except KeyError:
-                        terms[term] = 1
-
-    return sorted(terms.keys())
-
-def build_gtermlist(global_views):
-    """Given the thing for globals, go through and build list."""
-
-    terms = {}
-    for start in global_views:
-        for term in global_views[start].term_matrix:
-            try:
-                terms[term] += 1
-            except KeyError:
-                terms[term] = 1
-    
-    return sorted(terms.keys())
-
-def build_termlist(result_dict):
-    """Given a results dictionary, go through each "note" within it and each 
-    BoringMatrix and pull out the terms and build a dictionary thing.
-    
-    This returns a list of the terms in sorted order.
-    
-    If you take all the BoringMatrix data sets and given a dictionary return
-    the tuples with the term counts then you should be able to do some 
-    permutation entropy stuff.
-    
-    There may be better ways to do this; like when I build the models ---
-    actually build_intervals may already output this stuff."""
-
-    terms = {}
-    for note in result_dict:
-        for start in result_dict[note]:
-            for term in result_dict[note][start].term_matrix:
-                try:
-                    terms[term] += 1
-                except KeyError:
-                    terms[term] = 1
-    
-    return sorted(terms.keys())
 
 def build_basic_model(stopwords_file,
                       singletons_file,
@@ -556,7 +425,7 @@ def build_basic_model(stopwords_file,
 def usage():
     """Print the massive usage information."""
 
-    print "usage: %s -in <model_data> -out <output_file> [-short] [-gh [-en]] [-gb] [-pm] [-sr] [-nt]  [-ftm] [-mtm] [-notes] [-pca1] [-docs]" % sys.argv[0]
+    print "usage: %s -in <model_data> -out <output_file> [-short] [-gh [-en]] [-pm] [-sr] [-nt]  [-ftm] [-mtm] [-notes] [-pca1] [-docs]" % sys.argv[0]
     print "usage: %s -out <output_file> -db <sqlite_db> [-sw <stopwords.in>] [-si <singletons.in>] -i <interval in seconds> [-step]" % sys.argv[0]
 
     print "-short - terms that appear more than once in at least one slice are used for any other things you output."
@@ -605,7 +474,6 @@ def main():
     interval = None
     build_model = False
     graph_out = False
-    global_out = False
     permutation_out = False
     entropy_out = False
     set_resemblance_out = False
@@ -615,7 +483,6 @@ def main():
     merged_term_matrix_out = False
     notes_out = False
     step_intervals = False
-    pca1_out = False
     use_short_terms = False
     build_doc_dict = False
 
@@ -639,8 +506,6 @@ def main():
                 graph_out = True
             elif "-en" == sys.argv[idx]:
                 entropy_out = True
-            elif "-gb" == sys.argv[idx]:
-                global_out = True
             elif "-pm" == sys.argv[idx]:
                 permutation_out = True
             elif "-sr" == sys.argv[idx]:
@@ -660,8 +525,6 @@ def main():
                 notes_out = True
             elif "-step" == sys.argv[idx]:
                 step_intervals = True
-            elif "-pca1" == sys.argv[idx]:
-                pca1_out = True
             elif "-docs" == sys.argv[idx]:
                 build_doc_dict = True
     except IndexError:
@@ -723,8 +586,8 @@ def main():
 
         print "number of slices: %d" % len(results[note_begins[0]])
 
-        term_list = build_termlist(results) # length of this is used to normalize
-        sterm_list = build_termlist2(results) # length of this is used to normalize
+        term_list = boringmatrix.build_termlist(results) # length of this is used to normalize
+        sterm_list = boringmatrix.build_termlist2(results) # length of this is used to normalize
 
         print len(term_list)
         print len(sterm_list)
@@ -797,58 +660,13 @@ def main():
                                    "%s_%s_tops.csv" % (output_name, note))
 
         # ----------------------------------------------------------------------
-        # Output each slice for each area as a new-line broken up term count
-        # file.  These values aren't normalized, so they're not terribly useful
-        # yet.
-        if pca1_out:
-            outdir = "%s_%s" % (output_name, "pca1")
-
-            if os.path.exists(outdir):
-                os.rmdir(outdir)
-
-            os.mkdir(outdir)
-            
-            if build_doc_dict:
-                the_terms = top_terms_slist
-            elif use_short_terms:
-                the_terms = sterm_list
-            else:
-                the_terms = term_list
-
-            for note in results:
-                for start in results[note]:
-                    filename = "%s-%d" % (note, start)
-
-                    values = []
-
-                    for term in the_terms:
-                        # Could probably just index with a try/catch.
-                        if term in results[note][start].term_matrix:
-                            value = results[note][start].term_matrix[term]
-                        else:
-                            value = 0
-                        values.append(value)
-
-                    try:
-                        data_str = "\n".join(["%d" % value for value in values])
-                    except TypeError, e:
-                        print type(values), type(values[0]), values[0], values[1]
-                        print e
-                        sys.exit(-2)
-                    
-                    with open(os.path.join(outdir, filename), 'w') as fout:
-                        fout.write(data_str)
-
-            print "params: %d %d" % (len(results[note]) * 2, len(the_terms))
-
-        # ----------------------------------------------------------------------
         # Output a CSV with a model built from merging boston and i495 for each
         # t.  Using the short list, or whatever is set.
         if merged_term_matrix_out:
             merged = {}
             for start in results[note_begins[0]]:
                 x = boringmatrix.BoringMatrix(None)
-                
+
                 for note in note_begins:
                     for term in results[note][start].term_matrix:
                         val = results[note][start].term_matrix[term]
@@ -880,30 +698,6 @@ def main():
                 output_full_matrix(sterm_list,
                                    results[note],
                                    "%s_%s.csv" % (output_name, note))
-
-        # ----------------------------------------------------------------------
-        # Compute the entropy value for the global hierarchical model given the
-        # two input models.
-        if global_out:
-            global_views = {}
-            entropies = {}
-
-            # Hierarchical model builder.
-            for start in results[note_begins[0]]:
-                global_views[start] = boringmatrix.HierarchBoring(results[note_begins[0]][start],
-                                                                  results[note_begins[1]][start])
-                global_views[start].compute()
-                entropies[start] = basic_entropy(global_views[start])
-
-            gterm_list = build_gtermlist(global_views)
-
-            output_global_entropy(entropies,
-                                  "%s_global_entropy.eps" % output_name)
-            output_global_inverse_entropy(entropies,
-                                          "%s_inv_global_entropy.eps" % output_name)
-            output_full_matrix(gterm_list,
-                               global_views,
-                               "%s_%s.csv" % (output_name, "global"))
 
         # ----------------------------------------------------------------------
         # Compute the cosine similarities. 
@@ -1020,7 +814,7 @@ def main():
         # Compute the similarity and counts for the given models as well as the
         # entropy.
         if graph_out:
-            
+
             for start in results[note_begins[0]]:
                 # These are identical... as they should be.  Really, I should be using these.
                 # Totally different than those above.
@@ -1049,8 +843,8 @@ def main():
                 entropies = {note_begins[0] : {}, note_begins[1] : {}}
 
                 for start in results[note_begins[0]]:
-                    entropies[note_begins[0]][start] = basic_entropy(results[note_begins[0]][start])
-                    entropies[note_begins[1]][start] = basic_entropy(results[note_begins[1]][start])
+                    entropies[note_begins[0]][start] = boringmatrix.basic_entropy(results[note_begins[0]][start])
+                    entropies[note_begins[1]][start] = boringmatrix.basic_entropy(results[note_begins[1]][start])
 
                 output_basic_entropy(entropies, "%s_entropy.eps" % output_name)
                 output_inverse_entropy(entropies, "%s_inv_entropy.eps" % output_name)
