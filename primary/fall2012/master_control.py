@@ -15,7 +15,6 @@ from math import log10, log
 import subprocess
 
 import boringmatrix
-import termset
 
 sys.path.append("../modellib")
 import vectorspace
@@ -425,11 +424,11 @@ def build_basic_model(stopwords_file,
 def usage():
     """Print the massive usage information."""
 
-    print "usage: %s -in <model_data> -out <output_file> [-short] [-gh [-en]] [-pm] [-sr] [-nt]  [-ftm] [-mtm] [-notes] [-pca1] [-docs]" % sys.argv[0]
+    print "usage: %s -in <model_data> -out <output_file> [-short] [-gh [-en]] [-pm] [-nt]  [-ftm] [-mtm] [-notes] [-docs]" % sys.argv[0]
     print "usage: %s -out <output_file> -db <sqlite_db> [-sw <stopwords.in>] [-si <singletons.in>] -i <interval in seconds> [-step]" % sys.argv[0]
 
     print "-short - terms that appear more than once in at least one slice are used for any other things you output."
-    print "-sr - output set_resemblance_out"
+
     print "-nt - output new_terms_out"
     
     print "-stm - output the matrix using the short list, forces short"
@@ -438,8 +437,6 @@ def usage():
 
     print "-docs - convert the time series into just a bunch of documents."
 
-    # the PCA C code currently doesn't support floating point.
-    print "-pca1 - Output folder of files, one per document for full term set, as term counts"
     print "-short -pca1 is pca1 but using the short list."
     print "-docs -pca1 is pca1 but using the top 10% list - check before use."
     #print "-pca2 - Output folder of files, one per document for full term set, as term weights"
@@ -476,7 +473,6 @@ def main():
     graph_out = False
     permutation_out = False
     entropy_out = False
-    set_resemblance_out = False
     new_terms_out = False
     full_term_matrix_out = False
     sfull_term_matrix_out = False
@@ -508,8 +504,6 @@ def main():
                 entropy_out = True
             elif "-pm" == sys.argv[idx]:
                 permutation_out = True
-            elif "-sr" == sys.argv[idx]:
-                set_resemblance_out = True
             elif "-nt" == sys.argv[idx]:
                 new_terms_out = True
             elif "-ftm" == sys.argv[idx]:
@@ -722,93 +716,6 @@ def main():
                         sorted_indices_dict[str(indices)] += 1
                     except KeyError:
                         sorted_indices_dict[str(indices)] = 1
-
-
-        # ----------------------------------------------------------------------
-        # Convert to sets and compute the set resemblances, see if any are 
-        # high, compared to each other at each t.
-        if set_resemblance_out:        
-            termSets = {}
-            for start in results[note_begins[0]]:
-                set_a = termset.TermSet(results[note_begins[0]][start],
-                                        "%s.%s" % (note_begins[0], str(start)))
-                set_b = termset.TermSet(results[note_begins[1]][start],
-                                        "%s.%s" % (note_begins[1], str(start)))
-
-                termSets[start] = termset.set_resemblance(set_a, set_b)
-
-            #print sorted(
-            #             termSets.items(),
-            #             key=itemgetter(1), # (1) is value
-            #             reverse=True)
-
-            # ------------------------------------------------------------------
-            # Convert to sets and compute the set resemblances for the goal of 
-            # clustering all the sets so that I can build a "table" for each t 
-            # in T, the bin ID of Xt, Yt | counts --> so I have probabilities 
-            # to build the entropy computation for the window.
-            termSetsFull = []
-            for note in results:
-                for start in results[note]:
-                    termSetsFull.append(termset.TermSet(results[note][start],
-                                                        "%s.%s" % (note, str(start))))
-
-            resem_matrix = {}
-            length = len(termSetsFull)
-
-            for i in xrange(0, length):
-                resem_matrix[i] = {}
-
-                for j in xrange(i + 1, length):
-                    resem_matrix[i][j] = termset.set_resemblance(termSetsFull[i],
-                                                                 termSetsFull[j])
-
-            resem_values = []
-            for i in resem_matrix:
-                for j in resem_matrix[i]:
-                    resem_values.append(resem_matrix[i][j])
-
-            #print dumps(sorted(resem_values, reverse=True), indent=4)
-
-            resem_histogram = {0.1 : 0,
-                               0.2 : 0,
-                               0.3 : 0,
-                               0.4 : 0,
-                               0.5 : 0,
-                               0.6 : 0,
-                               0.7 : 0,
-                               0.8 : 0,
-                               0.9 : 0,
-                               1.0 : 0}
-            for value in resem_values:
-                if value <= 0.1:
-                    resem_histogram[0.1] += 1
-                elif value <= 0.2:
-                    resem_histogram[0.2] += 1
-                elif value <= 0.3:
-                    resem_histogram[0.3] += 1
-                elif value <= 0.4:
-                    resem_histogram[0.4] += 1
-                elif value <= 0.5:
-                    resem_histogram[0.5] += 1
-                elif value <= 0.6:
-                    resem_histogram[0.6] += 1
-                elif value <= 0.7:
-                    resem_histogram[0.7] += 1
-                elif value <= 0.8:
-                    resem_histogram[0.8] += 1
-                elif value <= 0.9:
-                    resem_histogram[0.9] += 1
-                else:
-                    resem_histogram[1.0] += 1
-
-            print dumps(resem_histogram, indent=4)
-
-            #print sorted(
-            #             resem_matrix.items(),
-            #             key=itemgetter(1), # (1) is value
-            #             reverse=True)
-
 
         # ----------------------------------------------------------------------
         # Compute the similarity and counts for the given models as well as the
