@@ -248,15 +248,6 @@ def output_top_model_entropy(results, entropies, output):
     with open(output, 'w') as fout:
         fout.write(dumps(output_model, indent=4))
 
-def output_full_matrix(terms, vectors, output):
-    """Output the vectors over the terms, this is for each t for a specific 
-    location."""
-
-    x = boringmatrix.dump_weights_matrix(terms, vectors)
-
-    with open(output, 'w') as fout:
-        fout.write(x)
-
 def basic_dict_entropy(dictionary):
     """Given a P(x) dictionary, return H(P)."""
 
@@ -280,25 +271,6 @@ def renyi_entropy(boring_a, alpha):
     entropy = log(entropy, 2)
     
     return (1.0 / (1.0 - alpha)) * entropy
-
-def cooccurrence_terms(boring_a, boring_b):
-    """Return a list of terms that appear in both model instances."""
-
-    coterms = [term for term in boring_a.term_matrix if term in boring_b.term_matrix]
-
-    return coterms
-
-def cooccurrence_weights(boring_a, boring_b):
-    """Return a list of terms and their perspective weights between both model
-    instances."""
-    
-    coterms = {}
-    
-    for term in boring_a.term_matrix:
-        if term in boring_b.term_matrix:
-            coterms[term] = float(boring_a.term_matrix[term] + boring_b.term_matrix[term]) / (boring_a.total_count + boring_b.total_count)
-    
-    return coterms
 
 def non_zero_count(list_of_counts):
     """Returns the number of non-zero entries, this is similar to the matlab
@@ -419,7 +391,7 @@ def build_basic_model(stopwords_file,
 def usage():
     """Print the massive usage information."""
 
-    print "usage: %s -in <model_data> -out <output_file> [-short] [-gh [-en]] [-nt]  [-ftm] [-mtm] [-notes] [-docs]" % sys.argv[0]
+    print "usage: %s -in <model_data> -out <output_file> [-short] [-gh [-en]] [-nt]  [-ftm] [-mtm] [-notes]" % sys.argv[0]
     print "usage: %s -out <output_file> -db <sqlite_db> [-sw <stopwords.in>] [-si <singletons.in>] -i <interval in seconds> [-step]" % sys.argv[0]
 
     print "-short - terms that appear more than once in at least one slice are used for any other things you output."
@@ -429,8 +401,6 @@ def usage():
     print "-stm - output the matrix using the short list, forces short"
     print "-frm - output full_term_matrix_out"
     print "-mtm - output merged_term_matrix_out, uses stm for output, merges the two locations into one model for each t."
-
-    print "-docs - convert the time series into just a bunch of documents."
 
     print "\tmodel_data := don't build the model, this is a dictionary of BoringMatrix instances"
     print "\tsqlite_db := the input database."
@@ -470,7 +440,6 @@ def main():
     notes_out = False
     step_intervals = False
     use_short_terms = False
-    build_doc_dict = False
 
     # could use the stdargs parser, but that is meh.
     try:
@@ -507,8 +476,6 @@ def main():
                 notes_out = True
             elif "-step" == sys.argv[idx]:
                 step_intervals = True
-            elif "-docs" == sys.argv[idx]:
-                build_doc_dict = True
     except IndexError:
         usage()
         sys.exit(-2)
@@ -589,7 +556,9 @@ def main():
 
         if full_term_matrix_out:
             for note in note_begins:
-                output_full_matrix(term_list, results[note], "%s_%s_full.csv" % (output_name, note))
+                boringmatrix.output_full_matrix(term_list,
+                                                results[note],
+                                                "%s_%s_full.csv" % (output_name, note))
 
         # ----------------------------------------------------------------------
         # Prune out low term counts; re-compute.
@@ -598,48 +567,6 @@ def main():
                 for start in results[note]:
                     results[note][start].drop_not_in(sterm_list)
                     results[note][start].compute()
-
-        # ----------------------------------------------------------------------
-        # Just build a dictionary of the documents.
-        results_as_dict = {}
-        doc_length = {}
-        doc_freq = {}
-        top_terms_slist = None
-
-        if build_doc_dict:
-            for note in results:
-                for start in results[note]:
-                    
-                    doc_id = "%s-%d" % (note, start)
-
-                    results_as_dict[doc_id] = results[note][start].term_matrix.copy()
-                    doc_length[doc_id] = results[note][start].total_count
-
-                    for term in results_as_dict[doc_id]:
-                        try:
-                            doc_freq[term] += 1
-                        except KeyError:
-                            doc_freq[term] = 1
-
-            invdoc_freq = vectorspace.calculate_invdf(len(results_as_dict), doc_freq)
-            doc_tfidf = vectorspace.calculate_tfidf(doc_length, results_as_dict, invdoc_freq)
-
-            with open("%s_%s" % (output_name, "top_tfidf.json"), 'w') as fout:
-                fout.write(dumps(vectorspace.top_terms_overall(doc_tfidf, TOP_TERM_CNT)))
-
-            top_terms_slist = vectorspace.top_terms_overall(results_as_dict, int(len(doc_freq)*.10))
-
-            with open("%s_%s" % (output_name, "top_tf.json"), 'w') as fout:
-                fout.write(dumps(top_terms_slist, indent=4))
-
-            for note in results:
-                for start in results[note]:
-                    results[note][start].drop_not_in(top_terms_slist)
-                    results[note][start].compute()
-                
-                output_full_matrix(top_terms_slist,
-                                   results[note],
-                                   "%s_%s_tops.csv" % (output_name, note))
 
         # ----------------------------------------------------------------------
         # Output a CSV with a model built from merging boston and i495 for each
@@ -665,21 +592,21 @@ def main():
                 merged[start] = x
 
             if use_short_terms:
-                output_full_matrix(sterm_list,
-                                   merged,
-                                   "%s_%s.csv" % (output_name, "merged"))
+                boringmatrix.output_full_matrix(sterm_list,
+                                                merged,
+                                                "%s_%s.csv" % (output_name, "merged"))
             else:
-                output_full_matrix(term_list,
-                                   merged,
-                                   "%s_%s.csv" % (output_name, "merged"))
+                boringmatrix.output_full_matrix(term_list,
+                                                merged,
+                                                "%s_%s.csv" % (output_name, "merged"))
 
         # ----------------------------------------------------------------------
         # Output the matrices as CSVs... Hopefully as input to matlab.
         if sfull_term_matrix_out:
             for note in results:
-                output_full_matrix(sterm_list,
-                                   results[note],
-                                   "%s_%s.csv" % (output_name, note))
+                boringmatrix.output_full_matrix(sterm_list,
+                                                results[note],
+                                                "%s_%s.csv" % (output_name, note))
 
         # ----------------------------------------------------------------------
         # Compute the cosine similarities. 
@@ -743,8 +670,8 @@ def main():
                                  reverse=True)
 
             for itempair in sorted_sums:
-                sorted_weights = sorted(cooccurrence_weights(results[note_begins[0]][itempair[0]],
-                                                             results[note_begins[1]][itempair[0]]).items(),
+                sorted_weights = sorted(boringmatrix.cooccurrence_weights(results[note_begins[0]][itempair[0]],
+                                                                          results[note_begins[1]][itempair[0]]).items(),
                                         key=itemgetter(1),
                                         reverse=True)
 

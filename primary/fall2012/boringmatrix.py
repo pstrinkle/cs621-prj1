@@ -291,6 +291,34 @@ def build_termlist2(result_dict):
 
     return sorted(terms.keys())
 
+def output_full_matrix(terms, vectors, output):
+    """Output the vectors over the terms, this is for each t for a specific 
+    location."""
+
+    x = boringmatrix.dump_weights_matrix(terms, vectors)
+
+    with open(output, 'w') as fout:
+        fout.write(x)
+
+def cooccurrence_terms(boring_a, boring_b):
+    """Return a list of terms that appear in both model instances."""
+
+    coterms = [term for term in boring_a.term_matrix if term in boring_b.term_matrix]
+
+    return coterms
+
+def cooccurrence_weights(boring_a, boring_b):
+    """Return a list of terms and their perspective weights between both model
+    instances."""
+    
+    coterms = {}
+    
+    for term in boring_a.term_matrix:
+        if term in boring_b.term_matrix:
+            coterms[term] = float(boring_a.term_matrix[term] + boring_b.term_matrix[term]) / (boring_a.total_count + boring_b.total_count)
+    
+    return coterms
+
 class HierarchBoring():
     """This builds a hierarchical version of the model given two BoringMatrix
     unigram language models."""

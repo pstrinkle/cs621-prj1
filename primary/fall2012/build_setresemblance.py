@@ -23,7 +23,6 @@ def usage():
 
     print "usage: %s -in <model_data> -out <output_file> [-short]" % sys.argv[0]
     print "-short - terms that appear more than once in at least one slice are used for any other things you output."
-    print "-sr - output set_resemblance_out"
 
 def main():
     """."""

@@ -5,29 +5,25 @@ __author__ = 'tri1@umbc.edu'
 # Patrick Trinkle
 # Fall 2012
 #
-# This outputs the input model for set resemblance processing.  Process 
-# permutation entropy.  When I ran it, nothing came back.  Perhaps the data was
-# too sparse.
+# This outputs the input model as tf-idf.
 
 import sys
 from json import dumps, loads
 
 import boringmatrix
 
+sys.path.append("../modellib")
+import vectorspace
+
 note_begins = ("i495", "boston")
 TOP_TERM_CNT = 1000
 
-def sorted_indices(full_list):
-    """Return a list of the sorted indices for full_list."""
-    
-    return [i[0] for i in sorted(enumerate(full_list), key=lambda x:x[1])]
 
 def usage():
     """Print the massive usage information."""
 
     print "usage: %s -in <model_data> -out <output_file> [-short]" % sys.argv[0]
     print "-short - terms that appear more than once in at least one slice are used for any other things you output."
-
 
 def main():
     """."""
@@ -38,7 +34,7 @@ def main():
         sys.exit(-1)
 
     use_short_terms = False
-    permutation_out = True
+    build_doc_dict = True
 
     # could use the stdargs parser, but that is meh.
     try:
@@ -106,23 +102,49 @@ def main():
             for start in results[note]:
                 results[note][start].drop_not_in(sterm_list)
                 results[note][start].compute()
-
+    
     # ----------------------------------------------------------------------
-    # Compute the permutation entropy for the window.
-    #
-    # Use set resemblance to get entropy probability value.
-    if permutation_out:
+    # Just build a dictionary of the documents.
+    results_as_dict = {}
+    doc_length = {}
+    doc_freq = {}
+    top_terms_slist = None
+
+    if build_doc_dict:
         for note in results:
-
-            sorted_indices_dict = {}
             for start in results[note]:
-                full_list = results[note][start].build_fulllist(term_list)
-                indices = sorted_indices(full_list)
+                    
+                doc_id = "%s-%d" % (note, start)
 
-                try:
-                    sorted_indices_dict[str(indices)] += 1
-                except KeyError:
-                    sorted_indices_dict[str(indices)] = 1
+                results_as_dict[doc_id] = results[note][start].term_matrix.copy()
+                doc_length[doc_id] = results[note][start].total_count
+
+                for term in results_as_dict[doc_id]:
+                    try:
+                        doc_freq[term] += 1
+                    except KeyError:
+                        doc_freq[term] = 1
+
+        invdoc_freq = vectorspace.calculate_invdf(len(results_as_dict), doc_freq)
+        doc_tfidf = vectorspace.calculate_tfidf(doc_length, results_as_dict, invdoc_freq)
+
+        with open("%s_%s" % (output_name, "top_tfidf.json"), 'w') as fout:
+            fout.write(dumps(vectorspace.top_terms_overall(doc_tfidf, TOP_TERM_CNT)))
+
+        top_terms_slist = vectorspace.top_terms_overall(results_as_dict, int(len(doc_freq)*.10))
+
+        with open("%s_%s" % (output_name, "top_tf.json"), 'w') as fout:
+            fout.write(dumps(top_terms_slist, indent=4))
+
+        for note in results:
+            for start in results[note]:
+                results[note][start].drop_not_in(top_terms_slist)
+                results[note][start].compute()
+                
+            boringmatrix.output_full_matrix(top_terms_slist,
+                               results[note],
+                                "%s_%s_tops.csv" % (output_name, note))
+
 
     # --------------------------------------------------------------------------
     # Done.
