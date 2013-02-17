@@ -11,7 +11,7 @@ import sqlite3
 from json import dumps, loads
 from operator import itemgetter
 from datetime import timedelta
-from math import log10, log
+from math import log10
 import subprocess
 
 import boringmatrix
@@ -122,132 +122,6 @@ def output_similarity_gnuplot(vector, output):
 
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
 
-def output_renyi_entropy(alpha, entropies, output):
-    """Output the basic entropy chart."""
-
-    skey = sorted(entropies[note_begins[0]].keys())
-    start = skey[0]
-    end = skey[-1]
-
-    out = []
-    path = "local.tmp.data"
-
-    for idx in range(0, len(skey)):
-        out.append("%d %f %f" % (idx,
-                                 entropies[note_begins[0]][skey[idx]],
-                                 entropies[note_begins[1]][skey[idx]]))
-
-    with open(path, 'w') as fout:
-        fout.write("\n".join(out))
-
-    params = "set terminal postscript\n"
-    params += "set output '%s'\n" % output
-    #params += "set log xy\n"
-    params += "set xlabel 't'\n"
-    params += "set ylabel 'renyi scores - %f'\n" % alpha
-    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', '%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" % (path, note_begins[0], start, end, path, note_begins[1], start, end)
-    params += "q\n"
-    
-    subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
-
-def output_basic_entropy(entropies, output):
-    """Output the basic entropy chart."""
-
-    skey = sorted(entropies[note_begins[0]].keys())
-    start = skey[0]
-    end = skey[-1]
-
-    out = []
-    path = "local.tmp.data"
-
-    for idx in range(0, len(skey)):
-        out.append("%d %f %f" % (idx,
-                                 entropies[note_begins[0]][skey[idx]],
-                                 entropies[note_begins[1]][skey[idx]]))
-
-    with open(path, 'w') as fout:
-        fout.write("\n".join(out))
-
-    params = "set terminal postscript\n"
-    params += "set output '%s'\n" % output
-    #params += "set log xy\n"
-    params += "set xlabel 't'\n"
-    params += "set ylabel 'entropy scores'\n"
-    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', '%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" % (path, note_begins[0], start, end, path, note_begins[1], start, end)
-    params += "q\n"
-    
-    subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
-
-def output_inverse_entropy(entropies, output):
-    """Output the basic entropy chart."""
-
-    skey = sorted(entropies[note_begins[0]].keys())
-    start = skey[0]
-    end = skey[-1]
-
-    out = []
-    path = "local.tmp.data"
-
-    for idx in range(0, len(skey)):
-        val1 = entropies[note_begins[0]][skey[idx]]
-        val2 = entropies[note_begins[1]][skey[idx]]
-
-        if val1 > 0.0:
-            out1 = 1.0 - val1
-        else:
-            out1 = 0.0
-
-        if val2 > 0.0:
-            out2 = 1.0 - val2
-        else:
-            out2 = 0.0
-
-        out.append("%d %f %f" % (idx, out1, out2))
-
-    with open(path, 'w') as fout:
-        fout.write("\n".join(out))
-
-    params = "set terminal postscript\n"
-    params += "set output '%s'\n" % output
-    #params += "set log xy\n"
-    params += "set xlabel 't'\n"
-    params += "set ylabel '(1 - entropy) scores'\n"
-    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', '%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" % (path, note_begins[0], start, end, path, note_begins[1], start, end)
-    params += "q\n"
-    
-    subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
-
-def output_top_model_entropy(results, entropies, output):
-    """Go through the entropy values and output the top terms from the models, 
-    when the entropy goes low beyond some threshold."""
-    
-    output_model = {}
-    
-    # entropies[note_begins[0]][start] = basic_entropy()
-    # results[note][start] = boringmatrix.BoringMatrix()
-    skey = sorted(entropies[note_begins[0]].keys())
-
-    for idx in range(0, len(skey)):
-        val1 = entropies[note_begins[0]][skey[idx]]
-        val2 = entropies[note_begins[1]][skey[idx]]
-
-        if val1 > 0.0:
-            out1 = 1.0 - val1
-        else:
-            out1 = 0.0
-
-        if val2 > 0.0:
-            out2 = 1.0 - val2
-        else:
-            out2 = 0.0
-
-        if out1 > 0.05 or out2 > 0.05:
-            output_model[skey[idx]] = (vectorspace.top_terms(results[note_begins[0]][skey[idx]].term_weights, 10),
-                                       vectorspace.top_terms(results[note_begins[1]][skey[idx]].term_weights, 10))
-
-    with open(output, 'w') as fout:
-        fout.write(dumps(output_model, indent=4))
-
 def basic_dict_entropy(dictionary):
     """Given a P(x) dictionary, return H(P)."""
 
@@ -257,20 +131,7 @@ def basic_dict_entropy(dictionary):
 
     return entropy
 
-def renyi_entropy(boring_a, alpha):
-    """Compute the Renyi entropy for the given model."""
-    
-    entropy = 0.0
-    
-    if len(boring_a.term_matrix) == 0:
-        return 0.0
-    
-    for term in boring_a.term_matrix:
-        entropy += pow(boring_a.term_weights[term], alpha)
-    
-    entropy = log(entropy, 2)
-    
-    return (1.0 / (1.0 - alpha)) * entropy
+
 
 def non_zero_count(list_of_counts):
     """Returns the number of non-zero entries, this is similar to the matlab
@@ -391,7 +252,7 @@ def build_basic_model(stopwords_file,
 def usage():
     """Print the massive usage information."""
 
-    print "usage: %s -in <model_data> -out <output_file> [-short] [-gh [-en]] [-nt]  [-ftm] [-mtm] [-notes]" % sys.argv[0]
+    print "usage: %s -in <model_data> -out <output_file> [-short] [-gh] [-nt]  [-ftm] [-mtm] [-notes]" % sys.argv[0]
     print "usage: %s -out <output_file> -db <sqlite_db> [-sw <stopwords.in>] [-si <singletons.in>] -i <interval in seconds> [-step]" % sys.argv[0]
 
     print "-short - terms that appear more than once in at least one slice are used for any other things you output."
@@ -432,7 +293,6 @@ def main():
     interval = None
     build_model = False
     graph_out = False
-    entropy_out = False
     new_terms_out = False
     full_term_matrix_out = False
     sfull_term_matrix_out = False
@@ -618,7 +478,6 @@ def main():
         # Compute the similarity and counts for the given models as well as the
         # entropy.
         if graph_out:
-
             for start in results[note_begins[0]]:
                 # These are identical... as they should be.  Really, I should be using these.
                 # Totally different than those above.
@@ -638,29 +497,6 @@ def main():
             output_distinct_graphs(results[note_begins[0]],
                                    results[note_begins[1]],
                                    "%s_distinct.eps" % (output_name))
-
-            # compute the basic entropy of each model.
-            # this computes the entropy for the model within the windows, which
-            # is the maximum timeframe at this point.  I need to check and make sure
-            # we don't have an incorrect last segment.
-            if entropy_out:
-                entropies = {note_begins[0] : {}, note_begins[1] : {}}
-
-                for start in results[note_begins[0]]:
-                    entropies[note_begins[0]][start] = boringmatrix.basic_entropy(results[note_begins[0]][start])
-                    entropies[note_begins[1]][start] = boringmatrix.basic_entropy(results[note_begins[1]][start])
-
-                output_basic_entropy(entropies, "%s_entropy.eps" % output_name)
-                output_inverse_entropy(entropies, "%s_inv_entropy.eps" % output_name)
-                output_top_model_entropy(results, entropies, "%s_top_models.json" % output_name)
-
-                for alpha in (0.10, 0.25, 0.5, 0.75):
-                    renyi = {note_begins[0] : {}, note_begins[1] : {}}
-
-                    for start in results[note_begins[0]]:
-                        renyi[note_begins[0]][start] = renyi_entropy(results[note_begins[0]][start], alpha)
-                        renyi[note_begins[1]][start] = renyi_entropy(results[note_begins[1]][start], alpha)
-                    output_basic_entropy(renyi, "%s_renyi-%f.eps" % (output_name, alpha))
 
         # ----------------------------------------------------------------------
         # 
