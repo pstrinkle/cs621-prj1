@@ -5,9 +5,8 @@ __author__ = 'tri1@umbc.edu'
 # Patrick Trinkle
 # Fall 2012
 #
-# This outputs the input model for set resemblance processing.  Process 
-# permutation entropy.  When I ran it, nothing came back.  Perhaps the data was
-# too sparse.
+# This outputs the input model for entropy processing.
+#
 
 import sys
 import subprocess
@@ -19,13 +18,13 @@ import boringmatrix
 sys.path.append("../modellib")
 import vectorspace
 
-note_begins = ("i495", "boston")
+NOTE_BEGINS = ("i495", "boston")
 TOP_TERM_CNT = 1000
 
 def output_basic_entropy(entropies, output):
     """Output the basic entropy chart."""
 
-    skey = sorted(entropies[note_begins[0]].keys())
+    skey = sorted(entropies[NOTE_BEGINS[0]].keys())
     start = skey[0]
     end = skey[-1]
 
@@ -34,8 +33,8 @@ def output_basic_entropy(entropies, output):
 
     for idx in range(0, len(skey)):
         out.append("%d %f %f" % (idx,
-                                 entropies[note_begins[0]][skey[idx]],
-                                 entropies[note_begins[1]][skey[idx]]))
+                                 entropies[NOTE_BEGINS[0]][skey[idx]],
+                                 entropies[NOTE_BEGINS[1]][skey[idx]]))
 
     with open(path, 'w') as fout:
         fout.write("\n".join(out))
@@ -45,7 +44,7 @@ def output_basic_entropy(entropies, output):
     #params += "set log xy\n"
     params += "set xlabel 't'\n"
     params += "set ylabel 'entropy scores'\n"
-    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', '%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" % (path, note_begins[0], start, end, path, note_begins[1], start, end)
+    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', '%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" % (path, NOTE_BEGINS[0], start, end, path, NOTE_BEGINS[1], start, end)
     params += "q\n"
     
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
@@ -53,7 +52,7 @@ def output_basic_entropy(entropies, output):
 def output_inverse_entropy(entropies, output):
     """Output the basic entropy chart."""
 
-    skey = sorted(entropies[note_begins[0]].keys())
+    skey = sorted(entropies[NOTE_BEGINS[0]].keys())
     start = skey[0]
     end = skey[-1]
 
@@ -61,8 +60,8 @@ def output_inverse_entropy(entropies, output):
     path = "local.tmp.data"
 
     for idx in range(0, len(skey)):
-        val1 = entropies[note_begins[0]][skey[idx]]
-        val2 = entropies[note_begins[1]][skey[idx]]
+        val1 = entropies[NOTE_BEGINS[0]][skey[idx]]
+        val2 = entropies[NOTE_BEGINS[1]][skey[idx]]
 
         if val1 > 0.0:
             out1 = 1.0 - val1
@@ -84,7 +83,7 @@ def output_inverse_entropy(entropies, output):
     #params += "set log xy\n"
     params += "set xlabel 't'\n"
     params += "set ylabel '(1 - entropy) scores'\n"
-    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', '%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" % (path, note_begins[0], start, end, path, note_begins[1], start, end)
+    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', '%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" % (path, NOTE_BEGINS[0], start, end, path, NOTE_BEGINS[1], start, end)
     params += "q\n"
     
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
@@ -95,13 +94,13 @@ def output_top_model_entropy(results, entropies, output):
     
     output_model = {}
     
-    # entropies[note_begins[0]][start] = basic_entropy()
+    # entropies[NOTE_BEGINS[0]][start] = basic_entropy()
     # results[note][start] = boringmatrix.BoringMatrix()
-    skey = sorted(entropies[note_begins[0]].keys())
+    skey = sorted(entropies[NOTE_BEGINS[0]].keys())
 
     for idx in range(0, len(skey)):
-        val1 = entropies[note_begins[0]][skey[idx]]
-        val2 = entropies[note_begins[1]][skey[idx]]
+        val1 = entropies[NOTE_BEGINS[0]][skey[idx]]
+        val2 = entropies[NOTE_BEGINS[1]][skey[idx]]
 
         if val1 > 0.0:
             out1 = 1.0 - val1
@@ -114,8 +113,8 @@ def output_top_model_entropy(results, entropies, output):
             out2 = 0.0
 
         if out1 > 0.05 or out2 > 0.05:
-            output_model[skey[idx]] = (vectorspace.top_terms(results[note_begins[0]][skey[idx]].term_weights, 10),
-                                       vectorspace.top_terms(results[note_begins[1]][skey[idx]].term_weights, 10))
+            output_model[skey[idx]] = (vectorspace.top_terms(results[NOTE_BEGINS[0]][skey[idx]].term_weights, 10),
+                                       vectorspace.top_terms(results[NOTE_BEGINS[1]][skey[idx]].term_weights, 10))
 
     with open(output, 'w') as fout:
         fout.write(dumps(output_model, indent=4))
@@ -125,7 +124,7 @@ def output_top_model_entropy(results, entropies, output):
 def output_renyi_entropy(alpha, entropies, output):
     """Output the basic entropy chart."""
 
-    skey = sorted(entropies[note_begins[0]].keys())
+    skey = sorted(entropies[NOTE_BEGINS[0]].keys())
     start = skey[0]
     end = skey[-1]
 
@@ -134,8 +133,8 @@ def output_renyi_entropy(alpha, entropies, output):
 
     for idx in range(0, len(skey)):
         out.append("%d %f %f" % (idx,
-                                 entropies[note_begins[0]][skey[idx]],
-                                 entropies[note_begins[1]][skey[idx]]))
+                                 entropies[NOTE_BEGINS[0]][skey[idx]],
+                                 entropies[NOTE_BEGINS[1]][skey[idx]]))
 
     with open(path, 'w') as fout:
         fout.write("\n".join(out))
@@ -145,7 +144,7 @@ def output_renyi_entropy(alpha, entropies, output):
     #params += "set log xy\n"
     params += "set xlabel 't'\n"
     params += "set ylabel 'renyi scores - %f'\n" % alpha
-    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', '%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" % (path, note_begins[0], start, end, path, note_begins[1], start, end)
+    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', '%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" % (path, NOTE_BEGINS[0], start, end, path, NOTE_BEGINS[1], start, end)
     params += "q\n"
     
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
@@ -197,7 +196,7 @@ def main():
         usage()
         sys.exit(-2)
 
-    if len(note_begins) != 2:
+    if len(NOTE_BEGINS) != 2:
         sys.stderr.write("use this to compare two sets.\n")
         sys.exit(-1)
 
@@ -216,7 +215,7 @@ def main():
 
     # ----------------------------------------------------------------------
     # Compute the term weights.
-    for note in note_begins:
+    for note in NOTE_BEGINS:
         # this crap only matters for the key thing.
         keys = results[note].keys()
 
@@ -227,15 +226,15 @@ def main():
         for start in results[note]:
             results[note][start].compute()
 
-#        for start in results[note_begins[0]]:
-#            for note in note_begins:
+#        for start in results[NOTE_BEGINS[0]]:
+#            for note in NOTE_BEGINS:
 #                total = 0.0
 #                for term in results[note][start].term_weights:
 #                    total += results[note][start].term_weights[term]
 #                print total,
 # 1.0 is the total weight, yay.
 
-    print "number of slices: %d" % len(results[note_begins[0]])
+    print "number of slices: %d" % len(results[NOTE_BEGINS[0]])
 
     term_list = boringmatrix.build_termlist(results) # length of this is used to normalize
     sterm_list = boringmatrix.build_termlist2(results) # length of this is used to normalize
@@ -256,22 +255,22 @@ def main():
     # is the maximum timeframe at this point.  I need to check and make sure
     # we don't have an incorrect last segment.
     if entropy_out:
-        entropies = {note_begins[0] : {}, note_begins[1] : {}}
+        entropies = {NOTE_BEGINS[0] : {}, NOTE_BEGINS[1] : {}}
 
-        for start in results[note_begins[0]]:
-            entropies[note_begins[0]][start] = boringmatrix.basic_entropy(results[note_begins[0]][start])
-            entropies[note_begins[1]][start] = boringmatrix.basic_entropy(results[note_begins[1]][start])
+        for start in results[NOTE_BEGINS[0]]:
+            entropies[NOTE_BEGINS[0]][start] = boringmatrix.basic_entropy(results[NOTE_BEGINS[0]][start])
+            entropies[NOTE_BEGINS[1]][start] = boringmatrix.basic_entropy(results[NOTE_BEGINS[1]][start])
 
         output_basic_entropy(entropies, "%s_entropy.eps" % output_name)
         output_inverse_entropy(entropies, "%s_inv_entropy.eps" % output_name)
         output_top_model_entropy(results, entropies, "%s_top_models.json" % output_name)
 
         for alpha in (0.10, 0.25, 0.5, 0.75):
-            renyi = {note_begins[0] : {}, note_begins[1] : {}}
+            renyi = {NOTE_BEGINS[0] : {}, NOTE_BEGINS[1] : {}}
 
-            for start in results[note_begins[0]]:
-                renyi[note_begins[0]][start] = renyi_entropy(results[note_begins[0]][start], alpha)
-                renyi[note_begins[1]][start] = renyi_entropy(results[note_begins[1]][start], alpha)
+            for start in results[NOTE_BEGINS[0]]:
+                renyi[NOTE_BEGINS[0]][start] = renyi_entropy(results[NOTE_BEGINS[0]][start], alpha)
+                renyi[NOTE_BEGINS[1]][start] = renyi_entropy(results[NOTE_BEGINS[1]][start], alpha)
             output_basic_entropy(renyi, "%s_renyi-%f.eps" % (output_name, alpha))
 
     # --------------------------------------------------------------------------

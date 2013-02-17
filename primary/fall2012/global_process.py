@@ -16,7 +16,7 @@ import boringmatrix
 sys.path.append("../modellib")
 import vectorspace
 
-note_begins = ("i495", "boston")
+NOTE_BEGINS = ("i495", "boston")
 TOP_TERM_CNT = 1000
 
 def output_full_matrix(terms, vectors, output):
@@ -186,7 +186,7 @@ def main():
         usage()
         sys.exit(-2)
 
-    if len(note_begins) != 2:
+    if len(NOTE_BEGINS) != 2:
         sys.stderr.write("use this to compare two sets.\n")
         sys.exit(-1)
 
@@ -205,7 +205,7 @@ def main():
 
     # ----------------------------------------------------------------------
     # Compute the term weights.
-    for note in note_begins:
+    for note in NOTE_BEGINS:
         # this crap only matters for the key thing.
         keys = results[note].keys()
 
@@ -216,15 +216,15 @@ def main():
         for start in results[note]:
             results[note][start].compute()
 
-#        for start in results[note_begins[0]]:
-#            for note in note_begins:
+#        for start in results[NOTE_BEGINS[0]]:
+#            for note in NOTE_BEGINS:
 #                total = 0.0
 #                for term in results[note][start].term_weights:
 #                    total += results[note][start].term_weights[term]
 #                print total,
 # 1.0 is the total weight, yay.
 
-    print "number of slices: %d" % len(results[note_begins[0]])
+    print "number of slices: %d" % len(results[NOTE_BEGINS[0]])
 
     term_list = boringmatrix.build_termlist(results) # length of this is used to normalize
     sterm_list = boringmatrix.build_termlist2(results) # length of this is used to normalize
@@ -248,9 +248,9 @@ def main():
         entropies = {}
 
         # Hierarchical model builder.
-        for start in results[note_begins[0]]:
-            global_views[start] = boringmatrix.HierarchBoring(results[note_begins[0]][start],
-                                                              results[note_begins[1]][start])
+        for start in results[NOTE_BEGINS[0]]:
+            global_views[start] = boringmatrix.HierarchBoring(results[NOTE_BEGINS[0]][start],
+                                                              results[NOTE_BEGINS[1]][start])
             global_views[start].compute()
             entropies[start] = boringmatrix.basic_entropy(global_views[start])
 

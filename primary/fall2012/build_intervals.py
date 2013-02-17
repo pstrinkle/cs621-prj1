@@ -10,14 +10,10 @@ __author__ = 'tri1@umbc.edu'
 
 import sys
 import sqlite3
-from json import dumps, loads, JSONEncoder
-from operator import itemgetter
-from datetime import datetime, timedelta
+from json import dumps, loads
+from datetime import timedelta
 
 import boringmatrix
-
-sys.path.append("../modellib")
-import vectorspace
 
 def usage():
     """."""
@@ -86,8 +82,8 @@ def main():
     # can use datetime.timedelta correctly updates the datetime value, which
     # we'll then need to convert back to the timestamp long.
 
-    starttime = datetime_from_long(earliest)
-    endtime = datetime_from_long(latest)
+    starttime = boringmatrix.datetime_from_long(earliest)
+    endtime = boringmatrix.datetime_from_long(latest)
     currtime = starttime
     delta = timedelta(0, interval)
 
@@ -108,9 +104,9 @@ def main():
         curr = conn.cursor()
         
         while currtime + delta < endtime:
-            start = long_from_datetime(currtime)
+            start = boringmatrix.long_from_datetime(currtime)
             currtime += delta
-            end = long_from_datetime(currtime)
+            end = boringmatrix.long_from_datetime(currtime)
             
             results[start] = []
             

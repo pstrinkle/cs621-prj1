@@ -19,70 +19,24 @@ import boringmatrix
 sys.path.append("../modellib")
 import vectorspace
 
-note_begins = ("i495", "boston")
+NOTE_BEGINS = ("i495", "boston")
 TOP_TERM_CNT = 1000
 
-def output_new_terms(results, output):
-    """At each X, indicate on the Y axis how many new terms were introduced."""
-
-    skey = sorted(results[note_begins[0]].keys())
-    start = skey[0]
-    end = skey[-1]
-
-    aterms = []
-    bterms = []
-
-    out = []
-    path = "local.tmp.data"
-
-    for idx in range(0, len(skey)):
-        count1 = 0
-        count2 = 0
-
-        list1 = results[note_begins[0]][skey[idx]].term_matrix
-        list2 = results[note_begins[1]][skey[idx]].term_matrix
-
-        for term in list1:
-            if term not in aterms:
-                aterms.append(term)
-                count1 += 1
-
-        for term in list2:
-            if term not in bterms:
-                bterms.append(term)
-                count2 += 1
-
-        out.append("%d %d %d" % (idx, count1, count2))
-
-    with open(path, 'w') as fout:
-        fout.write("\n".join(out))
-
-    params = "set terminal postscript\n"
-    params += "set output '%s'\n" % output
-    #params += "set log xy\n"
-    params += "set xlabel 't'\n"
-    params += "set ylabel 'new distinct terms'\n"
-    #params += "plot '%s' t '%s: %d - %d'\n" % (path, graph_title, start, end)
-    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', '%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" % (path, note_begins[0], start, end, path, note_begins[1], start, end)
-    params += "q\n"
-
-    subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
-
-def output_distinct_graphs(vectorA, vectorB, output):
+def output_distinct_graphs(vector_a, vector_b, output):
     """Prints a series of distinct term counts for each time interval.
     
-    The vectorA is as such: vector[timestart]."""
+    The vector_a is as such: vector[timestart]."""
     
-    skey = sorted(vectorA.keys())
+    skey = sorted(vector_a.keys())
     start = skey[0]
     end = skey[-1]
 
     out = []
     path = "local.tmp.data"
     for idx in range(0, len(skey)):
-        boringA = vectorA[skey[idx]]
-        boringB = vectorB[skey[idx]]
-        out.append("%d %d %d" % (idx, len(boringA.term_matrix), len(boringB.term_matrix)))
+        boring_a = vector_a[skey[idx]]
+        boring_b = vector_b[skey[idx]]
+        out.append("%d %d %d" % (idx, len(boring_a.term_matrix), len(boring_b.term_matrix)))
     with open(path, 'w') as fout:
         fout.write("\n".join(out))
 
@@ -92,7 +46,7 @@ def output_distinct_graphs(vectorA, vectorB, output):
     params += "set xlabel 't'\n"
     params += "set ylabel 'distinct terms'\n"
     #params += "plot '%s' t '%s: %d - %d'\n" % (path, graph_title, start, end)
-    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', '%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" % (path, note_begins[0], start, end, path, note_begins[1], start, end)
+    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', '%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" % (path, NOTE_BEGINS[0], start, end, path, NOTE_BEGINS[1], start, end)
     params += "q\n"
 
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
@@ -130,8 +84,6 @@ def basic_dict_entropy(dictionary):
         entropy += (dictionary[entry] * log10(1.0/dictionary[entry]))
 
     return entropy
-
-
 
 def non_zero_count(list_of_counts):
     """Returns the number of non-zero entries, this is similar to the matlab
@@ -204,7 +156,7 @@ def build_basic_model(stopwords_file,
     print "endtime: %s" % endtime
     
     results = {}
-    for note in note_begins:
+    for note in NOTE_BEGINS:
         results[note] = {}
 
     # --------------------------------------------------------------------------
@@ -231,7 +183,7 @@ def build_basic_model(stopwords_file,
             # build the text for that time-slice into one document, removing
             # the stopwords provided by the user as well as the singleton
             # list, neatly also provided by the user.            
-            for note in note_begins:
+            for note in NOTE_BEGINS:
                 local_cluster = []
 
                 for row in curr.execute(query % (note, start, end)):
@@ -256,8 +208,6 @@ def usage():
     print "usage: %s -out <output_file> -db <sqlite_db> [-sw <stopwords.in>] [-si <singletons.in>] -i <interval in seconds> [-step]" % sys.argv[0]
 
     print "-short - terms that appear more than once in at least one slice are used for any other things you output."
-
-    print "-nt - output new_terms_out"
     
     print "-stm - output the matrix using the short list, forces short"
     print "-frm - output full_term_matrix_out"
@@ -293,7 +243,6 @@ def main():
     interval = None
     build_model = False
     graph_out = False
-    new_terms_out = False
     full_term_matrix_out = False
     sfull_term_matrix_out = False
     merged_term_matrix_out = False
@@ -319,10 +268,6 @@ def main():
                 interval = int(sys.argv[idx + 1])
             elif "-gh" == sys.argv[idx]:
                 graph_out = True
-            elif "-en" == sys.argv[idx]:
-                entropy_out = True
-            elif "-nt" == sys.argv[idx]:
-                new_terms_out = True
             elif "-ftm" == sys.argv[idx]:
                 full_term_matrix_out = True
             elif "-short" == sys.argv[idx]:
@@ -340,7 +285,7 @@ def main():
         usage()
         sys.exit(-2)
 
-    if len(note_begins) != 2:
+    if len(NOTE_BEGINS) != 2:
         sys.stderr.write("use this to compare two sets.\n")
         sys.exit(-1)
 
@@ -374,7 +319,7 @@ def main():
 
         # ----------------------------------------------------------------------
         # Compute the term weights.
-        for note in note_begins:
+        for note in NOTE_BEGINS:
             # this crap only matters for the key thing.
             keys = results[note].keys()
 
@@ -385,15 +330,15 @@ def main():
             for start in results[note]:
                 results[note][start].compute()
 
-#        for start in results[note_begins[0]]:
-#            for note in note_begins:
+#        for start in results[NOTE_BEGINS[0]]:
+#            for note in NOTE_BEGINS:
 #                total = 0.0
 #                for term in results[note][start].term_weights:
 #                    total += results[note][start].term_weights[term]
 #                print total,
 # 1.0 is the total weight, yay.
 
-        print "number of slices: %d" % len(results[note_begins[0]])
+        print "number of slices: %d" % len(results[NOTE_BEGINS[0]])
 
         term_list = boringmatrix.build_termlist(results) # length of this is used to normalize
         sterm_list = boringmatrix.build_termlist2(results) # length of this is used to normalize
@@ -404,18 +349,16 @@ def main():
         # ----------------------------------------------------------------------
         # Compute the size of the set of values greater than one in occurrence
         # per model instance.
-        #greater_counts = {note_begins[0] : [], note_begins[1] : []}
-        #for start in results[note_begins[0]]:
-        #    greater_counts[note_begins[0]].append(results[note_begins[0]][start].greater_than_one())
-        #    greater_counts[note_begins[1]].append(results[note_begins[1]][start].greater_than_one())
+        #greater_counts = {NOTE_BEGINS[0] : [], NOTE_BEGINS[1] : []}
+        #for start in results[NOTE_BEGINS[0]]:
+        #    greater_counts[NOTE_BEGINS[0]].append(results[NOTE_BEGINS[0]][start].greater_than_one())
+        #    greater_counts[NOTE_BEGINS[1]].append(results[NOTE_BEGINS[1]][start].greater_than_one())
 
-        #print greater_counts[note_begins[0]]
-        #print greater_counts[note_begins[1]]
-        if new_terms_out:
-            output_new_terms(results, "%s_term_growth.eps" % output_name)
+        #print greater_counts[NOTE_BEGINS[0]]
+        #print greater_counts[NOTE_BEGINS[1]]
 
         if full_term_matrix_out:
-            for note in note_begins:
+            for note in NOTE_BEGINS:
                 boringmatrix.output_full_matrix(term_list,
                                                 results[note],
                                                 "%s_%s_full.csv" % (output_name, note))
@@ -433,10 +376,10 @@ def main():
         # t.  Using the short list, or whatever is set.
         if merged_term_matrix_out:
             merged = {}
-            for start in results[note_begins[0]]:
+            for start in results[NOTE_BEGINS[0]]:
                 x = boringmatrix.BoringMatrix(None)
 
-                for note in note_begins:
+                for note in NOTE_BEGINS:
                     for term in results[note][start].term_matrix:
                         val = results[note][start].term_matrix[term]
                         try:
@@ -471,21 +414,21 @@ def main():
         # ----------------------------------------------------------------------
         # Compute the cosine similarities. 
         # YOU NEED TO CALL .compute() before this or you'll get garbage.
-        for start in results[note_begins[0]]:
-            vector_sums[int(start)] = vectorspace.cosine_compute(results[note_begins[0]][start].term_weights,
-                                                                 results[note_begins[1]][start].term_weights)
+        for start in results[NOTE_BEGINS[0]]:
+            vector_sums[int(start)] = vectorspace.cosine_compute(results[NOTE_BEGINS[0]][start].term_weights,
+                                                                 results[NOTE_BEGINS[1]][start].term_weights)
         # ----------------------------------------------------------------------
         # Compute the similarity and counts for the given models as well as the
         # entropy.
         if graph_out:
-            for start in results[note_begins[0]]:
+            for start in results[NOTE_BEGINS[0]]:
                 # These are identical... as they should be.  Really, I should be using these.
                 # Totally different than those above.
-                count_cosine[int(start)] = boringmatrix.boring_count_similarity(results[note_begins[0]][start],
-                                                                                 results[note_begins[1]][start])
+                count_cosine[int(start)] = boringmatrix.boring_count_similarity(results[NOTE_BEGINS[0]][start],
+                                                                                 results[NOTE_BEGINS[1]][start])
 
-                weight_cosine[int(start)] = boringmatrix.boring_weight_similarity(results[note_begins[0]][start],
-                                                                                  results[note_begins[1]][start])
+                weight_cosine[int(start)] = boringmatrix.boring_weight_similarity(results[NOTE_BEGINS[0]][start],
+                                                                                  results[NOTE_BEGINS[1]][start])
             
             # Consider using a few panes.
             output_similarity_gnuplot(vector_sums,
@@ -494,8 +437,8 @@ def main():
                                       "%s_%s.eps" % (output_name, "sims_count"))
             output_similarity_gnuplot(weight_cosine,
                                       "%s_%s.eps" % (output_name, "sims_weight"))
-            output_distinct_graphs(results[note_begins[0]],
-                                   results[note_begins[1]],
+            output_distinct_graphs(results[NOTE_BEGINS[0]],
+                                   results[NOTE_BEGINS[1]],
                                    "%s_distinct.eps" % (output_name))
 
         # ----------------------------------------------------------------------
@@ -506,8 +449,8 @@ def main():
                                  reverse=True)
 
             for itempair in sorted_sums:
-                sorted_weights = sorted(boringmatrix.cooccurrence_weights(results[note_begins[0]][itempair[0]],
-                                                                          results[note_begins[1]][itempair[0]]).items(),
+                sorted_weights = sorted(boringmatrix.cooccurrence_weights(results[NOTE_BEGINS[0]][itempair[0]],
+                                                                          results[NOTE_BEGINS[1]][itempair[0]]).items(),
                                         key=itemgetter(1),
                                         reverse=True)
 
