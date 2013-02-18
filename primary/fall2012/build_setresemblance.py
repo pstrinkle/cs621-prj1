@@ -33,7 +33,6 @@ def main():
         sys.exit(-1)
 
     use_short_terms = False
-    set_resemblance_out = True
 
     # could use the stdargs parser, but that is meh.
     try:
@@ -96,88 +95,79 @@ def main():
     # ----------------------------------------------------------------------
     # Convert to sets and compute the set resemblances, see if any are 
     # high, compared to each other at each t.
-    if set_resemblance_out:        
-        termSets = {}
-        for start in results[NOTE_BEGINS[0]]:
-            set_a = termset.TermSet(results[NOTE_BEGINS[0]][start],
-                                    "%s.%s" % (NOTE_BEGINS[0], str(start)))
-            set_b = termset.TermSet(results[NOTE_BEGINS[1]][start],
-                                    "%s.%s" % (NOTE_BEGINS[1], str(start)))
+    termSets = {}
+    for start in results[NOTE_BEGINS[0]]:
+        set_a = termset.TermSet(results[NOTE_BEGINS[0]][start],
+                                "%s.%s" % (NOTE_BEGINS[0], str(start)))
+        set_b = termset.TermSet(results[NOTE_BEGINS[1]][start],
+                                "%s.%s" % (NOTE_BEGINS[1], str(start)))
 
-            termSets[start] = termset.set_resemblance(set_a, set_b)
+        termSets[start] = termset.set_resemblance(set_a, set_b)
 
-        #print sorted(
-        #             termSets.items(),
-        #             key=itemgetter(1), # (1) is value
-        #             reverse=True)
+    #print sorted(
+    #             termSets.items(),
+    #             key=itemgetter(1), # (1) is value
+    #             reverse=True)
 
-        # ------------------------------------------------------------------
-        # Convert to sets and compute the set resemblances for the goal of 
-        # clustering all the sets so that I can build a "table" for each t 
-        # in T, the bin ID of Xt, Yt | counts --> so I have probabilities 
-        # to build the entropy computation for the window.
-        termSetsFull = []
-        for note in results:
-            for start in results[note]:
-                termSetsFull.append(termset.TermSet(results[note][start],
-                                                    "%s.%s" % (note, str(start))))
+    # ------------------------------------------------------------------
+    # Convert to sets and compute the set resemblances for the goal of 
+    # clustering all the sets so that I can build a "table" for each t 
+    # in T, the bin ID of Xt, Yt | counts --> so I have probabilities 
+    # to build the entropy computation for the window.
+    termSetsFull = []
+    for note in results:
+        for start in results[note]:
+            termSetsFull.append(termset.TermSet(results[note][start],
+                                                "%s.%s" % (note, str(start))))
 
-        resem_matrix = {}
-        length = len(termSetsFull)
+    resem_matrix = {}
+    length = len(termSetsFull)
 
-        for i in xrange(0, length):
-            resem_matrix[i] = {}
+    for i in xrange(0, length):
+        resem_matrix[i] = {}
 
-            for j in xrange(i + 1, length):
-                resem_matrix[i][j] = termset.set_resemblance(termSetsFull[i],
-                                                             termSetsFull[j])
+        for j in xrange(i + 1, length):
+            resem_matrix[i][j] = termset.set_resemblance(termSetsFull[i],
+                                                         termSetsFull[j])
 
-        resem_values = []
-        for i in resem_matrix:
-            for j in resem_matrix[i]:
-                resem_values.append(resem_matrix[i][j])
+    resem_values = []
+    for i in resem_matrix:
+        for j in resem_matrix[i]:
+            resem_values.append(resem_matrix[i][j])
 
-        #print dumps(sorted(resem_values, reverse=True), indent=4)
+    #print dumps(sorted(resem_values, reverse=True), indent=4)
 
-        resem_histogram = {0.1 : 0,
-                           0.2 : 0,
-                           0.3 : 0,
-                           0.4 : 0,
-                           0.5 : 0,
-                           0.6 : 0,
-                           0.7 : 0,
-                           0.8 : 0,
-                           0.9 : 0,
-                           1.0 : 0}
+    resem_histogram = {0.1 : 0, 0.2 : 0, 0.3 : 0, 0.4 : 0, 0.5 : 0,
+                       0.6 : 0, 0.7 : 0, 0.8 : 0, 0.9 : 0, 1.0 : 0}
 
-        for value in resem_values:
-            if value <= 0.1:
-                resem_histogram[0.1] += 1
-            elif value <= 0.2:
-                resem_histogram[0.2] += 1
-            elif value <= 0.3:
-                resem_histogram[0.3] += 1
-            elif value <= 0.4:
-                resem_histogram[0.4] += 1
-            elif value <= 0.5:
-                resem_histogram[0.5] += 1
-            elif value <= 0.6:
-                resem_histogram[0.6] += 1
-            elif value <= 0.7:
-                resem_histogram[0.7] += 1
-            elif value <= 0.8:
-                resem_histogram[0.8] += 1
-            elif value <= 0.9:
-                resem_histogram[0.9] += 1
-            else:
-                resem_histogram[1.0] += 1
+    for value in resem_values:
+        if value <= 0.1:
+            resem_histogram[0.1] += 1
+        elif value <= 0.2:
+            resem_histogram[0.2] += 1
+        elif value <= 0.3:
+            resem_histogram[0.3] += 1
+        elif value <= 0.4:
+            resem_histogram[0.4] += 1
+        elif value <= 0.5:
+            resem_histogram[0.5] += 1
+        elif value <= 0.6:
+            resem_histogram[0.6] += 1
+        elif value <= 0.7:
+            resem_histogram[0.7] += 1
+        elif value <= 0.8:
+            resem_histogram[0.8] += 1
+        elif value <= 0.9:
+            resem_histogram[0.9] += 1
+        else:
+            resem_histogram[1.0] += 1
 
-        print dumps(resem_histogram, indent=4)
+    print dumps(resem_histogram, indent=4)
 
-        #print sorted(
-        #             resem_matrix.items(),
-        #             key=itemgetter(1), # (1) is value
-        #             reverse=True)
+    #print sorted(
+    #             resem_matrix.items(),
+    #             key=itemgetter(1), # (1) is value
+    #             reverse=True)
 
     # --------------------------------------------------------------------------
     # Done.

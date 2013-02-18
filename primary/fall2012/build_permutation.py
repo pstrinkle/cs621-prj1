@@ -38,7 +38,6 @@ def main():
         sys.exit(-1)
 
     use_short_terms = False
-    permutation_out = True
 
     # could use the stdargs parser, but that is meh.
     try:
@@ -102,18 +101,17 @@ def main():
     # Compute the permutation entropy for the window.
     #
     # Use set resemblance to get entropy probability value.
-    if permutation_out:
-        for note in results:
+    for note in results:
 
-            sorted_indices_dict = {}
-            for start in results[note]:
-                full_list = results[note][start].build_fulllist(term_list)
-                indices = sorted_indices(full_list)
+        sorted_indices_dict = {}
+        for start in results[note]:
+            full_list = results[note][start].build_fulllist(term_list)
+            indices = sorted_indices(full_list)
 
-                try:
-                    sorted_indices_dict[str(indices)] += 1
-                except KeyError:
-                    sorted_indices_dict[str(indices)] = 1
+            try:
+                sorted_indices_dict[str(indices)] += 1
+            except KeyError:
+                sorted_indices_dict[str(indices)] = 1
 
     # --------------------------------------------------------------------------
     # Done.

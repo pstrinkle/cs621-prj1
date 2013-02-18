@@ -19,9 +19,8 @@ NOTE_BEGINS = ("i495", "boston")
 def usage():
     """Print the massive usage information."""
 
-    print "usage: %s -in <model_data> -out <output_file> [-short]" % sys.argv[0]
+    print "usage: %s -in <model_data> -out <output_file> [-short] [-ftm] [-mtm]" % sys.argv[0]
     print "-short - terms that appear more than once in at least one slice are used for any other things you output."
-
     print "-frm - output full_term_matrix_out"
     print "-mtm - output merged_term_matrix_out, uses stm for output, merges the two locations into one model for each t."
 
@@ -75,14 +74,6 @@ def main():
     # Compute the term weights.
     boringmatrix.fix_boringmatrix_dicts(results)
 
-#        for start in results[NOTE_BEGINS[0]]:
-#            for note in NOTE_BEGINS:
-#                total = 0.0
-#                for term in results[note][start].term_weights:
-#                    total += results[note][start].term_weights[term]
-#                print total,
-# 1.0 is the total weight, yay.
-
     print "number of slices: %d" % len(results[NOTE_BEGINS[0]])
 
     term_list = boringmatrix.build_termlist(results) # length of this is used to normalize
@@ -104,15 +95,11 @@ def main():
 
     if full_term_matrix_out:
         for note in NOTE_BEGINS:
-            boringmatrix.output_full_matrix(term_list,
-                                            results[note],
-                                            "%s_%s_full.csv" % (output_name, note))
+            boringmatrix.output_full_matrix(term_list, results[note], "%s_%s_full.csv" % (output_name, note))
             
     if use_short_terms:
         for note in results:
-            boringmatrix.output_full_matrix(sterm_list,
-                                            results[note],
-                                            "%s_%s.csv" % (output_name, note))
+            boringmatrix.output_full_matrix(sterm_list, results[note], "%s_%s.csv" % (output_name, note))
 
     # ----------------------------------------------------------------------
     # Output a CSV with a model built from merging boston and i495 for each

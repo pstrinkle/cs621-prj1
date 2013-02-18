@@ -34,7 +34,6 @@ def main():
         sys.exit(-1)
 
     use_short_terms = False
-    build_doc_dict = True
 
     # could use the stdargs parser, but that is meh.
     try:
@@ -101,41 +100,39 @@ def main():
     doc_freq = {}
     top_terms_slist = None
 
-    if build_doc_dict:
-        for note in results:
-            for start in results[note]:
+    for note in results:
+        for start in results[note]:
                     
-                doc_id = "%s-%d" % (note, start)
+            doc_id = "%s-%d" % (note, start)
 
-                results_as_dict[doc_id] = results[note][start].term_matrix.copy()
-                doc_length[doc_id] = results[note][start].total_count
+            results_as_dict[doc_id] = results[note][start].term_matrix.copy()
+            doc_length[doc_id] = results[note][start].total_count
 
-                for term in results_as_dict[doc_id]:
-                    try:
-                        doc_freq[term] += 1
-                    except KeyError:
-                        doc_freq[term] = 1
+            for term in results_as_dict[doc_id]:
+                try:
+                    doc_freq[term] += 1
+                except KeyError:
+                    doc_freq[term] = 1
 
-        invdoc_freq = vectorspace.calculate_invdf(len(results_as_dict), doc_freq)
-        doc_tfidf = vectorspace.calculate_tfidf(doc_length, results_as_dict, invdoc_freq)
+    invdoc_freq = vectorspace.calculate_invdf(len(results_as_dict), doc_freq)
+    doc_tfidf = vectorspace.calculate_tfidf(doc_length, results_as_dict, invdoc_freq)
 
-        with open("%s_%s" % (output_name, "top_tfidf.json"), 'w') as fout:
-            fout.write(dumps(vectorspace.top_terms_overall(doc_tfidf, TOP_TERM_CNT)))
+    with open("%s_%s" % (output_name, "top_tfidf.json"), 'w') as fout:
+        fout.write(dumps(vectorspace.top_terms_overall(doc_tfidf, TOP_TERM_CNT)))
 
-        top_terms_slist = vectorspace.top_terms_overall(results_as_dict, int(len(doc_freq)*.10))
+    top_terms_slist = vectorspace.top_terms_overall(results_as_dict, int(len(doc_freq)*.10))
 
-        with open("%s_%s" % (output_name, "top_tf.json"), 'w') as fout:
-            fout.write(dumps(top_terms_slist, indent=4))
+    with open("%s_%s" % (output_name, "top_tf.json"), 'w') as fout:
+        fout.write(dumps(top_terms_slist, indent=4))
 
-        for note in results:
-            for start in results[note]:
-                results[note][start].drop_not_in(top_terms_slist)
-                results[note][start].compute()
+    for note in results:
+        for start in results[note]:
+            results[note][start].drop_not_in(top_terms_slist)
+            results[note][start].compute()
                 
-            boringmatrix.output_full_matrix(top_terms_slist,
-                               results[note],
-                                "%s_%s_tops.csv" % (output_name, note))
-
+        boringmatrix.output_full_matrix(top_terms_slist,
+                                        results[note],
+                                        "%s_%s_tops.csv" % (output_name, note))
 
     # --------------------------------------------------------------------------
     # Done.

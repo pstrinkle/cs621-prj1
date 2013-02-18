@@ -198,7 +198,6 @@ def main():
         sys.exit(-1)
 
     use_short_terms = False
-    entropy_out = True
 
     # could use the stdargs parser, but that is meh.
     try:
@@ -262,24 +261,23 @@ def main():
     # this computes the entropy for the model within the windows, which
     # is the maximum timeframe at this point.  I need to check and make sure
     # we don't have an incorrect last segment.
-    if entropy_out:
-        entropies = {NOTE_BEGINS[0] : {}, NOTE_BEGINS[1] : {}}
+    entropies = {NOTE_BEGINS[0] : {}, NOTE_BEGINS[1] : {}}
+
+    for start in results[NOTE_BEGINS[0]]:
+        entropies[NOTE_BEGINS[0]][start] = boringmatrix.basic_entropy(results[NOTE_BEGINS[0]][start])
+        entropies[NOTE_BEGINS[1]][start] = boringmatrix.basic_entropy(results[NOTE_BEGINS[1]][start])
+
+    output_basic_entropy(entropies, "%s_entropy.eps" % output_name)
+    output_inverse_entropy(entropies, "%s_inv_entropy.eps" % output_name)
+    output_top_model_entropy(results, entropies, "%s_top_models.json" % output_name)
+
+    for alpha in (0.10, 0.25, 0.5, 0.75):
+        renyi = {NOTE_BEGINS[0] : {}, NOTE_BEGINS[1] : {}}
 
         for start in results[NOTE_BEGINS[0]]:
-            entropies[NOTE_BEGINS[0]][start] = boringmatrix.basic_entropy(results[NOTE_BEGINS[0]][start])
-            entropies[NOTE_BEGINS[1]][start] = boringmatrix.basic_entropy(results[NOTE_BEGINS[1]][start])
-
-        output_basic_entropy(entropies, "%s_entropy.eps" % output_name)
-        output_inverse_entropy(entropies, "%s_inv_entropy.eps" % output_name)
-        output_top_model_entropy(results, entropies, "%s_top_models.json" % output_name)
-
-        for alpha in (0.10, 0.25, 0.5, 0.75):
-            renyi = {NOTE_BEGINS[0] : {}, NOTE_BEGINS[1] : {}}
-
-            for start in results[NOTE_BEGINS[0]]:
-                renyi[NOTE_BEGINS[0]][start] = renyi_entropy(results[NOTE_BEGINS[0]][start], alpha)
-                renyi[NOTE_BEGINS[1]][start] = renyi_entropy(results[NOTE_BEGINS[1]][start], alpha)
-            output_basic_entropy(renyi, "%s_renyi-%f.eps" % (output_name, alpha))
+            renyi[NOTE_BEGINS[0]][start] = renyi_entropy(results[NOTE_BEGINS[0]][start], alpha)
+            renyi[NOTE_BEGINS[1]][start] = renyi_entropy(results[NOTE_BEGINS[1]][start], alpha)
+        output_basic_entropy(renyi, "%s_renyi-%f.eps" % (output_name, alpha))
 
     # --------------------------------------------------------------------------
     # Done.

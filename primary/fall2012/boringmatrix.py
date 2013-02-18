@@ -323,7 +323,7 @@ def output_full_matrix(terms, vectors, output):
     """Output the vectors over the terms, this is for each t for a specific 
     location."""
 
-    x = boringmatrix.dump_weights_matrix(terms, vectors)
+    x = dump_weights_matrix(terms, vectors)
 
     with open(output, 'w') as fout:
         fout.write(x)

@@ -251,34 +251,31 @@ def main():
     # ----------------------------------------------------------------------
     # Compute the entropy value for the global hierarchical model given the
     # two input models.
-    if global_out:
-        global_views = {}
-        entropies = {}
+    global_views = {}
+    entropies = {}
 
-        # Hierarchical model builder.
-        for start in results[NOTE_BEGINS[0]]:
-            global_views[start] = boringmatrix.HierarchBoring(results[NOTE_BEGINS[0]][start],
-                                                              results[NOTE_BEGINS[1]][start])
-            global_views[start].compute()
-            entropies[start] = boringmatrix.basic_entropy(global_views[start])
+    # Hierarchical model builder.
+    for start in results[NOTE_BEGINS[0]]:
+        global_views[start] = \
+            boringmatrix.HierarchBoring(results[NOTE_BEGINS[0]][start],
+                                        results[NOTE_BEGINS[1]][start])
 
-        gterm_list = build_gtermlist(global_views)
+        global_views[start].compute()
+        entropies[start] = boringmatrix.basic_entropy(global_views[start])
 
-        output_global_entropy(entropies,
-                              "%s_global_entropy.eps" % output_name)
+    gterm_list = build_gtermlist(global_views)
 
-        output_global_inverse_entropy(entropies, "%s_inv_global_entropy.eps" % output_name)
-        output_full_matrix(gterm_list,
-                           global_views,
-                           "%s_%s.csv" % (output_name, "global"))
+    output_full_matrix(gterm_list, global_views, "%s_%s.csv" % (output_name, "global"))
+
+    output_global_entropy(entropies, "%s_global_entropy.eps" % output_name)
+    output_global_inverse_entropy(entropies, "%s_inv_global_entropy.eps" % output_name)
+    
+    
             
-        output_global_inverse_entropy_json(global_views,
-                                           entropies,
-                                           ".count",
-                                           0.25)
+    output_global_inverse_entropy_json(global_views, entropies, ".count", 0.25)
 
-        output_global_new_terms(global_views,
-                                "%s_%s.eps" % (output_name, "global_newterms"))
+    output_global_new_terms(global_views, "%s_%s.eps" % (output_name, "global_newterms"))
+
     # --------------------------------------------------------------------------
     # Done.
 

@@ -33,7 +33,6 @@ def main():
         sys.exit(-1)
 
     use_short_terms = False
-    pca1_out = True
 
     # could use the stdargs parser, but that is meh.
     try:
@@ -97,44 +96,43 @@ def main():
     # Output each slice for each area as a new-line broken up term count
     # file.  These values aren't normalized, so they're not terribly useful
     # yet.
-    if pca1_out:
-        outdir = "%s_%s" % (output_name, "pca1")
+    outdir = "%s_%s" % (output_name, "pca1")
 
-        if os.path.exists(outdir):
-            os.rmdir(outdir)
+    if os.path.exists(outdir):
+        os.rmdir(outdir)
 
-        os.mkdir(outdir)
+    os.mkdir(outdir)
 
-        if use_short_terms:
-            the_terms = sterm_list
-        else:
-            the_terms = term_list
+    if use_short_terms:
+        the_terms = sterm_list
+    else:
+        the_terms = term_list
 
-        for note in results:
-            for start in results[note]:
-                filename = "%s-%d" % (note, start)
+    for note in results:
+        for start in results[note]:
+            filename = "%s-%d" % (note, start)
 
-                values = []
+            values = []
 
-                for term in the_terms:
-                    # Could probably just index with a try/catch.
-                    if term in results[note][start].term_matrix:
-                        value = results[note][start].term_matrix[term]
-                    else:
-                        value = 0
-                    values.append(value)
+            for term in the_terms:
+                # Could probably just index with a try/catch.
+                if term in results[note][start].term_matrix:
+                    value = results[note][start].term_matrix[term]
+                else:
+                    value = 0
+                values.append(value)
 
-                try:
-                    data_str = "\n".join(["%d" % value for value in values])
-                except TypeError, e:
-                    print type(values), type(values[0]), values[0], values[1]
-                    print e
-                    sys.exit(-2)
+            try:
+                data_str = "\n".join(["%d" % value for value in values])
+            except TypeError, e:
+                print type(values), type(values[0]), values[0], values[1]
+                print e
+                sys.exit(-2)
                     
-                with open(os.path.join(outdir, filename), 'w') as fout:
-                    fout.write(data_str)
+            with open(os.path.join(outdir, filename), 'w') as fout:
+                fout.write(data_str)
 
-        print "params: %d %d" % (len(results[note]) * 2, len(the_terms))
+    print "params: %d %d" % (len(results[note]) * 2, len(the_terms))
 
 
     # --------------------------------------------------------------------------

@@ -175,7 +175,6 @@ def main():
         sys.exit(-1)
 
     use_short_terms = False
-    new_terms_out = True
 
     # could use the stdargs parser, but that is meh.
     try:
@@ -235,16 +234,15 @@ def main():
                 results[note][start].drop_not_in(sterm_list)
                 results[note][start].compute()
 
-    if new_terms_out:
-        #import timeit
-        #print timeit.timeit('output_new_terms(results, "%s_term_growth.eps" % output_name)', number=1)
+    #import timeit
+    #print timeit.timeit('output_new_terms(results, "%s_term_growth.eps" % output_name)', number=1)
 
-        # output how many new terms you have at each interval.
-        output_new_terms(results, "%s_term_growth.eps" % output_name)
+    # output how many new terms you have at each interval.
+    output_new_terms(results, "%s_term_growth.eps" % output_name)
 
-        # output the percentage of new terms at each interval, to show how 
-        # worthless smoothing gets.
-        output_percentage_growth(results, "%s_percentage_new.eps" % output_name)
+    # output the percentage of new terms at each interval, to show how 
+    # worthless smoothing gets.
+    output_percentage_growth(results, "%s_percentage_new.eps" % output_name)
 
     # --------------------------------------------------------------------------
     # Done.
