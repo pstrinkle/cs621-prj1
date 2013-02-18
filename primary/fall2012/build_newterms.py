@@ -15,7 +15,73 @@ from json import loads
 import boringmatrix
 
 NOTE_BEGINS = ("i495", "boston")
-TOP_TERM_CNT = 1000
+
+def output_percentage_growth(results, output):
+    """."""
+
+    skey = sorted(results[NOTE_BEGINS[0]].keys())
+    start = skey[0]
+    end = skey[-1]
+
+    aterms = []
+    bterms = []
+
+    out = []
+    path = "local.tmp.data"
+
+    for idx in range(0, len(skey)-1):
+        count1 = 0
+        count2 = 0
+
+        list1 = results[NOTE_BEGINS[0]][skey[idx]].term_matrix
+        list2 = results[NOTE_BEGINS[1]][skey[idx]].term_matrix
+        
+        for term in list1:
+            if term not in aterms:
+                aterms.append(term)
+
+        for term in list2:
+            if term not in bterms:
+                bterms.append(term)
+        
+        # aterms and bterms now have all the terms from the current interval.
+        
+        nlist1 = results[NOTE_BEGINS[0]][skey[idx+1]].term_matrix
+        ncount1 = len(results[NOTE_BEGINS[0]][skey[idx+1]].term_matrix)
+
+        nlist2 = results[NOTE_BEGINS[1]][skey[idx+1]].term_matrix
+        ncount2 = len(results[NOTE_BEGINS[1]][skey[idx+1]].term_matrix)
+        
+        # ncount1 and ncount2 are the number of distinct terms in the next 
+        # interval
+        # for each term in the next interval, was it in the previous?
+        # if it wasn't, increment the counter so we can get some growth 
+        # percentages.
+
+        for term in nlist1:
+            if term not in aterms:
+                aterms.append(term) # we don't really need this step.
+                count1 += 1
+
+        for term in nlist2:
+            if term not in bterms:
+                bterms.append(term) # we don't really need this step.
+                count2 += 1
+
+        out.append("%d %f %f" % (idx, float(count1)/ncount1, float(count2)/ncount2))
+        
+    with open(path, 'w') as fout:
+        fout.write("\n".join(out))
+
+    params = "set terminal postscript\n"
+    params += "set output '%s'\n" % output
+    #params += "set log xy\n"
+    params += "set xlabel 't'\n"
+    params += "set ylabel 'percentage of terms in next interval not in previous'\n"
+    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', '%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" % (path, NOTE_BEGINS[0], start, end, path, NOTE_BEGINS[1], start, end)
+    params += "q\n"
+
+    subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
 
 def output_new_terms(results, output):
     """At each X, indicate on the Y axis how many new terms were introduced."""
@@ -69,7 +135,6 @@ def usage():
     print "usage: %s -in <model_data> -out <output_file> [-short]" % sys.argv[0]
     print "-short - terms that appear more than once in at least one slice are used for any other things you output."
 
-
 def main():
     """."""
 
@@ -113,16 +178,7 @@ def main():
 
     # ----------------------------------------------------------------------
     # Compute the term weights.
-    for note in NOTE_BEGINS:
-        # this crap only matters for the key thing.
-        keys = results[note].keys()
-
-        for idx in range(0, len(keys)):
-            results[note][int(keys[idx])] = results[note][keys[idx]]
-            del results[note][keys[idx]]
-
-        for start in results[note]:
-            results[note][start].compute()
+    boringmatrix.fix_boringmatrix_dicts(results)
 
 #        for start in results[NOTE_BEGINS[0]]:
 #            for note in NOTE_BEGINS:
@@ -149,7 +205,12 @@ def main():
                 results[note][start].compute()
 
     if new_terms_out:
+        # output how many new terms you have at each interval.
         output_new_terms(results, "%s_term_growth.eps" % output_name)
+
+        # output the percentage of new terms at each interval, to show how 
+        # worthless smoothing gets.
+        output_percentage_growth(results, "%s_percentage_new.eps" % output_name)
 
     # --------------------------------------------------------------------------
     # Done.

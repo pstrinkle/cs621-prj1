@@ -319,16 +319,7 @@ def main():
 
         # ----------------------------------------------------------------------
         # Compute the term weights.
-        for note in NOTE_BEGINS:
-            # this crap only matters for the key thing.
-            keys = results[note].keys()
-
-            for idx in range(0, len(keys)):
-                results[note][int(keys[idx])] = results[note][keys[idx]]
-                del results[note][keys[idx]]
-
-            for start in results[note]:
-                results[note][start].compute()
+        boringmatrix.fix_boringmatrix_dicts(results)
 
 #        for start in results[NOTE_BEGINS[0]]:
 #            for note in NOTE_BEGINS:

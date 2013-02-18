@@ -179,6 +179,22 @@ class BoringMatrixEncoder(JSONEncoder):
             return obj.get_json()
         return JSONEncoder.default(self, obj)
 
+def fix_boringmatrix_dicts(results):
+    """After you read in the results thing, update it and re-compute."""
+
+    # ----------------------------------------------------------------------
+    # Compute the term weights.
+    for note in results.keys():
+        # this crap only matters for the key thing.
+        keys = results[note].keys()
+
+        for idx in range(0, len(keys)):
+            results[note][int(keys[idx])] = results[note][keys[idx]]
+            del results[note][keys[idx]]
+
+        for start in results[note]:
+            results[note][start].compute()
+
 def boring_count_similarity(boring_a, boring_b):
     """Return the count-based cosine similarity given the two term_matrices."""
     
