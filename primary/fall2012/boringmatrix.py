@@ -252,12 +252,9 @@ def basic_entropy(boring_a):
     term_count = len(boring_a.term_matrix)
     if term_count == 0:
         return 0.0
-    
-    entropy = 0.0
-    # could probably do sum(value for term in terms[value])
-    for term in boring_a.term_matrix:
-        entropy += (boring_a.term_weights[term] * log10(1.0/boring_a.term_weights[term]))
-    
+
+    entropy = 0.0 + sum([(boring_a.term_weights[term] * log10(1.0/boring_a.term_weights[term])) for term in boring_a.term_matrix])
+
     if entropy == 0.0:
         return 0.0
 

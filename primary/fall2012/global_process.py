@@ -48,7 +48,7 @@ def output_global_new_terms(results, output):
     start = skey[0]
     end = skey[-1]
 
-    aterms = []
+    aterms = {}
 
     out = []
     path = "local.tmp.data"
@@ -60,7 +60,7 @@ def output_global_new_terms(results, output):
 
         for term in list1:
             if term not in aterms:
-                aterms.append(term)
+                aterms[term] = 1
                 count1 += 1
 
         out.append("%d %d" % (idx, count1))

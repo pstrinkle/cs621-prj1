@@ -7,8 +7,28 @@ __author__ = 'tri1@umbc.edu'
 #
 # This outputs the input model for new terms processing.
 #
+# Of value, I was originally using arrays to store everything, but the 
+# implementation they're using underneath is really really infinitely slow.
+#
+# When I switched to dictionaries, it went from:
+#number of slices: 863
+#Full Dictionary: 49417
+#Short Dictionary: 14625
+#real    34m6.738s
+#
+# to:
+#number of slices: 863
+#Full Dictionary: 49417
+#Short Dictionary: 14625
+#
+#real    0m3.992s
+#
+# Holy shit.
+#
 
+import os
 import sys
+import random
 import subprocess
 from json import loads
 
@@ -23,11 +43,14 @@ def output_percentage_growth(results, output):
     start = skey[0]
     end = skey[-1]
 
-    aterms = []
-    bterms = []
+    aterms = {}
+    bterms = {}
 
     out = []
-    path = "local.tmp.data"
+    random.seed()
+    
+    path = "%d.%d" % (random.getrandbits(random.randint(16, 57)),
+                      random.getrandbits(random.randint(16, 57)))
 
     for idx in range(0, len(skey)-1):
         count1 = 0
@@ -38,14 +61,13 @@ def output_percentage_growth(results, output):
         
         for term in list1:
             if term not in aterms:
-                aterms.append(term)
+                aterms[term] = 1
 
         for term in list2:
             if term not in bterms:
-                bterms.append(term)
-        
+                bterms[term] = 1
+
         # aterms and bterms now have all the terms from the current interval.
-        
         nlist1 = results[NOTE_BEGINS[0]][skey[idx+1]].term_matrix
         ncount1 = len(results[NOTE_BEGINS[0]][skey[idx+1]].term_matrix)
 
@@ -60,15 +82,17 @@ def output_percentage_growth(results, output):
 
         for term in nlist1:
             if term not in aterms:
-                aterms.append(term) # we don't really need this step.
+                aterms[term] = 1 # we don't really need this step.
                 count1 += 1
 
         for term in nlist2:
             if term not in bterms:
-                bterms.append(term) # we don't really need this step.
+                bterms[term] = 1 # we don't really need this step.
                 count2 += 1
 
-        out.append("%d %f %f" % (idx, float(count1)/ncount1, float(count2)/ncount2))
+        out.append("%d %f %f" % (idx,
+                                 (float(count1)/ncount1)*100,
+                                 (float(count2)/ncount2)*100))
         
     with open(path, 'w') as fout:
         fout.write("\n".join(out))
@@ -82,6 +106,8 @@ def output_percentage_growth(results, output):
     params += "q\n"
 
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
+    
+    os.remove(path)
 
 def output_new_terms(results, output):
     """At each X, indicate on the Y axis how many new terms were introduced."""
@@ -90,11 +116,14 @@ def output_new_terms(results, output):
     start = skey[0]
     end = skey[-1]
 
-    aterms = []
-    bterms = []
+    aterms = {}
+    bterms = {}
 
     out = []
-    path = "local.tmp.data"
+    random.seed()
+    
+    path = "%d.%d" % (random.getrandbits(random.randint(16, 57)),
+                      random.getrandbits(random.randint(16, 57)))
 
     for idx in range(0, len(skey)):
         count1 = 0
@@ -105,12 +134,12 @@ def output_new_terms(results, output):
 
         for term in list1:
             if term not in aterms:
-                aterms.append(term)
+                aterms[term] = 1
                 count1 += 1
 
         for term in list2:
             if term not in bterms:
-                bterms.append(term)
+                bterms[term] = 1
                 count2 += 1
 
         out.append("%d %d %d" % (idx, count1, count2))
@@ -120,7 +149,7 @@ def output_new_terms(results, output):
 
     params = "set terminal postscript\n"
     params += "set output '%s'\n" % output
-    #params += "set log xy\n"
+    params += "set log y\n"
     params += "set xlabel 't'\n"
     params += "set ylabel 'new distinct terms'\n"
     #params += "plot '%s' t '%s: %d - %d'\n" % (path, graph_title, start, end)
@@ -128,6 +157,8 @@ def output_new_terms(results, output):
     params += "q\n"
 
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
+    
+    os.remove(path)
 
 def usage():
     """Print the massive usage information."""
@@ -205,6 +236,9 @@ def main():
                 results[note][start].compute()
 
     if new_terms_out:
+        #import timeit
+        #print timeit.timeit('output_new_terms(results, "%s_term_growth.eps" % output_name)', number=1)
+
         # output how many new terms you have at each interval.
         output_new_terms(results, "%s_term_growth.eps" % output_name)
 

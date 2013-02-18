@@ -6,13 +6,14 @@ __author__ = 'tri1@umbc.edu'
 # Fall 2012
 #
 
+import os
 import sys
+import random
 import sqlite3
+import subprocess
 from json import dumps, loads
 from operator import itemgetter
 from datetime import timedelta
-from math import log10
-import subprocess
 
 import boringmatrix
 
@@ -21,35 +22,6 @@ import vectorspace
 
 NOTE_BEGINS = ("i495", "boston")
 TOP_TERM_CNT = 1000
-
-def output_distinct_graphs(vector_a, vector_b, output):
-    """Prints a series of distinct term counts for each time interval.
-    
-    The vector_a is as such: vector[timestart]."""
-    
-    skey = sorted(vector_a.keys())
-    start = skey[0]
-    end = skey[-1]
-
-    out = []
-    path = "local.tmp.data"
-    for idx in range(0, len(skey)):
-        boring_a = vector_a[skey[idx]]
-        boring_b = vector_b[skey[idx]]
-        out.append("%d %d %d" % (idx, len(boring_a.term_matrix), len(boring_b.term_matrix)))
-    with open(path, 'w') as fout:
-        fout.write("\n".join(out))
-
-    params = "set terminal postscript\n"
-    params += "set output '%s'\n" % output
-    #params += "set log xy\n"
-    params += "set xlabel 't'\n"
-    params += "set ylabel 'distinct terms'\n"
-    #params += "plot '%s' t '%s: %d - %d'\n" % (path, graph_title, start, end)
-    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', '%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" % (path, NOTE_BEGINS[0], start, end, path, NOTE_BEGINS[1], start, end)
-    params += "q\n"
-
-    subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
 
 def output_similarity_gnuplot(vector, output):
     """vector here is a dictionary keyed on the datetimestamp as long, with the
@@ -60,9 +32,14 @@ def output_similarity_gnuplot(vector, output):
     end = skey[-1]
 
     out = []
-    path = "local.tmp.data"
+    random.seed()
+    
+    path = "%d.%d" % (random.getrandbits(random.randint(16, 57)),
+                      random.getrandbits(random.randint(16, 57)))
+
     for idx in range(0, len(skey)):
         out.append("%d %f" % (idx, vector[skey[idx]]))
+
     with open(path, 'w') as fout:
         fout.write("\n".join(out))
 
@@ -75,27 +52,14 @@ def output_similarity_gnuplot(vector, output):
     params += "q\n"
 
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
-
-def basic_dict_entropy(dictionary):
-    """Given a P(x) dictionary, return H(P)."""
-
-    entropy = 0.0
-    for entry in dictionary:
-        entropy += (dictionary[entry] * log10(1.0/dictionary[entry]))
-
-    return entropy
+    
+    os.remove(path)
 
 def non_zero_count(list_of_counts):
     """Returns the number of non-zero entries, this is similar to the matlab
     method."""
 
-    count = 0
-    non_zeros = [value for value in list_of_counts if value > 0]
-
-    for value in non_zeros:
-        count += 1
-
-    return count
+    return len([value for value in list_of_counts if value > 0])
 
 def build_basic_model(stopwords_file,
                       singletons_file,
@@ -204,7 +168,7 @@ def build_basic_model(stopwords_file,
 def usage():
     """Print the massive usage information."""
 
-    print "usage: %s -in <model_data> -out <output_file> [-short] [-gh] [-nt]  [-ftm] [-mtm] [-notes]" % sys.argv[0]
+    print "usage: %s -in <model_data> -out <output_file> [-short] [-gh] [-ftm] [-mtm] [-notes]" % sys.argv[0]
     print "usage: %s -out <output_file> -db <sqlite_db> [-sw <stopwords.in>] [-si <singletons.in>] -i <interval in seconds> [-step]" % sys.argv[0]
 
     print "-short - terms that appear more than once in at least one slice are used for any other things you output."
@@ -406,8 +370,9 @@ def main():
         # Compute the cosine similarities. 
         # YOU NEED TO CALL .compute() before this or you'll get garbage.
         for start in results[NOTE_BEGINS[0]]:
-            vector_sums[int(start)] = vectorspace.cosine_compute(results[NOTE_BEGINS[0]][start].term_weights,
-                                                                 results[NOTE_BEGINS[1]][start].term_weights)
+            vector_sums[int(start)] = \
+                vectorspace.cosine_compute(results[NOTE_BEGINS[0]][start].term_weights,
+                                           results[NOTE_BEGINS[1]][start].term_weights)
         # ----------------------------------------------------------------------
         # Compute the similarity and counts for the given models as well as the
         # entropy.
@@ -415,11 +380,13 @@ def main():
             for start in results[NOTE_BEGINS[0]]:
                 # These are identical... as they should be.  Really, I should be using these.
                 # Totally different than those above.
-                count_cosine[int(start)] = boringmatrix.boring_count_similarity(results[NOTE_BEGINS[0]][start],
-                                                                                 results[NOTE_BEGINS[1]][start])
+                count_cosine[int(start)] = \
+                    boringmatrix.boring_count_similarity(results[NOTE_BEGINS[0]][start],
+                                                         results[NOTE_BEGINS[1]][start])
 
-                weight_cosine[int(start)] = boringmatrix.boring_weight_similarity(results[NOTE_BEGINS[0]][start],
-                                                                                  results[NOTE_BEGINS[1]][start])
+                weight_cosine[int(start)] = \
+                    boringmatrix.boring_weight_similarity(results[NOTE_BEGINS[0]][start],
+                                                          results[NOTE_BEGINS[1]][start])
             
             # Consider using a few panes.
             output_similarity_gnuplot(vector_sums,
@@ -428,9 +395,6 @@ def main():
                                       "%s_%s.eps" % (output_name, "sims_count"))
             output_similarity_gnuplot(weight_cosine,
                                       "%s_%s.eps" % (output_name, "sims_weight"))
-            output_distinct_graphs(results[NOTE_BEGINS[0]],
-                                   results[NOTE_BEGINS[1]],
-                                   "%s_distinct.eps" % (output_name))
 
         # ----------------------------------------------------------------------
         # 

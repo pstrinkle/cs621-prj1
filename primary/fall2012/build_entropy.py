@@ -8,7 +8,9 @@ __author__ = 'tri1@umbc.edu'
 # This outputs the input model for entropy processing.
 #
 
+import os
 import sys
+import random
 import subprocess
 from json import dumps, loads
 from math import log
@@ -29,7 +31,10 @@ def output_basic_entropy(entropies, output):
     end = skey[-1]
 
     out = []
-    path = "local.tmp.data"
+    random.seed()
+    
+    path = "%d.%d" % (random.getrandbits(random.randint(16, 57)),
+                      random.getrandbits(random.randint(16, 57)))
 
     for idx in range(0, len(skey)):
         out.append("%d %f %f" % (idx,
@@ -48,6 +53,8 @@ def output_basic_entropy(entropies, output):
     params += "q\n"
     
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
+    
+    os.remove(path)
 
 def output_inverse_entropy(entropies, output):
     """Output the basic entropy chart."""
@@ -57,7 +64,10 @@ def output_inverse_entropy(entropies, output):
     end = skey[-1]
 
     out = []
-    path = "local.tmp.data"
+    random.seed()
+    
+    path = "%d.%d" % (random.getrandbits(random.randint(16, 57)),
+                      random.getrandbits(random.randint(16, 57)))
 
     for idx in range(0, len(skey)):
         val1 = entropies[NOTE_BEGINS[0]][skey[idx]]
@@ -87,6 +97,8 @@ def output_inverse_entropy(entropies, output):
     params += "q\n"
     
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
+    
+    os.remove(path)
 
 def output_top_model_entropy(results, entropies, output):
     """Go through the entropy values and output the top terms from the models, 
@@ -129,7 +141,10 @@ def output_renyi_entropy(alpha, entropies, output):
     end = skey[-1]
 
     out = []
-    path = "local.tmp.data"
+    random.seed()
+    
+    path = "%d.%d" % (random.getrandbits(random.randint(16, 57)),
+                      random.getrandbits(random.randint(16, 57)))
 
     for idx in range(0, len(skey)):
         out.append("%d %f %f" % (idx,
@@ -148,6 +163,8 @@ def output_renyi_entropy(alpha, entropies, output):
     params += "q\n"
     
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
+    
+    os.remove(path)
 ######
 
 def renyi_entropy(boring_a, alpha):

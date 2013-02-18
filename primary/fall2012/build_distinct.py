@@ -5,24 +5,59 @@ __author__ = 'tri1@umbc.edu'
 # Patrick Trinkle
 # Fall 2012
 #
-# This outputs the input model for PCA processing.
+# This outputs the distinct terms per interval.
+#
 
-import sys
-from json import dumps, loads
 import os
+import sys
+import random
+import subprocess
+from json import loads
 
 import boringmatrix
 
 NOTE_BEGINS = ("i495", "boston")
-TOP_TERM_CNT = 1000
+
+def output_distinct_graphs(vector_a, vector_b, output):
+    """Prints a series of distinct term counts for each time interval.
+    
+    The vector_a is as such: vector[timestart]."""
+    
+    skey = sorted(vector_a.keys())
+    start = skey[0]
+    end = skey[-1]
+
+    out = []
+    random.seed()
+    
+    path = "%d.%d" % (random.getrandbits(random.randint(16, 57)),
+                      random.getrandbits(random.randint(16, 57)))
+
+    for idx in range(0, len(skey)):
+        boring_a = vector_a[skey[idx]]
+        boring_b = vector_b[skey[idx]]
+        out.append("%d %d %d" % (idx, len(boring_a.term_matrix), len(boring_b.term_matrix)))
+
+    with open(path, 'w') as fout:
+        fout.write("\n".join(out))
+
+    params = "set terminal postscript\n"
+    params += "set output '%s'\n" % output
+    #params += "set log xy\n"
+    params += "set xlabel 't'\n"
+    params += "set ylabel 'distinct terms'\n"
+    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', '%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" % (path, NOTE_BEGINS[0], start, end, path, NOTE_BEGINS[1], start, end)
+    params += "q\n"
+
+    subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
+    
+    os.remove(path)
 
 def usage():
     """Print the massive usage information."""
 
     print "usage: %s -in <model_data> -out <output_file> [-short]" % sys.argv[0]
     print "-short - terms that appear more than once in at least one slice are used for any other things you output."
-    # the PCA C code currently doesn't support floating point.
-    print "-pca1 - Output folder of files, one per document for full term set, as term counts"
 
 def main():
     """."""
@@ -33,7 +68,6 @@ def main():
         sys.exit(-1)
 
     use_short_terms = False
-    pca1_out = True
 
     # could use the stdargs parser, but that is meh.
     try:
@@ -93,49 +127,9 @@ def main():
                 results[note][start].drop_not_in(sterm_list)
                 results[note][start].compute()
 
-    # ----------------------------------------------------------------------
-    # Output each slice for each area as a new-line broken up term count
-    # file.  These values aren't normalized, so they're not terribly useful
-    # yet.
-    if pca1_out:
-        outdir = "%s_%s" % (output_name, "pca1")
-
-        if os.path.exists(outdir):
-            os.rmdir(outdir)
-
-        os.mkdir(outdir)
-
-        if use_short_terms:
-            the_terms = sterm_list
-        else:
-            the_terms = term_list
-
-        for note in results:
-            for start in results[note]:
-                filename = "%s-%d" % (note, start)
-
-                values = []
-
-                for term in the_terms:
-                    # Could probably just index with a try/catch.
-                    if term in results[note][start].term_matrix:
-                        value = results[note][start].term_matrix[term]
-                    else:
-                        value = 0
-                    values.append(value)
-
-                try:
-                    data_str = "\n".join(["%d" % value for value in values])
-                except TypeError, e:
-                    print type(values), type(values[0]), values[0], values[1]
-                    print e
-                    sys.exit(-2)
-                    
-                with open(os.path.join(outdir, filename), 'w') as fout:
-                    fout.write(data_str)
-
-        print "params: %d %d" % (len(results[note]) * 2, len(the_terms))
-
+    output_distinct_graphs(results[NOTE_BEGINS[0]],
+                           results[NOTE_BEGINS[1]],
+                           "%s_distinct.eps" % (output_name))
 
     # --------------------------------------------------------------------------
     # Done.
