@@ -3,6 +3,9 @@
 from json import JSONEncoder
 from datetime import datetime
 from math import sqrt, log10
+import sys
+sys.path.append("../modellib")
+import vectorspace
 
 def datetime_from_long(timestamp):
     """Convert a timestamp to a datetime.datetime."""
@@ -259,6 +262,18 @@ def basic_entropy(boring_a):
         return 0.0
 
     return entropy / log10(term_count)
+
+def get_vectorsums(results_dict, pair_of_entries):
+    """Get the cosine_compute() for each interval between the two locations."""
+    
+    vector_sums = {}
+    
+    for start in results_dict[pair_of_entries[0]]:
+        vector_sums[int(start)] = \
+            vectorspace.cosine_compute(results_dict[pair_of_entries[0]][start].term_weights,
+                                       results_dict[pair_of_entries[1]][start].term_weights)
+    
+    return vector_sums
 
 def build_termlist(result_dict):
     """Given a results dictionary, go through each "note" within it and each 

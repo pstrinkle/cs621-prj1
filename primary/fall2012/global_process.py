@@ -7,9 +7,11 @@ __author__ = 'tri1@umbc.edu'
 #
 # This outputs the input model for global processing.
 
+import os
 import sys
-from json import dumps, loads
+import random
 import subprocess
+from json import dumps, loads
 
 import boringmatrix
 
@@ -51,7 +53,10 @@ def output_global_new_terms(results, output):
     aterms = {}
 
     out = []
-    path = "local.tmp.data"
+    random.seed()
+    
+    path = "%d.%d" % (random.getrandbits(random.randint(16, 57)),
+                      random.getrandbits(random.randint(16, 57)))
 
     for idx in range(0, len(skey)):
         count1 = 0
@@ -78,6 +83,8 @@ def output_global_new_terms(results, output):
     params += "q\n"
 
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
+    
+    os.remove(path)
 
 def output_global_entropy(entropies, output):
     """Output the basic global entropy chart."""
@@ -87,7 +94,10 @@ def output_global_entropy(entropies, output):
     end = skey[-1]
 
     out = []
-    path = "local.tmp.data"
+    random.seed()
+    
+    path = "%d.%d" % (random.getrandbits(random.randint(16, 57)),
+                      random.getrandbits(random.randint(16, 57)))
 
     for idx in range(0, len(skey)):
         out.append("%d %f" % (idx, entropies[skey[idx]]))
@@ -104,6 +114,8 @@ def output_global_entropy(entropies, output):
     params += "q\n"
 
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
+    
+    os.remove(path)
 
 def output_global_inverse_entropy_json(global_models, entropies, output, x):
     """Output the top values of the global bit, when inverse entropy is above X."""
@@ -134,7 +146,10 @@ def output_global_inverse_entropy(entropies, output):
     end = skey[-1]
 
     out = []
-    path = "local.tmp.data"
+    random.seed()
+    
+    path = "%d.%d" % (random.getrandbits(random.randint(16, 57)),
+                      random.getrandbits(random.randint(16, 57)))
 
     for idx in range(0, len(skey)):
         val = entropies[skey[idx]]
@@ -155,6 +170,8 @@ def output_global_inverse_entropy(entropies, output):
     params += "q\n"
 
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
+    
+    os.remove(path)
 
 def usage():
     """Print the massive usage information."""
@@ -250,8 +267,7 @@ def main():
         output_global_entropy(entropies,
                               "%s_global_entropy.eps" % output_name)
 
-        output_global_inverse_entropy(entropies,
-                                      "%s_inv_global_entropy.eps" % output_name)
+        output_global_inverse_entropy(entropies, "%s_inv_global_entropy.eps" % output_name)
         output_full_matrix(gterm_list,
                            global_views,
                            "%s_%s.csv" % (output_name, "global"))
@@ -260,7 +276,7 @@ def main():
                                            entropies,
                                            ".count",
                                            0.25)
-        
+
         output_global_new_terms(global_views,
                                 "%s_%s.eps" % (output_name, "global_newterms"))
     # --------------------------------------------------------------------------

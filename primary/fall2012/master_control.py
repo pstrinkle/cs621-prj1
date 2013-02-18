@@ -12,13 +12,10 @@ import random
 import sqlite3
 import subprocess
 from json import dumps, loads
-from operator import itemgetter
+
 from datetime import timedelta
 
 import boringmatrix
-
-sys.path.append("../modellib")
-import vectorspace
 
 NOTE_BEGINS = ("i495", "boston")
 TOP_TERM_CNT = 1000
@@ -168,14 +165,10 @@ def build_basic_model(stopwords_file,
 def usage():
     """Print the massive usage information."""
 
-    print "usage: %s -in <model_data> -out <output_file> [-short] [-gh] [-ftm] [-mtm] [-notes]" % sys.argv[0]
+    print "usage: %s -in <model_data> -out <output_file> [-short]" % sys.argv[0]
     print "usage: %s -out <output_file> -db <sqlite_db> [-sw <stopwords.in>] [-si <singletons.in>] -i <interval in seconds> [-step]" % sys.argv[0]
 
     print "-short - terms that appear more than once in at least one slice are used for any other things you output."
-    
-    print "-stm - output the matrix using the short list, forces short"
-    print "-frm - output full_term_matrix_out"
-    print "-mtm - output merged_term_matrix_out, uses stm for output, merges the two locations into one model for each t."
 
     print "\tmodel_data := don't build the model, this is a dictionary of BoringMatrix instances"
     print "\tsqlite_db := the input database."
@@ -206,11 +199,6 @@ def main():
     singletons_file = None
     interval = None
     build_model = False
-    graph_out = False
-    full_term_matrix_out = False
-    sfull_term_matrix_out = False
-    merged_term_matrix_out = False
-    notes_out = False
     step_intervals = False
     use_short_terms = False
 
@@ -230,19 +218,8 @@ def main():
                 singletons_file = sys.argv[idx + 1]
             elif "-i" == sys.argv[idx]:
                 interval = int(sys.argv[idx + 1])
-            elif "-gh" == sys.argv[idx]:
-                graph_out = True
-            elif "-ftm" == sys.argv[idx]:
-                full_term_matrix_out = True
             elif "-short" == sys.argv[idx]:
                 use_short_terms = True
-            elif "-stm" == sys.argv[idx]:
-                sfull_term_matrix_out = True
-                use_short_terms = True
-            elif "-mtm" == sys.argv[idx]:
-                merged_term_matrix_out = True
-            elif "-notes" == sys.argv[idx]:
-                notes_out = True
             elif "-step" == sys.argv[idx]:
                 step_intervals = True
     except IndexError:
@@ -265,8 +242,6 @@ def main():
                           step_intervals)
     else:
         # not building the model.
-        neato_out = []
-        vector_sums = {}
         count_cosine = {}
         weight_cosine = {}
         results = None
@@ -312,12 +287,6 @@ def main():
         #print greater_counts[NOTE_BEGINS[0]]
         #print greater_counts[NOTE_BEGINS[1]]
 
-        if full_term_matrix_out:
-            for note in NOTE_BEGINS:
-                boringmatrix.output_full_matrix(term_list,
-                                                results[note],
-                                                "%s_%s_full.csv" % (output_name, note))
-
         # ----------------------------------------------------------------------
         # Prune out low term counts; re-compute.
         if use_short_terms:
@@ -327,99 +296,28 @@ def main():
                     results[note][start].compute()
 
         # ----------------------------------------------------------------------
-        # Output a CSV with a model built from merging boston and i495 for each
-        # t.  Using the short list, or whatever is set.
-        if merged_term_matrix_out:
-            merged = {}
-            for start in results[NOTE_BEGINS[0]]:
-                x = boringmatrix.BoringMatrix(None)
-
-                for note in NOTE_BEGINS:
-                    for term in results[note][start].term_matrix:
-                        val = results[note][start].term_matrix[term]
-                        try:
-                            x.term_matrix[term] += val
-                        except KeyError:
-                            x.term_matrix[term] = val
-                        x.total_count += val
-
-                if use_short_terms:
-                    x.drop_not_in(sterm_list)
-
-                x.compute()
-                merged[start] = x
-
-            if use_short_terms:
-                boringmatrix.output_full_matrix(sterm_list,
-                                                merged,
-                                                "%s_%s.csv" % (output_name, "merged"))
-            else:
-                boringmatrix.output_full_matrix(term_list,
-                                                merged,
-                                                "%s_%s.csv" % (output_name, "merged"))
-
-        # ----------------------------------------------------------------------
-        # Output the matrices as CSVs... Hopefully as input to matlab.
-        if sfull_term_matrix_out:
-            for note in results:
-                boringmatrix.output_full_matrix(sterm_list,
-                                                results[note],
-                                                "%s_%s.csv" % (output_name, note))
-
-        # ----------------------------------------------------------------------
         # Compute the cosine similarities. 
         # YOU NEED TO CALL .compute() before this or you'll get garbage.
-        for start in results[NOTE_BEGINS[0]]:
-            vector_sums[int(start)] = \
-                vectorspace.cosine_compute(results[NOTE_BEGINS[0]][start].term_weights,
-                                           results[NOTE_BEGINS[1]][start].term_weights)
+        vector_sums = boringmatrix.get_vectorsums(results, NOTE_BEGINS)
+        
         # ----------------------------------------------------------------------
         # Compute the similarity and counts for the given models as well as the
         # entropy.
-        if graph_out:
-            for start in results[NOTE_BEGINS[0]]:
-                # These are identical... as they should be.  Really, I should be using these.
-                # Totally different than those above.
-                count_cosine[int(start)] = \
-                    boringmatrix.boring_count_similarity(results[NOTE_BEGINS[0]][start],
-                                                         results[NOTE_BEGINS[1]][start])
+        for start in results[NOTE_BEGINS[0]]:
+            # These are identical... as they should be.  Really, I should be using these.
+            # Totally different than those above.
+            count_cosine[int(start)] = \
+                boringmatrix.boring_count_similarity(results[NOTE_BEGINS[0]][start],
+                                                     results[NOTE_BEGINS[1]][start])
 
-                weight_cosine[int(start)] = \
-                    boringmatrix.boring_weight_similarity(results[NOTE_BEGINS[0]][start],
-                                                          results[NOTE_BEGINS[1]][start])
+            weight_cosine[int(start)] = \
+                boringmatrix.boring_weight_similarity(results[NOTE_BEGINS[0]][start],
+                                                      results[NOTE_BEGINS[1]][start])
             
-            # Consider using a few panes.
-            output_similarity_gnuplot(vector_sums,
-                                      "%s_%s.eps" % (output_name, "sims"))
-            output_similarity_gnuplot(count_cosine,
-                                      "%s_%s.eps" % (output_name, "sims_count"))
-            output_similarity_gnuplot(weight_cosine,
-                                      "%s_%s.eps" % (output_name, "sims_weight"))
-
-        # ----------------------------------------------------------------------
-        # 
-        if notes_out:
-            sorted_sums = sorted(vector_sums.items(),
-                                 key=itemgetter(1), # (1) is value
-                                 reverse=True)
-
-            for itempair in sorted_sums:
-                sorted_weights = sorted(boringmatrix.cooccurrence_weights(results[NOTE_BEGINS[0]][itempair[0]],
-                                                                          results[NOTE_BEGINS[1]][itempair[0]]).items(),
-                                        key=itemgetter(1),
-                                        reverse=True)
-
-                #wcnt = max(10, int(math.floor(len(sorted_weights) * 0.10)))
-                #wcnt = min(10, int(math.floor(len(sorted_weights) * 0.10)))
-                wcnt = min(10, len(sorted_weights))
-
-                neato_out.append((str(boringmatrix.datetime_from_long(itempair[0])),
-                                  itempair[1],
-                                  len(sorted_weights),
-                                  sorted_weights[0:wcnt]))
-
-            with open(output_name, 'w') as fout:
-                fout.write(dumps(neato_out, indent=4))
+        # Consider using a few panes.
+        output_similarity_gnuplot(vector_sums, "%s_%s.eps" % (output_name, "sims"))
+        output_similarity_gnuplot(count_cosine, "%s_%s.eps" % (output_name, "sims_count"))
+        output_similarity_gnuplot(weight_cosine, "%s_%s.eps" % (output_name, "sims_weight"))
 
     # --------------------------------------------------------------------------
     # Done.
