@@ -163,6 +163,8 @@ def main():
             resem_histogram[1.0] += 1
 
     print dumps(resem_histogram, indent=4)
+    
+    ## TODO: Make bar graph with gnuplot?
 
     #print sorted(
     #             resem_matrix.items(),

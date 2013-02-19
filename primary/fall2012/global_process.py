@@ -46,6 +46,7 @@ def build_gtermlist(global_views):
 def output_global_new_terms(results, output):
     """At each X, indicate on the Y axis how many new terms were introduced."""
 
+    title = "New Terms in Top-Level Hierarch Model per Interval"
     skey = sorted(results.keys())
     start = skey[0]
     end = skey[-1]
@@ -75,6 +76,7 @@ def output_global_new_terms(results, output):
 
     params = "set terminal postscript\n"
     params += "set output '%s'\n" % output
+    params += "set title '%s'\n" % title
     #params += "set log xy\n"
     params += "set xlabel 't'\n"
     params += "set ylabel 'new distinct terms'\n"
@@ -89,6 +91,7 @@ def output_global_new_terms(results, output):
 def output_global_entropy(entropies, output):
     """Output the basic global entropy chart."""
 
+    title = "Entropy of Top-Level Hierarch per Interval"
     skey = sorted(entropies.keys())
     start = skey[0]
     end = skey[-1]
@@ -107,6 +110,7 @@ def output_global_entropy(entropies, output):
 
     params = "set terminal postscript\n"
     params += "set output '%s'\n" % output
+    params += "set title '%s'\n" % title
     #params += "set log xy\n"
     params += "set xlabel 't'\n"
     params += "set ylabel 'entropy (nats)'\n"
@@ -141,6 +145,7 @@ def output_global_inverse_entropy_json(global_models, entropies, output, x):
 def output_global_inverse_entropy(entropies, output):
     """Output the basic global entropy chart."""
 
+    title = "1-Entropy of Top-Level Hierarch per Interval"
     skey = sorted(entropies.keys())
     start = skey[0]
     end = skey[-1]
@@ -163,6 +168,7 @@ def output_global_inverse_entropy(entropies, output):
 
     params = "set terminal postscript\n"
     params += "set output '%s'\n" % output
+    params += "set title '%s'\n" % title
     #params += "set log xy\n"
     params += "set xlabel 't'\n"
     params += "set ylabel '(1 - entropy) (nats)'\n"

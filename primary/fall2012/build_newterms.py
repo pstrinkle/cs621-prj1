@@ -39,6 +39,7 @@ NOTE_BEGINS = ("i495", "boston")
 def output_percentage_growth(results, output):
     """."""
 
+    title = "Percentage of Distinct New Terms per Interval"
     skey = sorted(results[NOTE_BEGINS[0]].keys())
     start = skey[0]
     end = skey[-1]
@@ -99,6 +100,7 @@ def output_percentage_growth(results, output):
 
     params = "set terminal postscript\n"
     params += "set output '%s'\n" % output
+    params += "set title '%s'\n" % title
     #params += "set log xy\n"
     params += "set xlabel 't'\n"
     params += "set ylabel 'percentage of terms in next interval not in previous'\n"
@@ -112,6 +114,7 @@ def output_percentage_growth(results, output):
 def output_new_terms(results, output):
     """At each X, indicate on the Y axis how many new terms were introduced."""
 
+    title = "Number of Distinct New Terms per Interval"
     skey = sorted(results[NOTE_BEGINS[0]].keys())
     start = skey[0]
     end = skey[-1]
@@ -149,6 +152,7 @@ def output_new_terms(results, output):
 
     params = "set terminal postscript\n"
     params += "set output '%s'\n" % output
+    params += "set title '%s'\n" % title
     params += "set log y\n"
     params += "set xlabel 't'\n"
     params += "set ylabel 'new distinct terms'\n"

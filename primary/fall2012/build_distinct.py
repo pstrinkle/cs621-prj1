@@ -23,6 +23,7 @@ def output_distinct_graphs(vector_a, vector_b, output):
     
     The vector_a is as such: vector[timestart]."""
     
+    title = "Number of Distinct Terms per Interval"
     skey = sorted(vector_a.keys())
     start = skey[0]
     end = skey[-1]
@@ -43,6 +44,7 @@ def output_distinct_graphs(vector_a, vector_b, output):
 
     params = "set terminal postscript\n"
     params += "set output '%s'\n" % output
+    params += "set title '%s'\n" % title
     #params += "set log xy\n"
     params += "set xlabel 't'\n"
     params += "set ylabel 'distinct terms'\n"

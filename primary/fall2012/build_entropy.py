@@ -26,6 +26,7 @@ TOP_TERM_CNT = 1000
 def output_basic_entropy(entropies, output):
     """Output the basic entropy chart."""
 
+    title = "Entropy of each Vector"
     skey = sorted(entropies[NOTE_BEGINS[0]].keys())
     start = skey[0]
     end = skey[-1]
@@ -46,6 +47,7 @@ def output_basic_entropy(entropies, output):
 
     params = "set terminal postscript\n"
     params += "set output '%s'\n" % output
+    params += "set title '%s'\n" % title
     #params += "set log xy\n"
     params += "set xlabel 't'\n"
     params += "set ylabel 'entropy scores'\n"
@@ -59,6 +61,7 @@ def output_basic_entropy(entropies, output):
 def output_inverse_entropy(entropies, output):
     """Output the basic entropy chart."""
 
+    title = "1-Entropy of each Vector"
     skey = sorted(entropies[NOTE_BEGINS[0]].keys())
     start = skey[0]
     end = skey[-1]
@@ -90,6 +93,7 @@ def output_inverse_entropy(entropies, output):
 
     params = "set terminal postscript\n"
     params += "set output '%s'\n" % output
+    params += "set title '%s'\n" % title
     #params += "set log xy\n"
     params += "set xlabel 't'\n"
     params += "set ylabel '(1 - entropy) scores'\n"
@@ -136,6 +140,7 @@ def output_top_model_entropy(results, entropies, output):
 def output_renyi_entropy(alpha, entropies, output):
     """Output the basic entropy chart."""
 
+    title = "Renyi Entropy of each Vector"
     skey = sorted(entropies[NOTE_BEGINS[0]].keys())
     start = skey[0]
     end = skey[-1]
@@ -156,6 +161,7 @@ def output_renyi_entropy(alpha, entropies, output):
 
     params = "set terminal postscript\n"
     params += "set output '%s'\n" % output
+    params += "set title '%s'\n" % title
     #params += "set log xy\n"
     params += "set xlabel 't'\n"
     params += "set ylabel 'renyi scores - %f'\n" % alpha

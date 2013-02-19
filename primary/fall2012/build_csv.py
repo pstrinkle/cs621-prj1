@@ -18,11 +18,14 @@ NOTE_BEGINS = ("i495", "boston")
 
 def usage():
     """Print the massive usage information."""
+    
+    usg = \
+    """usage: %s -in <model_data> -out <output_file> [-short] [-ftm] [-mtm]
+    -short - terms that appear more than once in at least one slice are used for any other things you output.
+    -frm - output full_term_matrix_out
+    -mtm - output merged_term_matrix_out, uses stm for output, merges the two locations into one model for each t."""
 
-    print "usage: %s -in <model_data> -out <output_file> [-short] [-ftm] [-mtm]" % sys.argv[0]
-    print "-short - terms that appear more than once in at least one slice are used for any other things you output."
-    print "-frm - output full_term_matrix_out"
-    print "-mtm - output merged_term_matrix_out, uses stm for output, merges the two locations into one model for each t."
+    print usg % sys.argv[0]
 
 def main():
     """."""
