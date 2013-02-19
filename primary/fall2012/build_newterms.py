@@ -36,7 +36,7 @@ import boringmatrix
 
 NOTE_BEGINS = ("i495", "boston")
 
-def output_percentage_growth(results, output):
+def output_percentage_growth(results, output, use_file_out = False):
     """."""
 
     title = "Percentage of Distinct New Terms per Interval"
@@ -97,9 +97,13 @@ def output_percentage_growth(results, output):
         
     with open(path, 'w') as fout:
         fout.write("\n".join(out))
+    
+    if use_file_out:
+        with open("%s.data" % output, 'w') as fout:
+            fout.write("\n".join(out))
 
     params = "set terminal postscript\n"
-    params += "set output '%s'\n" % output
+    params += "set output '%s.eps'\n" % output
     params += "set title '%s'\n" % title
     #params += "set log xy\n"
     params += "set xlabel 't'\n"
@@ -111,7 +115,7 @@ def output_percentage_growth(results, output):
     
     os.remove(path)
 
-def output_new_terms(results, output):
+def output_new_terms(results, output, use_file_out = False):
     """At each X, indicate on the Y axis how many new terms were introduced."""
 
     title = "Number of Distinct New Terms per Interval"
@@ -150,8 +154,12 @@ def output_new_terms(results, output):
     with open(path, 'w') as fout:
         fout.write("\n".join(out))
 
+    if use_file_out:
+        with open("%s.data" % output, 'w') as fout:
+            fout.write("\n".join(out))
+
     params = "set terminal postscript\n"
-    params += "set output '%s'\n" % output
+    params += "set output '%s.eps'\n" % output
     params += "set title '%s'\n" % title
     params += "set log y\n"
     params += "set xlabel 't'\n"
@@ -167,18 +175,20 @@ def output_new_terms(results, output):
 def usage():
     """Print the massive usage information."""
 
-    print "usage: %s -in <model_data> -out <output_file> [-short]" % sys.argv[0]
+    print "usage: %s -in <model_data> -out <output_file> [-short] [-file]" % sys.argv[0]
     print "-short - terms that appear more than once in at least one slice are used for any other things you output."
+    print "-file - output as a data file instead of running gnuplot."
 
 def main():
     """."""
 
     # Did they provide the correct args?
-    if len(sys.argv) < 5 or len(sys.argv) > 6:
+    if len(sys.argv) < 5 or len(sys.argv) > 7:
         usage()
         sys.exit(-1)
 
     use_short_terms = False
+    use_file_out = False
 
     # could use the stdargs parser, but that is meh.
     try:
@@ -189,6 +199,8 @@ def main():
                 output_name = sys.argv[idx + 1]
             elif "-short" == sys.argv[idx]:
                 use_short_terms = True
+            elif "-file" == sys.argv[idx]:
+                use_file_out = True
     except IndexError:
         usage()
         sys.exit(-2)
@@ -242,11 +254,11 @@ def main():
     #print timeit.timeit('output_new_terms(results, "%s_term_growth.eps" % output_name)', number=1)
 
     # output how many new terms you have at each interval.
-    output_new_terms(results, "%s_term_growth.eps" % output_name)
+    output_new_terms(results, "%s_term_growth" % output_name, use_file_out)
 
     # output the percentage of new terms at each interval, to show how 
     # worthless smoothing gets.
-    output_percentage_growth(results, "%s_percentage_new.eps" % output_name)
+    output_percentage_growth(results, "%s_percentage_new" % output_name, use_file_out)
 
     # --------------------------------------------------------------------------
     # Done.

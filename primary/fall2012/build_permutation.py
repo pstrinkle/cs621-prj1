@@ -112,6 +112,9 @@ def main():
                 sorted_indices_dict[str(indices)] += 1
             except KeyError:
                 sorted_indices_dict[str(indices)] = 1
+    
+    # Compare to the number of slices.
+    print "number of sorted indices: %d" % len(sorted_indices_dict)
 
     # --------------------------------------------------------------------------
     # Done.

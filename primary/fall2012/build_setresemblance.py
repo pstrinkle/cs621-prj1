@@ -130,39 +130,43 @@ def main():
             resem_matrix[i][j] = termset.set_resemblance(termSetsFull[i],
                                                          termSetsFull[j])
 
-    resem_values = []
+    resem_values = {}
     for i in resem_matrix:
         for j in resem_matrix[i]:
-            resem_values.append(resem_matrix[i][j])
+            try:
+                resem_values[resem_matrix[i][j]] += 1
+            except KeyError:
+                resem_values[resem_matrix[i][j]] = 1
 
     #print dumps(sorted(resem_values, reverse=True), indent=4)
 
     resem_histogram = {0.1 : 0, 0.2 : 0, 0.3 : 0, 0.4 : 0, 0.5 : 0,
                        0.6 : 0, 0.7 : 0, 0.8 : 0, 0.9 : 0, 1.0 : 0}
 
-    for value in resem_values:
+    for value in resem_values.keys():
         if value <= 0.1:
-            resem_histogram[0.1] += 1
+            resem_histogram[0.1] += resem_values[value]
         elif value <= 0.2:
-            resem_histogram[0.2] += 1
+            resem_histogram[0.2] += resem_values[value]
         elif value <= 0.3:
-            resem_histogram[0.3] += 1
+            resem_histogram[0.3] += resem_values[value]
         elif value <= 0.4:
-            resem_histogram[0.4] += 1
+            resem_histogram[0.4] += resem_values[value]
         elif value <= 0.5:
-            resem_histogram[0.5] += 1
+            resem_histogram[0.5] += resem_values[value]
         elif value <= 0.6:
-            resem_histogram[0.6] += 1
+            resem_histogram[0.6] += resem_values[value]
         elif value <= 0.7:
-            resem_histogram[0.7] += 1
+            resem_histogram[0.7] += resem_values[value]
         elif value <= 0.8:
-            resem_histogram[0.8] += 1
+            resem_histogram[0.8] += resem_values[value]
         elif value <= 0.9:
-            resem_histogram[0.9] += 1
+            resem_histogram[0.9] += resem_values[value]
         else:
-            resem_histogram[1.0] += 1
+            resem_histogram[1.0] += resem_values[value]
 
     print dumps(resem_histogram, indent=4)
+    print dumps(sorted(resem_histogram.keys()), indent=4)
     
     ## TODO: Make bar graph with gnuplot?
 
