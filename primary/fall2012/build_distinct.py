@@ -18,7 +18,7 @@ import boringmatrix
 
 NOTE_BEGINS = ("i495", "boston")
 
-def output_distinct_graphs(vector_a, vector_b, output):
+def output_distinct_graphs(vector_a, vector_b, output, use_file_out = False):
     """Prints a series of distinct term counts for each time interval.
     
     The vector_a is as such: vector[timestart]."""
@@ -42,8 +42,12 @@ def output_distinct_graphs(vector_a, vector_b, output):
     with open(path, 'w') as fout:
         fout.write("\n".join(out))
 
+    if use_file_out:
+        with open("%s.data" % output, 'w') as fout:
+            fout.write("\n".join(out))
+
     params = "set terminal postscript\n"
-    params += "set output '%s'\n" % output
+    params += "set output '%s.eps'\n" % output
     params += "set title '%s'\n" % title
     #params += "set log xy\n"
     params += "set xlabel 't'\n"
@@ -58,8 +62,9 @@ def output_distinct_graphs(vector_a, vector_b, output):
 def usage():
     """Print the massive usage information."""
 
-    print "usage: %s -in <model_data> -out <output_file> [-short]" % sys.argv[0]
+    print "usage: %s -in <model_data> -out <output_file> [-short] [-file]" % sys.argv[0]
     print "-short - terms that appear more than once in at least one slice are used for any other things you output."
+    print "-file - output as a data file instead of running gnuplot."
 
 def main():
     """."""
@@ -70,6 +75,7 @@ def main():
         sys.exit(-1)
 
     use_short_terms = False
+    use_file_out = False
 
     # could use the stdargs parser, but that is meh.
     try:
@@ -80,6 +86,8 @@ def main():
                 output_name = sys.argv[idx + 1]
             elif "-short" == sys.argv[idx]:
                 use_short_terms = True
+            elif "-file" == sys.argv[idx]:
+                use_file_out = True
     except IndexError:
         usage()
         sys.exit(-2)
@@ -131,7 +139,8 @@ def main():
 
     output_distinct_graphs(results[NOTE_BEGINS[0]],
                            results[NOTE_BEGINS[1]],
-                           "%s_distinct.eps" % (output_name))
+                           "%s_distinct" % (output_name),
+                           use_file_out)
 
     # --------------------------------------------------------------------------
     # Done.

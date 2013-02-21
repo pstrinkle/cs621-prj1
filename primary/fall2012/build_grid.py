@@ -1,44 +1,6 @@
 #! /usr/bin/python
 """Patrick Trinkle
 Fall 2012
-
-
-
-set terminal postscript eps color
-set output 'tmp.eps'
-unset key
-set log xy
-set xlabel 'km from centroid'
-set ylabel '# occurrences'
-
-set size 1,1
-set origin 0,0
-set multiplot
-
-set size 0.5,0.5
-set origin 0,0
-set title '(c)'
-plot '14069546_geo_distcnt.data'
-
-set size 0.5,0.5
-set origin 0.5,0
-set title '(d)'
-plot '32405545_geo_distcnt.data'
-
-set size 0.5,0.5
-set origin 0,0.5
-set title '(a)'
-plot '333453889_geo_distcnt.data'
-
-set size 0.5,0.5
-set origin 0.5,0.5
-set title '(b)'
-plot '35263_geo_distcnt.data'
-
-unset multiplot
-set term x11
-set output
-
 """
 
 __author__ = 'tri1@umbc.edu'
@@ -47,42 +9,107 @@ import sys
 import subprocess
 
 NOTE_BEGINS = ("i495", "boston")
+TOPLEFT = "topleft"
+TOPRIGHT = "topright"
+BOTTOMLEFT = "bottomleft"
+BOTTOMRIGHT = "bottomright"
+XLABEL = "xlabel"
+YLABEL = "ylabel"
 
-def new_terms(output, topleft, topright, bottomleft, bottomright):
-    """TL := top left, TR := top right, LL := lower left, LR := lower right
+NEWDISTINCT = "newdistinct"
+NEWPERCENTAGE = "newpercentage"
+DISTINCT = "distinct"
+
+inputs = {NEWDISTINCT : "new distinct terms",
+          NEWPERCENTAGE : "percentage of new distinct terms",
+          DISTINCT : "how many distinct terms per interval"}
+
+def dual_output(title, labels, ylog, output, paths):
+    """title : the title.
+    labels : dictionary of the labels
+    ylog : boolean, should we log scale Y?
+    output : the output path
+    paths : dictionary of the paths."""
     
-    Need to maybe work on titles."""
-    
-    title = "Number of Distinct New Terms per Interval"
-    
-    # distinct terms.
     params = "set terminal postscript eps color\n"
-    params += "set output '%s'\n" % output
-    params += "set log y\n"
-    params += "set xlabel 't'\n"
-    params += "set ylabel 'new distinct terms'\n"
+    params += "set output '%s.eps'\n" % output
+    if ylog:
+        params += "set log y\n"
+    params += "set xlabel '%s'\n" % labels[XLABEL]
+    params += "set ylabel '%s'\n" % labels[YLABEL]
+
+    params += "set size 1,0.55\n"
+    params += "set origin 0,0\n"
+    params += "set multiplot \n"
+    params += "set tmargin 2\n"
+
+    # top left
+    params += "set size 0.5,0.5\n"
+    params += "set origin 0,0\n"
+    params += "set title '(a)'\n"
+    params += "plot '%s' using 1:2 t '%s' lc rgb 'red', " \
+        % (paths[TOPLEFT], NOTE_BEGINS[0])
+    params += "'%s' using 1:3 t '%s' lc rgb 'blue'\n" \
+        % (paths[TOPLEFT], NOTE_BEGINS[1])
+
+    params += "set label '%s' at screen 0.5,0.5 center front\n" % title
+
+    # top right
+    params += "set size 0.5,0.5\n"
+    params += "set origin 0.5,0\n"
+    params += "set title '(b)'\n"
+    params += "plot '%s' using 1:2 t '%s' lc rgb 'red', " \
+        % (paths[TOPRIGHT], NOTE_BEGINS[0])
+    params += "'%s' using 1:3 t '%s' lc rgb 'blue'\n" \
+        % (paths[TOPRIGHT], NOTE_BEGINS[1])
+
+    params += "q\n"
+    
+    subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
+
+def quad_output(title, labels, ylog, output, paths):
+    """title : the title.
+    labels : dictionary of the labels
+    ylog : boolean, should we log scale Y?
+    output : the output path
+    paths : dictionary of the paths."""
+    
+    params = "set terminal postscript eps color\n"
+    params += "set output '%s.eps'\n" % output
+    if ylog:
+        params += "set log y\n"
+    params += "set xlabel '%s'\n" % labels[XLABEL]
+    params += "set ylabel '%s'\n" % labels[YLABEL]
     params += "set multiplot layout 2,2 title '%s'\n" % title
     params += "set tmargin 2\n"
 
     # top left
     params += "set title '(a)'\n"
-    params += "plot '%s' using 1:2 t '%s' lc rgb 'red', " % (topleft, NOTE_BEGINS[0])
-    params += "'%s' using 1:3 t '%s' lc rgb 'blue'\n" % (topleft, NOTE_BEGINS[1])
+    params += "plot '%s' using 1:2 t '%s' lc rgb 'red', " \
+        % (paths[TOPLEFT], NOTE_BEGINS[0])
+    params += "'%s' using 1:3 t '%s' lc rgb 'blue'\n" \
+        % (paths[TOPLEFT], NOTE_BEGINS[1])
 
     # top right
     params += "set title '(b)'\n"
-    params += "plot '%s' using 1:2 t '%s' lc rgb 'red', " % (topright, NOTE_BEGINS[0])
-    params += "'%s' using 1:3 t '%s' lc rgb 'blue'\n" % (topright, NOTE_BEGINS[1])
+    params += "plot '%s' using 1:2 t '%s' lc rgb 'red', " \
+        % (paths[TOPRIGHT], NOTE_BEGINS[0])
+    params += "'%s' using 1:3 t '%s' lc rgb 'blue'\n" \
+        % (paths[TOPRIGHT], NOTE_BEGINS[1])
 
     # bottom left
     params += "set title '(c)'\n"
-    params += "plot '%s' using 1:2 t '%s' lc rgb 'red', " % (bottomleft, NOTE_BEGINS[0])
-    params += "'%s' using 1:3 t '%s' lc rgb 'blue'\n" % (bottomleft, NOTE_BEGINS[1])
+    params += "plot '%s' using 1:2 t '%s' lc rgb 'red', " \
+        % (paths[BOTTOMLEFT], NOTE_BEGINS[0])
+    params += "'%s' using 1:3 t '%s' lc rgb 'blue'\n" \
+        % (paths[BOTTOMLEFT], NOTE_BEGINS[1])
 
     # bottom right
     params += "set title '(d)'\n"
-    params += "plot '%s' using 1:2 t '%s' lc rgb 'red', " % (bottomright, NOTE_BEGINS[0])
-    params += "'%s' using 1:3 t '%s' lc rgb 'blue'\n" % (bottomright, NOTE_BEGINS[1])
+    params += "plot '%s' using 1:2 t '%s' lc rgb 'red', " \
+        % (paths[BOTTOMRIGHT], NOTE_BEGINS[0])
+    params += "'%s' using 1:3 t '%s' lc rgb 'blue'\n" \
+        % (paths[BOTTOMRIGHT], NOTE_BEGINS[1])
 
     params += "q\n"
     
@@ -96,25 +123,42 @@ def usage():
 -tl <topleft> -tr <topright> \
 -bl <bottomleft> -br <bottomright>
 
+-type the type you want to output
+-out the output path and name, leave off eps
 
-newdistinct as type for outputing new distinct terms."""
+For a 2-tile grid, supply only topleft and topright, otherwise supply all four.
+
+types:
+"""
     sys.stderr.write(usg % sys.argv[0])
+    
+    for value in inputs:
+        sys.stderr.write("\t%s as type for outputing %s.\n" \
+                         % (value, inputs[value]))
 
 def main():
     """."""
     
     # Did they provide the correct args?
-    if len(sys.argv) != 13:
+    if len(sys.argv) < 9 or len(sys.argv) > 13:
         usage()
         sys.exit(-1)
     
-    topleft = None
-    topright = None
-    bottomleft = None
-    bottomright = None
+    paths = {}
+    titles = {NEWDISTINCT : "Number of Distinct New Terms per Interval",
+              NEWPERCENTAGE : "Percentage of Distinct New Terms per Interval",
+              DISTINCT : "Number of Distinct Terms per Interval"}
+
+    labelsets = {NEWDISTINCT : {XLABEL : "t",
+                                YLABEL : "new distinct terms"},
+                 NEWPERCENTAGE : {XLABEL : "t",
+                                  YLABEL : "percentage of new terms"},
+                 DISTINCT : {XLABEL : "t",
+                             YLABEL : "distinct terms"}}
+
     output_type = None
     output = None
-
+    
     # could use the stdargs parser, but that is meh.
     try:
         for idx in range(1, len(sys.argv)):
@@ -122,14 +166,14 @@ def main():
                 output_type = sys.argv[idx + 1]
             if "-out" == sys.argv[idx]:
                 output = sys.argv[idx + 1]
-            if "-tl" == sys.argv[idx]:
-                topleft = sys.argv[idx + 1]
+            if "-tl" == sys.argv[idx]: 
+                paths[TOPLEFT] = sys.argv[idx + 1]
             elif "-tr" == sys.argv[idx]:
-                topright = sys.argv[idx + 1]
+                paths[TOPRIGHT] = sys.argv[idx + 1]
             elif "-bl" == sys.argv[idx]:
-                bottomleft = sys.argv[idx + 1]
+                paths[BOTTOMLEFT] = sys.argv[idx + 1]
             elif "-br" == sys.argv[idx]:
-                bottomright = sys.argv[idx + 1]
+                paths[BOTTOMRIGHT] = sys.argv[idx + 1]
     except IndexError:
         usage()
         sys.exit(-2)
@@ -142,19 +186,28 @@ def main():
         usage()
         sys.exit(-1)
 
-    if topleft is None or topright is None:
+    if len(paths) != 2 and len(paths) != 4:
         usage()
         sys.exit(-1)
-    
-    if bottomleft is None or bottomright is None:
+
+    # if you provided the wrong input, you'll get a KeyError exception.
+
+    try:
+        title = titles[output_type]
+        labels = labelsets[output_type]
+    except KeyError:
         usage()
         sys.exit(-1)
-    
-    if output_type == "newdistinct":
-        new_terms(output, topleft, topright, bottomleft, bottomright)
+
+    logy = False
+
+    if output_type == NEWDISTINCT:
+        logy = True
+
+    if len(paths) == 2:
+        dual_output(title, labels, logy, output, paths)
     else:
-        usage()
-        sys.exit(-1)
+        quad_output(title, labels, logy, output, paths)
 
     # --------------------------------------------------------------------------
     # Done.

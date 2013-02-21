@@ -162,6 +162,8 @@ def build_basic_model(stopwords_file,
         # fout.write(dumps(results.items(), cls=BoringMatrixEncoder, sort_keys=True, indent=4))
         fout.write(dumps(results, cls=boringmatrix.BoringMatrixEncoder, sort_keys=True, indent=4))
 
+    print "Finished Building Model over Range."
+
 def usage():
     """Print the massive usage information."""
 
