@@ -19,7 +19,6 @@ sys.path.append("../modellib")
 import vectorspace
 
 NOTE_BEGINS = ("i495", "boston")
-TOP_TERM_CNT = 1000
 
 def output_full_matrix(terms, vectors, output):
     """Output the vectors over the terms, this is for each t for a specific 
@@ -43,10 +42,47 @@ def build_gtermlist(global_views):
     
     return sorted(terms.keys())
 
-def output_global_new_terms(results, output):
+def output_distinct_graphs(results, output, use_file_out = False):
+    """Prints a series of distinct term counts for each time interval."""
+
+    title = "Number of Distinct Terms in Top-Level Hierarchical per Interval"
+    skey = sorted(results.keys())
+    start = skey[0]
+    end = skey[-1]
+
+    out = []
+    random.seed()
+    
+    path = "%d.%d" % (random.getrandbits(random.randint(16, 57)),
+                      random.getrandbits(random.randint(16, 57)))
+
+    for idx in range(0, len(skey)):
+        out.append("%d %d" % (idx, len(results[skey[idx]].term_matrix)))
+
+    with open(path, 'w') as fout:
+        fout.write("\n".join(out))
+
+    if use_file_out:
+        with open("%s.data" % output, 'w') as fout:
+            fout.write("\n".join(out))
+
+    params = "set terminal postscript\n"
+    params += "set output '%s.eps'\n" % output
+    params += "set title '%s'\n" % title
+    params += "set xlabel 't'\n"
+    params += "set ylabel 'distinct terms'\n"
+    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red'\n" % (path, 'global', start, end)
+    params += "q\n"
+
+    subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
+    
+    os.remove(path)
+    
+
+def output_global_new_terms(results, output, use_file_out = False):
     """At each X, indicate on the Y axis how many new terms were introduced."""
 
-    title = "New Terms in Top-Level Hierarch Model per Interval"
+    title = "New Terms in Top-Level Hierarchical Model per Interval"
     skey = sorted(results.keys())
     start = skey[0]
     end = skey[-1]
@@ -74,13 +110,15 @@ def output_global_new_terms(results, output):
     with open(path, 'w') as fout:
         fout.write("\n".join(out))
 
+    if use_file_out:
+        with open("%s.data" % output, 'w') as fout:
+            fout.write("\n".join(out))
+
     params = "set terminal postscript\n"
-    params += "set output '%s'\n" % output
+    params += "set output '%s.eps'\n" % output
     params += "set title '%s'\n" % title
-    #params += "set log xy\n"
     params += "set xlabel 't'\n"
     params += "set ylabel 'new distinct terms'\n"
-    #params += "plot '%s' t '%s: %d - %d'\n" % (path, graph_title, start, end)
     params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red'\n" % (path, 'global', start, end)
     params += "q\n"
 
@@ -88,7 +126,7 @@ def output_global_new_terms(results, output):
     
     os.remove(path)
 
-def output_global_entropy(entropies, output):
+def output_global_entropy(entropies, output, use_file_out = False):
     """Output the basic global entropy chart."""
 
     title = "Entropy of Top-Level Hierarch per Interval"
@@ -108,10 +146,13 @@ def output_global_entropy(entropies, output):
     with open(path, 'w') as fout:
         fout.write("\n".join(out))
 
+    if use_file_out:
+        with open("%s.data" % output, 'w') as fout:
+            fout.write("\n".join(out))
+
     params = "set terminal postscript\n"
-    params += "set output '%s'\n" % output
+    params += "set output '%s.eps'\n" % output
     params += "set title '%s'\n" % title
-    #params += "set log xy\n"
     params += "set xlabel 't'\n"
     params += "set ylabel 'entropy (nats)'\n"
     params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red'\n" % (path, "global", start, end)
@@ -128,6 +169,8 @@ def output_global_inverse_entropy_json(global_models, entropies, output, x):
     start = skey[0]
     end = skey[-1]
     
+    output_model = {}
+    
     for key in skey:
         val = entropies[key]
         if val > 0.0:
@@ -136,13 +179,12 @@ def output_global_inverse_entropy_json(global_models, entropies, output, x):
                 print "%d - %f" % (key, inv)
                 print "%d - %d" % (key, global_models[key].total_count)
 
-        print "%d - " % key,
-        print vectorspace.top_terms(global_models[key].term_weights, 10)
+        output_model[skey[idx]] = vectorspace.top_terms(global_models[key].term_weights, 10)
 
-#     with open(output, 'w') as fout:
-#         fout.write(dumps(output_model, indent=4))
+    with open(output, 'w') as fout:
+        fout.write(dumps(output_model, indent=4))
 
-def output_global_inverse_entropy(entropies, output):
+def output_global_inverse_entropy(entropies, output, use_file_out = False):
     """Output the basic global entropy chart."""
 
     title = "1-Entropy of Top-Level Hierarch per Interval"
@@ -166,10 +208,13 @@ def output_global_inverse_entropy(entropies, output):
     with open(path, 'w') as fout:
         fout.write("\n".join(out))
 
+    if use_file_out:
+        with open("%s.data" % output, 'w') as fout:
+            fout.write("\n".join(out))
+
     params = "set terminal postscript\n"
-    params += "set output '%s'\n" % output
+    params += "set output '%s.eps'\n" % output
     params += "set title '%s'\n" % title
-    #params += "set log xy\n"
     params += "set xlabel 't'\n"
     params += "set ylabel '(1 - entropy) (nats)'\n"
     params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red'\n" % (path, "global", start, end)
@@ -182,19 +227,22 @@ def output_global_inverse_entropy(entropies, output):
 def usage():
     """Print the massive usage information."""
 
-    print "usage: %s -in <model_data> -out <output_file> [-short]" % sys.argv[0]
+    print "usage: %s -in <model_data> -out <output_file> [-short] [-file] [-json]" % sys.argv[0]
     print "-short - terms that appear more than once in at least one slice are used for any other things you output."
+    print "-file - output as a data file instead of running gnuplot."
 
 def main():
     """."""
 
     # Did they provide the correct args?
-    if len(sys.argv) < 5 or len(sys.argv) > 6:
+    if len(sys.argv) < 5 or len(sys.argv) > 8:
         usage()
         sys.exit(-1)
 
-    global_out = True
     use_short_terms = False
+    use_file_out = False
+    output_json = False
+    output_matrix = False
 
     # could use the stdargs parser, but that is meh.
     try:
@@ -205,6 +253,12 @@ def main():
                 output_name = sys.argv[idx + 1]
             elif "-short" == sys.argv[idx]:
                 use_short_terms = True
+            elif "-file" == sys.argv[idx]:
+                use_file_out = True
+            elif "-json" == sys.argv[idx]:
+                output_json = True
+            elif "-matrix" == sys.argv[idx]:
+                output_matrix = True
     except IndexError:
         usage()
         sys.exit(-2)
@@ -271,16 +325,17 @@ def main():
 
     gterm_list = build_gtermlist(global_views)
 
-    output_full_matrix(gterm_list, global_views, "%s_%s.csv" % (output_name, "global"))
+    output_distinct_graphs(global_views, "%s_%s" % (output_name, "global_distinct"), use_file_out)
+    output_global_new_terms(global_views, "%s_%s" % (output_name, "global_newterms"), use_file_out)
 
-    output_global_entropy(entropies, "%s_global_entropy.eps" % output_name)
-    output_global_inverse_entropy(entropies, "%s_inv_global_entropy.eps" % output_name)
-    
-    
-            
-    output_global_inverse_entropy_json(global_views, entropies, ".count", 0.25)
+    output_global_entropy(entropies, "%s_global_entropy" % output_name, use_file_out)
+    output_global_inverse_entropy(entropies, "%s_inv_global_entropy" % output_name, use_file_out)
 
-    output_global_new_terms(global_views, "%s_%s.eps" % (output_name, "global_newterms"))
+    if output_matrix:
+        output_full_matrix(gterm_list, global_views, "%s_%s.csv" % (output_name, "global"))
+
+    if output_json:
+        output_global_inverse_entropy_json(global_views, entropies, "%s.json" % output_name, 0.25)
 
     # --------------------------------------------------------------------------
     # Done.

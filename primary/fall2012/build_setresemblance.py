@@ -139,6 +139,8 @@ def main():
                 resem_values[resem_matrix[i][j]] = 1
 
     #print dumps(sorted(resem_values, reverse=True), indent=4)
+    
+    print "Resemblance Values Computed"
 
     resem_histogram = {0.1 : 0, 0.2 : 0, 0.3 : 0, 0.4 : 0, 0.5 : 0,
                        0.6 : 0, 0.7 : 0, 0.8 : 0, 0.9 : 0, 1.0 : 0}
@@ -166,7 +168,6 @@ def main():
             resem_histogram[1.0] += resem_values[value]
 
     print dumps(resem_histogram, indent=4)
-    print dumps(sorted(resem_histogram.keys()), indent=4)
     
     ## TODO: Make bar graph with gnuplot?
 

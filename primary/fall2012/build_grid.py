@@ -19,10 +19,18 @@ YLABEL = "ylabel"
 NEWDISTINCT = "newdistinct"
 NEWPERCENTAGE = "newpercentage"
 DISTINCT = "distinct"
+INVENTROPY = "inventropy"
+GNEWDISTINCT = "gnewdistinct"
+GDISTINCT = "gdistinct"
+GINVENTROPY = "ginventropy"
 
 inputs = {NEWDISTINCT : "new distinct terms",
           NEWPERCENTAGE : "percentage of new distinct terms",
-          DISTINCT : "how many distinct terms per interval"}
+          DISTINCT : "how many distinct terms per interval",
+          INVENTROPY : "the entropy score of each model subtracted from 1",
+          GNEWDISTINCT : "how many new distinct terms per interval, top level hierarch",
+          GDISTINCT : "how many distinct terms per interval, top level hierarch",
+          GINVENTROPY : "the global entropy score of each model subtracted from 1"}
 
 def dual_output(title, labels, ylog, output, paths):
     """title : the title.
@@ -62,6 +70,43 @@ def dual_output(title, labels, ylog, output, paths):
         % (paths[TOPRIGHT], NOTE_BEGINS[0])
     params += "'%s' using 1:3 t '%s' lc rgb 'blue'\n" \
         % (paths[TOPRIGHT], NOTE_BEGINS[1])
+
+    params += "q\n"
+    
+    subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
+
+def dual_output_single(title, labels, ylog, output, paths):
+    """title : the title.
+    labels : dictionary of the labels
+    ylog : boolean, should we log scale Y?
+    output : the output path
+    paths : dictionary of the paths."""
+    
+    params = "set terminal postscript eps color\n"
+    params += "set output '%s.eps'\n" % output
+    if ylog:
+        params += "set log y\n"
+    params += "set xlabel '%s'\n" % labels[XLABEL]
+    params += "set ylabel '%s'\n" % labels[YLABEL]
+
+    params += "set size 1,0.55\n"
+    params += "set origin 0,0\n"
+    params += "set multiplot \n"
+    params += "set tmargin 2\n"
+
+    # top left
+    params += "set size 0.5,0.5\n"
+    params += "set origin 0,0\n"
+    params += "set title '(a)'\n"
+    params += "plot '%s' using 1:2 t '%s' lc rgb 'red'\n" % (paths[TOPLEFT], 'global')
+
+    params += "set label '%s' at screen 0.5,0.5 center front\n" % title
+
+    # top right
+    params += "set size 0.5,0.5\n"
+    params += "set origin 0.5,0\n"
+    params += "set title '(b)'\n"
+    params += "plot '%s' using 1:2 t '%s' lc rgb 'red'\n" % (paths[TOPRIGHT], 'global')
 
     params += "q\n"
     
@@ -115,16 +160,57 @@ def quad_output(title, labels, ylog, output, paths):
     
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
 
+def quad_output_single(title, labels, ylog, output, paths):
+    """title : the title.
+    labels : dictionary of the labels
+    ylog : boolean, should we log scale Y?
+    output : the output path
+    paths : dictionary of the paths."""
+    
+    params = "set terminal postscript eps color\n"
+    params += "set output '%s.eps'\n" % output
+    if ylog:
+        params += "set log y\n"
+    params += "set xlabel '%s'\n" % labels[XLABEL]
+    params += "set ylabel '%s'\n" % labels[YLABEL]
+    params += "set multiplot layout 2,2 title '%s'\n" % title
+    params += "set tmargin 2\n"
+
+    # top left
+    params += "set title '(a)'\n"
+    params += "plot '%s' using 1:2 t '%s' lc rgb 'red'\n" \
+        % (paths[TOPLEFT], 'global')
+
+    # top right
+    params += "set title '(b)'\n"
+    params += "plot '%s' using 1:2 t '%s' lc rgb 'red'\n" \
+        % (paths[TOPRIGHT], 'global')
+
+    # bottom left
+    params += "set title '(c)'\n"
+    params += "plot '%s' using 1:2 t '%s' lc rgb 'red'\n" \
+        % (paths[BOTTOMLEFT], 'global')
+
+    # bottom right
+    params += "set title '(d)'\n"
+    params += "plot '%s' using 1:2 t '%s' lc rgb 'red'\n" \
+        % (paths[BOTTOMRIGHT], 'global')
+
+    params += "q\n"
+    
+    subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
+
 def usage():
     """Print the massive usage information."""
 
     usg = \
-"""usage: %s -type <type> -out <output> \
+"""usage: %s -type <type> -out <output> [-globals] \
 -tl <topleft> -tr <topright> \
 -bl <bottomleft> -br <bottomright>
 
 -type the type you want to output
 -out the output path and name, leave off eps
+-globals we're outputing global lines, so use quad_single().
 
 For a 2-tile grid, supply only topleft and topright, otherwise supply all four.
 
@@ -140,24 +226,37 @@ def main():
     """."""
     
     # Did they provide the correct args?
-    if len(sys.argv) < 9 or len(sys.argv) > 13:
+    if len(sys.argv) < 9 or len(sys.argv) > 14:
         usage()
         sys.exit(-1)
-    
+
     paths = {}
-    titles = {NEWDISTINCT : "Number of Distinct New Terms per Interval",
+    titles = {NEWDISTINCT : "Distinct New Terms per Interval",
               NEWPERCENTAGE : "Percentage of Distinct New Terms per Interval",
-              DISTINCT : "Number of Distinct Terms per Interval"}
+              DISTINCT : "Distinct Terms per Interval",
+              INVENTROPY : "1-Entropy per Interval",
+              GNEWDISTINCT : "New Terms in Top-Level Hierarchical Model per Interval",
+              GDISTINCT : "Distinct Terms in Top-Level Hierarchical per Interval",
+              GINVENTROPY : "1-Entropy of Top-Level Hierarchical per Interval"}
 
     labelsets = {NEWDISTINCT : {XLABEL : "t",
                                 YLABEL : "new distinct terms"},
                  NEWPERCENTAGE : {XLABEL : "t",
                                   YLABEL : "percentage of new terms"},
                  DISTINCT : {XLABEL : "t",
-                             YLABEL : "distinct terms"}}
+                             YLABEL : "distinct terms"},
+                 INVENTROPY : {XLABEL : "t",
+                               YLABEL : "nats"},
+                 GNEWDISTINCT : {XLABEL : "t",
+                                 YLABEL : "new distinct terms"},
+                 GDISTINCT : {XLABEL : "t",
+                              YLABEL : "distinct terms"},
+                 GINVENTROPY : {XLABEL : "t",
+                                YLABEL : "nats"}}
 
     output_type = None
     output = None
+    use_single_out = False
     
     # could use the stdargs parser, but that is meh.
     try:
@@ -166,6 +265,8 @@ def main():
                 output_type = sys.argv[idx + 1]
             if "-out" == sys.argv[idx]:
                 output = sys.argv[idx + 1]
+            if "-globals" == sys.argv[idx]:
+                use_single_out = True
             if "-tl" == sys.argv[idx]: 
                 paths[TOPLEFT] = sys.argv[idx + 1]
             elif "-tr" == sys.argv[idx]:
@@ -205,9 +306,15 @@ def main():
         logy = True
 
     if len(paths) == 2:
-        dual_output(title, labels, logy, output, paths)
+        if use_single_out:
+            dual_output_single(title, labels, logy, output, paths)
+        else:
+            dual_output(title, labels, logy, output, paths)
     else:
-        quad_output(title, labels, logy, output, paths)
+        if use_single_out:
+            quad_output_single(title, labels, logy, output, paths)
+        else:
+            quad_output(title, labels, logy, output, paths)
 
     # --------------------------------------------------------------------------
     # Done.

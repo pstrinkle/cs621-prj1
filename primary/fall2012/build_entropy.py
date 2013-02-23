@@ -23,7 +23,7 @@ import vectorspace
 NOTE_BEGINS = ("i495", "boston")
 TOP_TERM_CNT = 1000
 
-def output_basic_entropy(entropies, output):
+def output_basic_entropy(entropies, output, use_file_out = False):
     """Output the basic entropy chart."""
 
     title = "Entropy of each Vector"
@@ -45,8 +45,12 @@ def output_basic_entropy(entropies, output):
     with open(path, 'w') as fout:
         fout.write("\n".join(out))
 
+    if use_file_out:
+        with open("%s.data" % output, 'w') as fout:
+            fout.write("\n".join(out))
+
     params = "set terminal postscript\n"
-    params += "set output '%s'\n" % output
+    params += "set output '%s.eps'\n" % output
     params += "set title '%s'\n" % title
     #params += "set log xy\n"
     params += "set xlabel 't'\n"
@@ -58,7 +62,7 @@ def output_basic_entropy(entropies, output):
     
     os.remove(path)
 
-def output_inverse_entropy(entropies, output):
+def output_inverse_entropy(entropies, output, use_file_out = False):
     """Output the basic entropy chart."""
 
     title = "1-Entropy of each Vector"
@@ -91,10 +95,13 @@ def output_inverse_entropy(entropies, output):
     with open(path, 'w') as fout:
         fout.write("\n".join(out))
 
+    if use_file_out:
+        with open("%s.data" % output, 'w') as fout:
+            fout.write("\n".join(out))
+
     params = "set terminal postscript\n"
-    params += "set output '%s'\n" % output
+    params += "set output '%s.eps'\n" % output
     params += "set title '%s'\n" % title
-    #params += "set log xy\n"
     params += "set xlabel 't'\n"
     params += "set ylabel '(1 - entropy) scores'\n"
     params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', '%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" % (path, NOTE_BEGINS[0], start, end, path, NOTE_BEGINS[1], start, end)
@@ -137,7 +144,7 @@ def output_top_model_entropy(results, entropies, output):
 
 
 #### Unused
-def output_renyi_entropy(alpha, entropies, output):
+def output_renyi_entropy(alpha, entropies, output, use_file_out = False):
     """Output the basic entropy chart."""
 
     title = "Renyi Entropy of each Vector"
@@ -159,8 +166,12 @@ def output_renyi_entropy(alpha, entropies, output):
     with open(path, 'w') as fout:
         fout.write("\n".join(out))
 
+    if use_file_out:
+        with open("%s.data" % output, 'w') as fout:
+            fout.write("\n".join(out))
+
     params = "set terminal postscript\n"
-    params += "set output '%s'\n" % output
+    params += "set output '%s.eps'\n" % output
     params += "set title '%s'\n" % title
     #params += "set log xy\n"
     params += "set xlabel 't'\n"
@@ -191,19 +202,22 @@ def renyi_entropy(boring_a, alpha):
 def usage():
     """Print the massive usage information."""
 
-    print "usage: %s -in <model_data> -out <output_file> [-short]" % sys.argv[0]
+    print "usage: %s -in <model_data> -out <output_file> [-short] [-renyi] [-file] [-json]" % sys.argv[0]
     print "-short - terms that appear more than once in at least one slice are used for any other things you output."
-
+    print "-file - output as a data file instead of running gnuplot."
 
 def main():
     """."""
 
     # Did they provide the correct args?
-    if len(sys.argv) < 5 or len(sys.argv) > 6:
+    if len(sys.argv) < 5 or len(sys.argv) > 9:
         usage()
         sys.exit(-1)
 
     use_short_terms = False
+    use_file_out = False
+    use_renyi = False
+    output_json = False
 
     # could use the stdargs parser, but that is meh.
     try:
@@ -212,8 +226,14 @@ def main():
                 model_file = sys.argv[idx + 1]
             elif "-out" == sys.argv[idx]:
                 output_name = sys.argv[idx + 1]
+            elif "-renyi" == sys.argv[idx]:
+                use_renyi = True
             elif "-short" == sys.argv[idx]:
                 use_short_terms = True
+            elif "-file" == sys.argv[idx]:
+                use_file_out = True
+            elif "-json" == sys.argv[idx]:
+                output_json = True
     except IndexError:
         usage()
         sys.exit(-2)
@@ -273,17 +293,20 @@ def main():
         entropies[NOTE_BEGINS[0]][start] = boringmatrix.basic_entropy(results[NOTE_BEGINS[0]][start])
         entropies[NOTE_BEGINS[1]][start] = boringmatrix.basic_entropy(results[NOTE_BEGINS[1]][start])
 
-    output_basic_entropy(entropies, "%s_entropy.eps" % output_name)
-    output_inverse_entropy(entropies, "%s_inv_entropy.eps" % output_name)
-    output_top_model_entropy(results, entropies, "%s_top_models.json" % output_name)
+    output_basic_entropy(entropies, "%s_entropy" % output_name, use_file_out)
+    output_inverse_entropy(entropies, "%s_inv_entropy" % output_name, use_file_out)
+    
+    if output_json:
+        output_top_model_entropy(results, entropies, "%s_top_models.json" % output_name)
 
-    for alpha in (0.10, 0.25, 0.5, 0.75):
-        renyi = {NOTE_BEGINS[0] : {}, NOTE_BEGINS[1] : {}}
+    if use_renyi:
+        for alpha in (0.10, 0.25, 0.5, 0.75):
+            renyi = {NOTE_BEGINS[0] : {}, NOTE_BEGINS[1] : {}}
 
-        for start in results[NOTE_BEGINS[0]]:
-            renyi[NOTE_BEGINS[0]][start] = renyi_entropy(results[NOTE_BEGINS[0]][start], alpha)
-            renyi[NOTE_BEGINS[1]][start] = renyi_entropy(results[NOTE_BEGINS[1]][start], alpha)
-        output_basic_entropy(renyi, "%s_renyi-%f.eps" % (output_name, alpha))
+            for start in results[NOTE_BEGINS[0]]:
+                renyi[NOTE_BEGINS[0]][start] = renyi_entropy(results[NOTE_BEGINS[0]][start], alpha)
+                renyi[NOTE_BEGINS[1]][start] = renyi_entropy(results[NOTE_BEGINS[1]][start], alpha)
+            output_basic_entropy(renyi, "%s_renyi-%f" % (output_name, alpha), use_file_out)
 
     # --------------------------------------------------------------------------
     # Done.

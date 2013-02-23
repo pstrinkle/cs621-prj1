@@ -5,7 +5,8 @@ __author__ = 'tri1@umbc.edu'
 # Patrick Trinkle
 # Fall 2012
 #
-# This outputs the distinct terms per interval.
+# This outputs variations in the number of terms whose frequency is greater 
+# than some specified parameter.
 #
 
 import os
@@ -18,12 +19,26 @@ import boringmatrix
 
 NOTE_BEGINS = ("i495", "boston")
 
-def output_distinct_graphs(vector_a, vector_b, output, use_file_out = False):
+def number_greater_than(term_matrix, base_value):
+    """The matrix of terms to search, and the value they must be greater than.
+    
+    The parameter name 'minimum' is therefore misleading.
+    """
+
+    count = 0
+
+    for value in term_matrix.values():
+        if value > base_value:
+            count += 1
+
+    return count
+
+def output_count_graphs(vector_a, vector_b, output, value, use_file_out = False):
     """Prints a series of distinct term counts for each time interval.
     
     The vector_a is as such: vector[timestart]."""
     
-    title = "Number of Distinct Terms per Interval"
+    title = "Number of Terms w/ Freq > %d per Interval" % value
     skey = sorted(vector_a.keys())
     start = skey[0]
     end = skey[-1]
@@ -37,7 +52,11 @@ def output_distinct_graphs(vector_a, vector_b, output, use_file_out = False):
     for idx in range(0, len(skey)):
         boring_a = vector_a[skey[idx]]
         boring_b = vector_b[skey[idx]]
-        out.append("%d %d %d" % (idx, len(boring_a.term_matrix), len(boring_b.term_matrix)))
+
+        len_a = number_greater_than(boring_a.term_matrix, value)
+        len_b = number_greater_than(boring_b.term_matrix, value)
+
+        out.append("%d %d %d" % (idx, len_a, len_b))
 
     with open(path, 'w') as fout:
         fout.write("\n".join(out))
@@ -50,8 +69,9 @@ def output_distinct_graphs(vector_a, vector_b, output, use_file_out = False):
     params += "set output '%s.eps'\n" % output
     params += "set title '%s'\n" % title
     params += "set xlabel 't'\n"
-    params += "set ylabel 'distinct terms'\n"
-    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', '%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" % (path, NOTE_BEGINS[0], start, end, path, NOTE_BEGINS[1], start, end)
+    params += "set ylabel 'number of terms'\n"
+    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red'," % (path, NOTE_BEGINS[0], start, end)
+    params += "'%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" % (path, NOTE_BEGINS[1], start, end)
     params += "q\n"
 
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
@@ -61,7 +81,8 @@ def output_distinct_graphs(vector_a, vector_b, output, use_file_out = False):
 def usage():
     """Print the massive usage information."""
 
-    print "usage: %s -in <model_data> -out <output_file> [-short] [-file]" % sys.argv[0]
+    print "usage: %s -in <model_data> -out <output_file> -value X [-short] [-file]" % sys.argv[0]
+    print "-value X - term frequencies strictly greater than X"
     print "-short - terms that appear more than once in at least one slice are used for any other things you output."
     print "-file - output as a data file instead of running gnuplot."
 
@@ -69,12 +90,13 @@ def main():
     """."""
 
     # Did they provide the correct args?
-    if len(sys.argv) < 5 or len(sys.argv) > 6:
+    if len(sys.argv) < 7 or len(sys.argv) > 9:
         usage()
         sys.exit(-1)
 
     use_short_terms = False
     use_file_out = False
+    value = 0
 
     # could use the stdargs parser, but that is meh.
     try:
@@ -87,6 +109,8 @@ def main():
                 use_short_terms = True
             elif "-file" == sys.argv[idx]:
                 use_file_out = True
+            elif "-value" == sys.argv[idx]:
+                value = int(sys.argv[idx + 1])
     except IndexError:
         usage()
         sys.exit(-2)
@@ -136,10 +160,11 @@ def main():
                 results[note][start].drop_not_in(sterm_list)
                 results[note][start].compute()
 
-    output_distinct_graphs(results[NOTE_BEGINS[0]],
-                           results[NOTE_BEGINS[1]],
-                           "%s_distinct" % (output_name),
-                           use_file_out)
+    output_count_graphs(results[NOTE_BEGINS[0]],
+                        results[NOTE_BEGINS[1]],
+                        "%s_counters_gt_%d" % (output_name, value),
+                        value,
+                        use_file_out)
 
     # --------------------------------------------------------------------------
     # Done.
