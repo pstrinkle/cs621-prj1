@@ -162,28 +162,6 @@ def output_global_entropy(entropies, output, use_file_out = False):
     
     os.remove(path)
 
-def output_global_inverse_entropy_json(global_models, entropies, output, x):
-    """Output the top values of the global bit, when inverse entropy is above X."""
-
-    skey = sorted(entropies.keys())
-    start = skey[0]
-    end = skey[-1]
-    
-    output_model = {}
-    
-    for key in skey:
-        val = entropies[key]
-        if val > 0.0:
-            inv = 1.0 - val
-            if inv > x:
-                print "%d - %f" % (key, inv)
-                print "%d - %d" % (key, global_models[key].total_count)
-
-        output_model[skey[idx]] = vectorspace.top_terms(global_models[key].term_weights, 10)
-
-    with open(output, 'w') as fout:
-        fout.write(dumps(output_model, indent=4))
-
 def output_global_inverse_entropy(entropies, output, use_file_out = False):
     """Output the basic global entropy chart."""
 
@@ -205,12 +183,12 @@ def output_global_inverse_entropy(entropies, output, use_file_out = False):
         else:
             out.append("%d %f" % (idx, 0.0))
 
-    with open(path, 'w') as fout:
-        fout.write("\n".join(out))
-
     if use_file_out:
         with open("%s.data" % output, 'w') as fout:
             fout.write("\n".join(out))
+
+    with open(path, 'w') as fout:
+        fout.write("\n".join(out))
 
     params = "set terminal postscript\n"
     params += "set output '%s.eps'\n" % output
@@ -224,10 +202,32 @@ def output_global_inverse_entropy(entropies, output, use_file_out = False):
     
     os.remove(path)
 
+def output_global_inverse_entropy_json(global_models, entropies, output, x):
+    """Output the top values of the global bit, when inverse entropy is >= X.
+    """
+
+    skey = sorted(entropies.keys())
+    start = skey[0]
+    end = skey[-1]
+    
+    output_model = {}
+    
+    for key in skey:
+        val = entropies[key]
+        if val > 0.0:
+            inv = 1.0 - val
+            if inv >= x:
+                output_model[key] = vectorspace.top_terms(global_models[key].term_weights, 10)
+
+    with open(output, 'w') as fout:
+        fout.write(dumps(output_model, indent=4))
+    
+    print "Intervals Identified: %d" % len(output_model)
+
 def usage():
     """Print the massive usage information."""
 
-    print "usage: %s -in <model_data> -out <output_file> [-short] [-file] [-json]" % sys.argv[0]
+    print "usage: %s -in <model_data> -out <output_file> [-short] [-file] [-json] [-counts] [-entropy]" % sys.argv[0]
     print "-short - terms that appear more than once in at least one slice are used for any other things you output."
     print "-file - output as a data file instead of running gnuplot."
 
@@ -235,14 +235,16 @@ def main():
     """."""
 
     # Did they provide the correct args?
-    if len(sys.argv) < 5 or len(sys.argv) > 8:
+    if len(sys.argv) < 5 or len(sys.argv) > 10:
         usage()
         sys.exit(-1)
 
     use_short_terms = False
     use_file_out = False
+    output_counts = False
     output_json = False
     output_matrix = False
+    output_entropy = False
 
     # could use the stdargs parser, but that is meh.
     try:
@@ -259,6 +261,10 @@ def main():
                 output_json = True
             elif "-matrix" == sys.argv[idx]:
                 output_matrix = True
+            elif "-counts" == sys.argv[idx]:
+                output_counts = True
+            elif "-entropy" == sys.argv[idx]:
+                output_entropy = True
     except IndexError:
         usage()
         sys.exit(-2)
@@ -323,19 +329,20 @@ def main():
         global_views[start].compute()
         entropies[start] = boringmatrix.basic_entropy(global_views[start])
 
-    gterm_list = build_gtermlist(global_views)
+    if output_counts:
+        output_distinct_graphs(global_views, "%s_global_distinct" % output_name, use_file_out)
+        output_global_new_terms(global_views, "%s_global_newterms" % output_name, use_file_out)
 
-    output_distinct_graphs(global_views, "%s_%s" % (output_name, "global_distinct"), use_file_out)
-    output_global_new_terms(global_views, "%s_%s" % (output_name, "global_newterms"), use_file_out)
-
-    output_global_entropy(entropies, "%s_global_entropy" % output_name, use_file_out)
-    output_global_inverse_entropy(entropies, "%s_inv_global_entropy" % output_name, use_file_out)
+    if output_entropy:
+        output_global_entropy(entropies, "%s_global_entropy" % output_name, use_file_out)
+        output_global_inverse_entropy(entropies, "%s_inv_global_entropy" % output_name, use_file_out)
 
     if output_matrix:
+        gterm_list = build_gtermlist(global_views)
         output_full_matrix(gterm_list, global_views, "%s_%s.csv" % (output_name, "global"))
 
     if output_json:
-        output_global_inverse_entropy_json(global_views, entropies, "%s.json" % output_name, 0.25)
+        output_global_inverse_entropy_json(global_views, entropies, "%s_global_top_models.json" % output_name, 0.05)
 
     # --------------------------------------------------------------------------
     # Done.

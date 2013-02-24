@@ -99,7 +99,8 @@ def dual_output_single(labels, ylog, output, paths):
     params += "set size 0.5,0.5\n"
     params += "set origin 0,0\n"
     params += "set title '(a)'\n"
-    params += "plot '%s' using 1:2 t '%s' lc rgb 'red'\n" % (paths[TOPLEFT], 'global')
+    params += "plot '%s' using 1:2 t '%s' lc rgb 'red'\n" \
+        % (paths[TOPLEFT], 'global')
 
     params += "set label '%s' at screen 0.5,0.5 center front\n" % labels[TITLE]
 
@@ -107,7 +108,8 @@ def dual_output_single(labels, ylog, output, paths):
     params += "set size 0.5,0.5\n"
     params += "set origin 0.5,0\n"
     params += "set title '(b)'\n"
-    params += "plot '%s' using 1:2 t '%s' lc rgb 'red'\n" % (paths[TOPRIGHT], 'global')
+    params += "plot '%s' using 1:2 t '%s' lc rgb 'red'\n" \
+        % (paths[TOPRIGHT], 'global')
 
     params += "q\n"
     

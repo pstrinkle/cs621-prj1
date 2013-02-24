@@ -21,7 +21,6 @@ sys.path.append("../modellib")
 import vectorspace
 
 NOTE_BEGINS = ("i495", "boston")
-TOP_TERM_CNT = 1000
 
 def output_basic_entropy(entropies, output, use_file_out = False):
     """Output the basic entropy chart."""
@@ -112,9 +111,9 @@ def output_inverse_entropy(entropies, output, use_file_out = False):
     
     os.remove(path)
 
-def output_top_model_entropy(results, entropies, output):
+def output_top_model_entropy(results, entropies, output, x):
     """Go through the entropy values and output the top terms from the models, 
-    when the entropy goes low beyond some threshold."""
+    when the entropy goes low beyond some threshold, or when 1 - H(x) >= x"""
     
     output_model = {}
     
@@ -122,6 +121,7 @@ def output_top_model_entropy(results, entropies, output):
     # results[note][start] = boringmatrix.BoringMatrix()
     skey = sorted(entropies[NOTE_BEGINS[0]].keys())
 
+    # could probably just do for key in skey... like I do elsewhere. lol.
     for idx in range(0, len(skey)):
         val1 = entropies[NOTE_BEGINS[0]][skey[idx]]
         val2 = entropies[NOTE_BEGINS[1]][skey[idx]]
@@ -136,13 +136,18 @@ def output_top_model_entropy(results, entropies, output):
         else:
             out2 = 0.0
 
-        if out1 > 0.05 or out2 > 0.05:
-            output_model[skey[idx]] = (vectorspace.top_terms(results[NOTE_BEGINS[0]][skey[idx]].term_weights, 10),
-                                       vectorspace.top_terms(results[NOTE_BEGINS[1]][skey[idx]].term_weights, 10))
+        if out1 >= x:
+            output_model["%d-%s" % (skey[idx], NOTE_BEGINS[0])] = \
+                vectorspace.top_terms(results[NOTE_BEGINS[0]][skey[idx]].term_weights, 10)
+
+        if out2 >= x:
+            output_model["%d-%s" % (skey[idx], NOTE_BEGINS[1])] = \
+                vectorspace.top_terms(results[NOTE_BEGINS[1]][skey[idx]].term_weights, 10)
 
     with open(output, 'w') as fout:
         fout.write(dumps(output_model, indent=4))
-
+    
+    print "Intervals Identified: %d" % len(output_model)
 
 #### Unused
 def output_renyi_entropy(alpha, entropies, output, use_file_out = False):
@@ -203,7 +208,7 @@ def renyi_entropy(boring_a, alpha):
 def usage():
     """Print the massive usage information."""
 
-    print "usage: %s -in <model_data> -out <output_file> [-short] [-renyi] [-file] [-json]" % sys.argv[0]
+    print "usage: %s -in <model_data> -out <output_file> [-short] [-renyi] [-file] [-json] [-graphs]" % sys.argv[0]
     print "-short - terms that appear more than once in at least one slice are used for any other things you output."
     print "-file - output as a data file instead of running gnuplot."
 
@@ -211,7 +216,7 @@ def main():
     """."""
 
     # Did they provide the correct args?
-    if len(sys.argv) < 5 or len(sys.argv) > 9:
+    if len(sys.argv) < 5 or len(sys.argv) > 10:
         usage()
         sys.exit(-1)
 
@@ -219,6 +224,7 @@ def main():
     use_file_out = False
     use_renyi = False
     output_json = False
+    output_graphs = False
 
     # could use the stdargs parser, but that is meh.
     try:
@@ -235,6 +241,8 @@ def main():
                 use_file_out = True
             elif "-json" == sys.argv[idx]:
                 output_json = True
+            elif "-graphs" == sys.argv[idx]:
+                output_graphs = True
     except IndexError:
         usage()
         sys.exit(-2)
@@ -294,11 +302,12 @@ def main():
         entropies[NOTE_BEGINS[0]][start] = boringmatrix.basic_entropy(results[NOTE_BEGINS[0]][start])
         entropies[NOTE_BEGINS[1]][start] = boringmatrix.basic_entropy(results[NOTE_BEGINS[1]][start])
 
-    output_basic_entropy(entropies, "%s_entropy" % output_name, use_file_out)
-    output_inverse_entropy(entropies, "%s_inv_entropy" % output_name, use_file_out)
+    if output_graphs:
+        output_basic_entropy(entropies, "%s_entropy" % output_name, use_file_out)
+        output_inverse_entropy(entropies, "%s_inv_entropy" % output_name, use_file_out)
     
     if output_json:
-        output_top_model_entropy(results, entropies, "%s_top_models.json" % output_name)
+        output_top_model_entropy(results, entropies, "%s_top_models.json" % output_name, 0.05)
 
     if use_renyi:
         for alpha in (0.10, 0.25, 0.5, 0.75):

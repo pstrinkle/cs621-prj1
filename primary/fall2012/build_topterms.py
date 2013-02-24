@@ -88,7 +88,7 @@ def main():
                     new_matrix[term] = value
 
     with open("%s_top_terms_tuples.json" % output_name, 'w') as fout:
-        fout.write(dumps(vectorspace.top_terms_tuples(new_matrix, 1000), indent=4))
+        fout.write(dumps(vectorspace.top_terms_tuples(new_matrix, 10000), indent=4))
  
     # --------------------------------------------------------------------------
     # Done.

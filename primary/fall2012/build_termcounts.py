@@ -45,7 +45,7 @@ def output_count_graphs(vector_a, vector_b, output, value, use_file_out = False)
 
     out = []
     random.seed()
-    
+
     path = "%d.%d" % (random.getrandbits(random.randint(16, 57)),
                       random.getrandbits(random.randint(16, 57)))
 
@@ -58,20 +58,22 @@ def output_count_graphs(vector_a, vector_b, output, value, use_file_out = False)
 
         out.append("%d %d %d" % (idx, len_a, len_b))
 
-    with open(path, 'w') as fout:
-        fout.write("\n".join(out))
-
     if use_file_out:
         with open("%s.data" % output, 'w') as fout:
             fout.write("\n".join(out))
+
+    with open(path, 'w') as fout:
+        fout.write("\n".join(out))
 
     params = "set terminal postscript\n"
     params += "set output '%s.eps'\n" % output
     params += "set title '%s'\n" % title
     params += "set xlabel 't'\n"
     params += "set ylabel 'number of terms'\n"
-    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', " % (path, NOTE_BEGINS[0], start, end)
-    params += "'%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" % (path, NOTE_BEGINS[1], start, end)
+    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', " \
+        % (path, NOTE_BEGINS[0], start, end)
+    params += "'%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" \
+        % (path, NOTE_BEGINS[1], start, end)
     params += "q\n"
 
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
