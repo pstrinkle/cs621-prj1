@@ -52,10 +52,10 @@ def output_basic_entropy(entropies, output, use_file_out = False):
     params = "set terminal postscript\n"
     params += "set output '%s.eps'\n" % output
     params += "set title '%s'\n" % title
-    #params += "set log xy\n"
     params += "set xlabel 't'\n"
     params += "set ylabel 'entropy scores'\n"
-    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', '%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" % (path, NOTE_BEGINS[0], start, end, path, NOTE_BEGINS[1], start, end)
+    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', " % (path, NOTE_BEGINS[0], start, end)
+    params += "'%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" % (path, NOTE_BEGINS[1], start, end)
     params += "q\n"
     
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
@@ -104,7 +104,8 @@ def output_inverse_entropy(entropies, output, use_file_out = False):
     params += "set title '%s'\n" % title
     params += "set xlabel 't'\n"
     params += "set ylabel '(1 - entropy) scores'\n"
-    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', '%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" % (path, NOTE_BEGINS[0], start, end, path, NOTE_BEGINS[1], start, end)
+    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', " % (path, NOTE_BEGINS[0], start, end)
+    params += "'%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" % (path, NOTE_BEGINS[1], start, end)
     params += "q\n"
     
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
@@ -173,10 +174,10 @@ def output_renyi_entropy(alpha, entropies, output, use_file_out = False):
     params = "set terminal postscript\n"
     params += "set output '%s.eps'\n" % output
     params += "set title '%s'\n" % title
-    #params += "set log xy\n"
     params += "set xlabel 't'\n"
     params += "set ylabel 'renyi scores - %f'\n" % alpha
-    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', '%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" % (path, NOTE_BEGINS[0], start, end, path, NOTE_BEGINS[1], start, end)
+    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', " % (path, NOTE_BEGINS[0], start, end)
+    params += "'%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" % (path, NOTE_BEGINS[1], start, end)
     params += "q\n"
     
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)

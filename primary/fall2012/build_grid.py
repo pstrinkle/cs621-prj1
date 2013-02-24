@@ -15,6 +15,7 @@ BOTTOMLEFT = "bottomleft"
 BOTTOMRIGHT = "bottomright"
 XLABEL = "xlabel"
 YLABEL = "ylabel"
+TITLE = "title"
 
 NEWDISTINCT = "newdistinct"
 NEWPERCENTAGE = "newpercentage"
@@ -32,7 +33,7 @@ inputs = {NEWDISTINCT : "new distinct terms",
           GDISTINCT : "how many distinct terms per interval, top level hierarch",
           GINVENTROPY : "the global entropy score of each model subtracted from 1"}
 
-def dual_output(title, labels, ylog, output, paths):
+def dual_output(labels, ylog, output, paths):
     """title : the title.
     labels : dictionary of the labels
     ylog : boolean, should we log scale Y?
@@ -60,7 +61,7 @@ def dual_output(title, labels, ylog, output, paths):
     params += "'%s' using 1:3 t '%s' lc rgb 'blue'\n" \
         % (paths[TOPLEFT], NOTE_BEGINS[1])
 
-    params += "set label '%s' at screen 0.5,0.5 center front\n" % title
+    params += "set label '%s' at screen 0.5,0.5 center front\n" % labels[TITLE]
 
     # top right
     params += "set size 0.5,0.5\n"
@@ -75,7 +76,7 @@ def dual_output(title, labels, ylog, output, paths):
     
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
 
-def dual_output_single(title, labels, ylog, output, paths):
+def dual_output_single(labels, ylog, output, paths):
     """title : the title.
     labels : dictionary of the labels
     ylog : boolean, should we log scale Y?
@@ -100,7 +101,7 @@ def dual_output_single(title, labels, ylog, output, paths):
     params += "set title '(a)'\n"
     params += "plot '%s' using 1:2 t '%s' lc rgb 'red'\n" % (paths[TOPLEFT], 'global')
 
-    params += "set label '%s' at screen 0.5,0.5 center front\n" % title
+    params += "set label '%s' at screen 0.5,0.5 center front\n" % labels[TITLE]
 
     # top right
     params += "set size 0.5,0.5\n"
@@ -112,7 +113,7 @@ def dual_output_single(title, labels, ylog, output, paths):
     
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
 
-def quad_output(title, labels, ylog, output, paths):
+def quad_output(labels, ylog, output, paths):
     """title : the title.
     labels : dictionary of the labels
     ylog : boolean, should we log scale Y?
@@ -125,7 +126,7 @@ def quad_output(title, labels, ylog, output, paths):
         params += "set log y\n"
     params += "set xlabel '%s'\n" % labels[XLABEL]
     params += "set ylabel '%s'\n" % labels[YLABEL]
-    params += "set multiplot layout 2,2 title '%s'\n" % title
+    params += "set multiplot layout 2,2 title '%s'\n" % labels[TITLE]
     params += "set tmargin 2\n"
 
     # top left
@@ -160,7 +161,7 @@ def quad_output(title, labels, ylog, output, paths):
     
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
 
-def quad_output_single(title, labels, ylog, output, paths):
+def quad_output_single(labels, ylog, output, paths):
     """title : the title.
     labels : dictionary of the labels
     ylog : boolean, should we log scale Y?
@@ -173,7 +174,7 @@ def quad_output_single(title, labels, ylog, output, paths):
         params += "set log y\n"
     params += "set xlabel '%s'\n" % labels[XLABEL]
     params += "set ylabel '%s'\n" % labels[YLABEL]
-    params += "set multiplot layout 2,2 title '%s'\n" % title
+    params += "set multiplot layout 2,2 title '%s'\n" % labels[TITLE]
     params += "set tmargin 2\n"
 
     # top left
@@ -231,28 +232,29 @@ def main():
         sys.exit(-1)
 
     paths = {}
-    titles = {NEWDISTINCT : "Distinct New Terms per Interval",
-              NEWPERCENTAGE : "Percentage of Distinct New Terms per Interval",
-              DISTINCT : "Distinct Terms per Interval",
-              INVENTROPY : "1-Entropy per Interval",
-              GNEWDISTINCT : "New Terms in Top-Level Hierarchical Model per Interval",
-              GDISTINCT : "Distinct Terms in Top-Level Hierarchical per Interval",
-              GINVENTROPY : "1-Entropy of Top-Level Hierarchical per Interval"}
 
-    labelsets = {NEWDISTINCT : {XLABEL : "t",
-                                YLABEL : "new distinct terms"},
-                 NEWPERCENTAGE : {XLABEL : "t",
-                                  YLABEL : "percentage of new terms"},
-                 DISTINCT : {XLABEL : "t",
-                             YLABEL : "distinct terms"},
-                 INVENTROPY : {XLABEL : "t",
-                               YLABEL : "nats"},
-                 GNEWDISTINCT : {XLABEL : "t",
-                                 YLABEL : "new distinct terms"},
-                 GDISTINCT : {XLABEL : "t",
-                              YLABEL : "distinct terms"},
-                 GINVENTROPY : {XLABEL : "t",
-                                YLABEL : "nats"}}
+    labelsets = {
+        NEWDISTINCT : {TITLE : "Distinct New Terms per Interval",
+                       XLABEL : "t",
+                       YLABEL : "new distinct terms"},
+        NEWPERCENTAGE : {TITLE : "Percentage of Distinct New Terms per Interval",
+                         XLABEL : "t",
+                         YLABEL : "percentage of new terms"},
+        DISTINCT : {TITLE : "Distinct Terms per Interval",
+                    XLABEL : "t",
+                    YLABEL : "distinct terms"},
+        INVENTROPY : {TITLE : "1-Entropy per Interval",
+                      XLABEL : "t",
+                      YLABEL : "nats"},
+        GNEWDISTINCT : {TITLE : "New Terms in Top-Level Hierarchical Model per Interval",
+                        XLABEL : "t",
+                        YLABEL : "new distinct terms"},
+        GDISTINCT : {TITLE : "Distinct Terms in Top-Level Hierarchical per Interval",
+                     XLABEL : "t",
+                     YLABEL : "distinct terms"},
+        GINVENTROPY : {TITLE : "1-Entropy of Top-Level Hierarchical per Interval",
+                       XLABEL : "t",
+                       YLABEL : "nats"}}
 
     output_type = None
     output = None
@@ -294,7 +296,6 @@ def main():
     # if you provided the wrong input, you'll get a KeyError exception.
 
     try:
-        title = titles[output_type]
         labels = labelsets[output_type]
     except KeyError:
         usage()
@@ -307,14 +308,14 @@ def main():
 
     if len(paths) == 2:
         if use_single_out:
-            dual_output_single(title, labels, logy, output, paths)
+            dual_output_single(labels, logy, output, paths)
         else:
-            dual_output(title, labels, logy, output, paths)
+            dual_output(labels, logy, output, paths)
     else:
         if use_single_out:
-            quad_output_single(title, labels, logy, output, paths)
+            quad_output_single(labels, logy, output, paths)
         else:
-            quad_output(title, labels, logy, output, paths)
+            quad_output(labels, logy, output, paths)
 
     # --------------------------------------------------------------------------
     # Done.

@@ -70,7 +70,7 @@ def output_count_graphs(vector_a, vector_b, output, value, use_file_out = False)
     params += "set title '%s'\n" % title
     params += "set xlabel 't'\n"
     params += "set ylabel 'number of terms'\n"
-    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red'," % (path, NOTE_BEGINS[0], start, end)
+    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', " % (path, NOTE_BEGINS[0], start, end)
     params += "'%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" % (path, NOTE_BEGINS[1], start, end)
     params += "q\n"
 
