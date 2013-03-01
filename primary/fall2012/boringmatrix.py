@@ -61,7 +61,10 @@ class BoringMatrix():
         return dct
 
     def __init__(self, bag_of_words):
-        """Initialize this structure with a long string."""
+        """Initialize this structure with the list of terms.
+        
+        Just take your giant string and split on space or whatever.
+        """
         
         self.term_matrix = {}
         self.term_weights = {}
@@ -159,7 +162,7 @@ class BoringMatrix():
         if bag_of_words is None:
             return
         
-        for word in bag_of_words.split(" "):
+        for word in bag_of_words:
             try:
                 self.term_matrix[word] += 1
             except KeyError:
@@ -200,16 +203,16 @@ def fix_boringmatrix_dicts(results):
 
 def boring_count_similarity(boring_a, boring_b):
     """Return the count-based cosine similarity given the two term_matrices."""
-    
+
     count = 0.0
-    
+
     if len(boring_a.term_matrix) == 0 or len(boring_b.term_matrix) == 0:
         return 0.0
-    
+
     for term in boring_a.term_matrix:
         if term in boring_b.term_matrix:
             count += boring_a.term_matrix[term] * boring_b.term_matrix[term]
-            
+
     return float(count / (boring_a.counts_magnitude() * boring_b.counts_magnitude())) 
 
 def boring_weight_similarity(boring_a, boring_b):
@@ -228,12 +231,12 @@ def boring_weight_similarity(boring_a, boring_b):
 
 def dump_weights_matrix(term_dict, dict_of_boring, delimiter = ","):
     """Given a set of terms and a dictionary of boring, return the matrix."""
-    
+
     output = ""
-  
+
     sorted_docs = sorted(dict_of_boring.keys())  
     sorted_terms = sorted(term_dict)
-  
+
     # Print Term Rows
     for term in sorted_terms:
         row = []
@@ -256,7 +259,9 @@ def basic_entropy(boring_a):
     if term_count == 0:
         return 0.0
 
-    entropy = 0.0 + sum([(boring_a.term_weights[term] * log10(1.0/boring_a.term_weights[term])) for term in boring_a.term_matrix])
+    weights = boring_a.term_weights
+    entropy = 0.0 + sum([(weights[term] * log10(1.0/weights[term])) \
+                            for term in boring_a.term_matrix])
 
     if entropy == 0.0:
         return 0.0

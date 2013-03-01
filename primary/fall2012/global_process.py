@@ -107,12 +107,12 @@ def output_global_new_terms(results, output, use_file_out = False):
 
         out.append("%d %d" % (idx, count1))
 
-    with open(path, 'w') as fout:
-        fout.write("\n".join(out))
-
     if use_file_out:
         with open("%s.data" % output, 'w') as fout:
             fout.write("\n".join(out))
+
+    with open(path, 'w') as fout:
+        fout.write("\n".join(out))
 
     params = "set terminal postscript\n"
     params += "set output '%s.eps'\n" % output
@@ -143,12 +143,12 @@ def output_global_entropy(entropies, output, use_file_out = False):
     for idx in range(0, len(skey)):
         out.append("%d %f" % (idx, entropies[skey[idx]]))
 
-    with open(path, 'w') as fout:
-        fout.write("\n".join(out))
-
     if use_file_out:
         with open("%s.data" % output, 'w') as fout:
             fout.write("\n".join(out))
+
+    with open(path, 'w') as fout:
+        fout.write("\n".join(out))
 
     params = "set terminal postscript\n"
     params += "set output '%s.eps'\n" % output
@@ -172,7 +172,7 @@ def output_global_inverse_entropy(entropies, output, use_file_out = False):
 
     out = []
     random.seed()
-    
+
     path = "%d.%d" % (random.getrandbits(random.randint(16, 57)),
                       random.getrandbits(random.randint(16, 57)))
 
@@ -199,7 +199,7 @@ def output_global_inverse_entropy(entropies, output, use_file_out = False):
     params += "q\n"
 
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
-    
+
     os.remove(path)
 
 def output_global_inverse_entropy_json(global_models, entropies, output, x):
@@ -209,9 +209,9 @@ def output_global_inverse_entropy_json(global_models, entropies, output, x):
     skey = sorted(entropies.keys())
     start = skey[0]
     end = skey[-1]
-    
+
     output_model = {}
-    
+
     for key in skey:
         val = entropies[key]
         if val > 0.0:
@@ -221,7 +221,7 @@ def output_global_inverse_entropy_json(global_models, entropies, output, x):
 
     with open(output, 'w') as fout:
         fout.write(dumps(output_model, indent=4))
-    
+
     print "Intervals Identified: %d" % len(output_model)
 
 def usage():

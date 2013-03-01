@@ -13,7 +13,7 @@ import sqlite3
 from json import dumps, loads
 from datetime import timedelta
 
-import boringmatrix
+import boringmatrix as bm
 
 def usage():
     """."""
@@ -82,8 +82,8 @@ def main():
     # can use datetime.timedelta correctly updates the datetime value, which
     # we'll then need to convert back to the timestamp long.
 
-    starttime = boringmatrix.datetime_from_long(earliest)
-    endtime = boringmatrix.datetime_from_long(latest)
+    starttime = bm.datetime_from_long(earliest)
+    endtime = bm.datetime_from_long(latest)
     currtime = starttime
     delta = timedelta(0, interval)
 
@@ -104,9 +104,9 @@ def main():
         curr = conn.cursor()
         
         while currtime + delta < endtime:
-            start = boringmatrix.long_from_datetime(currtime)
+            start = bm.long_from_datetime(currtime)
             currtime += delta
-            end = boringmatrix.long_from_datetime(currtime)
+            end = bm.long_from_datetime(currtime)
             
             results[start] = []
             
@@ -117,18 +117,20 @@ def main():
             # list, neatly also provided by the user.
 
             for row in curr.execute(query % (note_begins, start, end)):
-                results[start].append(boringmatrix.localclean(row['cleaned_text']))
+                results[start].append(bm.localclean(row['cleaned_text']))
             
             tmp_local = " ".join(results[start]) # join into one line
             # then split and strip out bad words.
-            results[start] = boringmatrix.BoringMatrix(" ".join([word for word in tmp_local.split(" ") if word not in remove_em and len(word) > 2]))
+            results[start] = \
+                bm.BoringMatrix([word for word in tmp_local.split(" ") \
+                                 if word not in remove_em and len(word) > 2])
             results[start].compute()
             
             #print dumps(results, cls=BoringMatrixEncoder, indent=4)
             #sys.exit(0)
 
     with open(output_name, 'w') as fout:
-        fout.write(dumps(results, cls=boringmatrix.BoringMatrixEncoder, indent=4))
+        fout.write(dumps(results, cls=bm.BoringMatrixEncoder, indent=4))
     
     # results = json.loads(results.in, object_hook=as_boring)
 

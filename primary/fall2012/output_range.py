@@ -51,7 +51,7 @@ def main():
 
         earliest = row['early']
         latest = row['late']
-        
+
         print "earliest: %s" % str(earliest)
         print "latest: %s" % str(latest)
 
