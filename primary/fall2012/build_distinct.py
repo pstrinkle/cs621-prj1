@@ -39,12 +39,12 @@ def output_distinct_graphs(vector_a, vector_b, output, use_file_out = False):
         boring_b = vector_b[skey[idx]]
         out.append("%d %d %d" % (idx, len(boring_a.term_matrix), len(boring_b.term_matrix)))
 
-    with open(path, 'w') as fout:
-        fout.write("\n".join(out))
-
     if use_file_out:
         with open("%s.data" % output, 'w') as fout:
             fout.write("\n".join(out))
+
+    with open(path, 'w') as fout:
+        fout.write("\n".join(out))
 
     params = "set terminal postscript\n"
     params += "set output '%s.eps'\n" % output

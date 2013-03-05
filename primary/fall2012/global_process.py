@@ -59,12 +59,12 @@ def output_distinct_graphs(results, output, use_file_out = False):
     for idx in range(0, len(skey)):
         out.append("%d %d" % (idx, len(results[skey[idx]].term_matrix)))
 
-    with open(path, 'w') as fout:
-        fout.write("\n".join(out))
-
     if use_file_out:
         with open("%s.data" % output, 'w') as fout:
             fout.write("\n".join(out))
+
+    with open(path, 'w') as fout:
+        fout.write("\n".join(out))
 
     params = "set terminal postscript\n"
     params += "set output '%s.eps'\n" % output

@@ -41,12 +41,12 @@ def output_basic_entropy(entropies, output, use_file_out = False):
                                  entropies[NOTE_BEGINS[0]][skey[idx]],
                                  entropies[NOTE_BEGINS[1]][skey[idx]]))
 
-    with open(path, 'w') as fout:
-        fout.write("\n".join(out))
-
     if use_file_out:
         with open("%s.data" % output, 'w') as fout:
             fout.write("\n".join(out))
+
+    with open(path, 'w') as fout:
+        fout.write("\n".join(out))
 
     params = "set terminal postscript\n"
     params += "set output '%s.eps'\n" % output
@@ -91,12 +91,12 @@ def output_inverse_entropy(entropies, output, use_file_out = False):
 
         out.append("%d %f %f" % (idx, out1, out2))
 
-    with open(path, 'w') as fout:
-        fout.write("\n".join(out))
-
     if use_file_out:
         with open("%s.data" % output, 'w') as fout:
             fout.write("\n".join(out))
+
+    with open(path, 'w') as fout:
+        fout.write("\n".join(out))
 
     params = "set terminal postscript\n"
     params += "set output '%s.eps'\n" % output
@@ -169,12 +169,12 @@ def output_renyi_entropy(alpha, entropies, output, use_file_out = False):
                                  entropies[NOTE_BEGINS[0]][skey[idx]],
                                  entropies[NOTE_BEGINS[1]][skey[idx]]))
 
-    with open(path, 'w') as fout:
-        fout.write("\n".join(out))
-
     if use_file_out:
         with open("%s.data" % output, 'w') as fout:
             fout.write("\n".join(out))
+
+    with open(path, 'w') as fout:
+        fout.write("\n".join(out))
 
     params = "set terminal postscript\n"
     params += "set output '%s.eps'\n" % output

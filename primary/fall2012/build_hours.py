@@ -86,12 +86,12 @@ def output_distinct_terms_per_hour(results, output, use_file_out = False):
         #if len(terms_per_hour[NOTE_BEGINS[0]][hour]) != hours_counts[NOTE_BEGINS[0]][hour]:
         #    raise Exception("Non-Matching")
 
-    with open(path, 'w') as fout:
-        fout.write("\n".join(out))
-
     if use_file_out:
         with open("%s.data" % output, 'w') as fout:
             fout.write("\n".join(out))
+
+    with open(path, 'w') as fout:
+        fout.write("\n".join(out))
 
     #params = "set terminal postscript\n"
     params = "set terminal postscript eps color\n"

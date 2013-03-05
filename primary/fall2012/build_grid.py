@@ -9,6 +9,7 @@ import sys
 import subprocess
 
 NOTE_BEGINS = ("i495", "boston")
+
 TOPLEFT = "topleft"
 TOPRIGHT = "topright"
 BOTTOMLEFT = "bottomleft"
@@ -16,6 +17,7 @@ BOTTOMRIGHT = "bottomright"
 XLABEL = "xlabel"
 YLABEL = "ylabel"
 TITLE = "title"
+DESCRIPTION = "description"
 
 NEWDISTINCT = "newdistinct"
 NEWPERCENTAGE = "newpercentage"
@@ -26,14 +28,47 @@ GNEWDISTINCT = "gnewdistinct"
 GDISTINCT = "gdistinct"
 GINVENTROPY = "ginventropy"
 
-inputs = {NEWDISTINCT : "new distinct terms",
-          NEWPERCENTAGE : "percentage of new distinct terms",
-          DISTINCT : "how many distinct terms per interval",
-          INVENTROPY : "the entropy score of each model subtracted from 1",
-          DISTINCTPERHOUR : "the number of distinct terms per hour",
-          GNEWDISTINCT : "how many new distinct terms per interval, top level hierarch",
-          GDISTINCT : "how many distinct terms per interval, top level hierarch",
-          GINVENTROPY : "the global entropy score of each model subtracted from 1"}
+labelsets = {
+    NEWDISTINCT : {
+        DESCRIPTION : "new distinct terms",
+        TITLE : "Distinct New Terms per Interval",
+        XLABEL : "t",
+        YLABEL : "new distinct terms"},
+    NEWPERCENTAGE : {
+        DESCRIPTION : "percentage of new distinct terms",
+        TITLE : "Percentage of Distinct New Terms per Interval",
+        XLABEL : "t",
+        YLABEL : "percentage of new terms"},
+    DISTINCT : {
+        DESCRIPTION : "how many distinct terms per interval",
+        TITLE : "Distinct Terms per Interval",
+        XLABEL : "t",
+        YLABEL : "distinct terms"},
+    INVENTROPY : {
+        DESCRIPTION : "the entropy score of each model subtracted from 1",
+        TITLE : "1-Entropy per Interval",
+        XLABEL : "t",
+        YLABEL : "nats"},
+    DISTINCTPERHOUR : {
+        DESCRIPTION : "the number of distinct terms per hour",
+        TITLE : "Number of Distinct Terms per Hour",
+        XLABEL : "hour",
+        YLABEL : "distinct terms"},
+    GNEWDISTINCT : {
+        DESCRIPTION : "how many new distinct terms per interval, top level hierarch",
+        TITLE : "New Terms in Top-Level Hierarchical Model per Interval",
+        XLABEL : "t",
+        YLABEL : "new distinct terms"},
+    GDISTINCT : {
+        DESCRIPTION : "how many distinct terms per interval, top level hierarch",
+        TITLE : "Distinct Terms in Top-Level Hierarchical per Interval",
+        XLABEL : "t",
+        YLABEL : "distinct terms"},
+    GINVENTROPY : {
+        DESCRIPTION : "the global entropy score of each model subtracted from 1",
+        TITLE : "1-Entropy of Top-Level Hierarchical per Interval",
+        XLABEL : "t",
+        YLABEL : "nats"}}
 
 def dual_output(labels, ylog, output, paths):
     """title : the title.
@@ -223,9 +258,9 @@ types:
 """
     sys.stderr.write(usg % sys.argv[0])
     
-    for value in inputs:
+    for value in labelsets:
         sys.stderr.write("\t%s as type for outputing %s.\n" \
-                         % (value, inputs[value]))
+                         % (value, labelsets[DESCRIPTION]))
 
 def main():
     """."""
@@ -236,32 +271,6 @@ def main():
         sys.exit(-1)
 
     paths = {}
-
-    labelsets = {
-        NEWDISTINCT : {TITLE : "Distinct New Terms per Interval",
-                       XLABEL : "t",
-                       YLABEL : "new distinct terms"},
-        NEWPERCENTAGE : {TITLE : "Percentage of Distinct New Terms per Interval",
-                         XLABEL : "t",
-                         YLABEL : "percentage of new terms"},
-        DISTINCT : {TITLE : "Distinct Terms per Interval",
-                    XLABEL : "t",
-                    YLABEL : "distinct terms"},
-        INVENTROPY : {TITLE : "1-Entropy per Interval",
-                      XLABEL : "t",
-                      YLABEL : "nats"},
-        DISTINCTPERHOUR : {TITLE : "Number of Distinct Terms per Hour",
-                           XLABEL : "hour",
-                           YLABEL : "distinct terms"},
-        GNEWDISTINCT : {TITLE : "New Terms in Top-Level Hierarchical Model per Interval",
-                        XLABEL : "t",
-                        YLABEL : "new distinct terms"},
-        GDISTINCT : {TITLE : "Distinct Terms in Top-Level Hierarchical per Interval",
-                     XLABEL : "t",
-                     YLABEL : "distinct terms"},
-        GINVENTROPY : {TITLE : "1-Entropy of Top-Level Hierarchical per Interval",
-                       XLABEL : "t",
-                       YLABEL : "nats"}}
 
     output_type = None
     output = None

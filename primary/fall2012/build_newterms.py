@@ -94,13 +94,13 @@ def output_percentage_growth(results, output, use_file_out = False):
         out.append("%d %f %f" % (idx,
                                  (float(count1)/ncount1)*100,
                                  (float(count2)/ncount2)*100))
-        
-    with open(path, 'w') as fout:
-        fout.write("\n".join(out))
     
     if use_file_out:
         with open("%s.data" % output, 'w') as fout:
             fout.write("\n".join(out))
+
+    with open(path, 'w') as fout:
+        fout.write("\n".join(out))
 
     params = "set terminal postscript\n"
     params += "set output '%s.eps'\n" % output
@@ -151,12 +151,12 @@ def output_new_terms(results, output, use_file_out = False):
 
         out.append("%d %d %d" % (idx, count1, count2))
 
-    with open(path, 'w') as fout:
-        fout.write("\n".join(out))
-
     if use_file_out:
         with open("%s.data" % output, 'w') as fout:
             fout.write("\n".join(out))
+
+    with open(path, 'w') as fout:
+        fout.write("\n".join(out))
 
     params = "set terminal postscript\n"
     params += "set output '%s.eps'\n" % output
