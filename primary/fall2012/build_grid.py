@@ -14,9 +14,11 @@ TOPLEFT = "topleft"
 TOPRIGHT = "topright"
 BOTTOMLEFT = "bottomleft"
 BOTTOMRIGHT = "bottomright"
+LOGY = "logy"
 XLABEL = "xlabel"
 YLABEL = "ylabel"
 TITLE = "title"
+SINGLELINE = "single"
 DESCRIPTION = "description"
 
 NEWDISTINCT = "newdistinct"
@@ -30,41 +32,57 @@ GINVENTROPY = "ginventropy"
 
 labelsets = {
     NEWDISTINCT : {
+        LOGY : True,
+        SINGLELINE : False,
         DESCRIPTION : "new distinct terms",
         TITLE : "Distinct New Terms per Interval",
         XLABEL : "t",
         YLABEL : "new distinct terms"},
     NEWPERCENTAGE : {
+        LOGY : False,
+        SINGLELINE : False,
         DESCRIPTION : "percentage of new distinct terms",
         TITLE : "Percentage of Distinct New Terms per Interval",
         XLABEL : "t",
         YLABEL : "percentage of new terms"},
     DISTINCT : {
+        LOGY : False,
+        SINGLELINE : False,
         DESCRIPTION : "how many distinct terms per interval",
         TITLE : "Distinct Terms per Interval",
         XLABEL : "t",
         YLABEL : "distinct terms"},
     INVENTROPY : {
+        LOGY : False,
+        SINGLELINE : False,
         DESCRIPTION : "the entropy score of each model subtracted from 1",
         TITLE : "1-Entropy per Interval",
         XLABEL : "t",
         YLABEL : "nats"},
     DISTINCTPERHOUR : {
+        LOGY : False,
+        SINGLELINE : False,
         DESCRIPTION : "the number of distinct terms per hour",
         TITLE : "Number of Distinct Terms per Hour",
         XLABEL : "hour",
         YLABEL : "distinct terms"},
     GNEWDISTINCT : {
+        LOGY : False,
+        SINGLELINE : True,
         DESCRIPTION : "how many new distinct terms per interval, top level hierarch",
         TITLE : "New Terms in Top-Level Hierarchical Model per Interval",
         XLABEL : "t",
         YLABEL : "new distinct terms"},
     GDISTINCT : {
+        LOGY : False,
+        SINGLELINE : True,
         DESCRIPTION : "how many distinct terms per interval, top level hierarch",
         TITLE : "Distinct Terms in Top-Level Hierarchical per Interval",
         XLABEL : "t",
         YLABEL : "distinct terms"},
     GINVENTROPY : {
+        LOGY : False,
+        SINGLELINE : True,
         DESCRIPTION : "the global entropy score of each model subtracted from 1",
         TITLE : "1-Entropy of Top-Level Hierarchical per Interval",
         XLABEL : "t",
@@ -244,23 +262,23 @@ def usage():
     """Print the massive usage information."""
 
     usg = \
-"""usage: %s -type <type> -out <output> [-globals] \
+"""usage: %s -type <type> -out <output> \
 -tl <topleft> -tr <topright> \
 -bl <bottomleft> -br <bottomright>
 
 -type the type you want to output
 -out the output path and name, leave off eps
--globals we're outputing global lines, so use quad_single().
 
 For a 2-tile grid, supply only topleft and topright, otherwise supply all four.
 
 types:
 """
+
     sys.stderr.write(usg % sys.argv[0])
     
     for value in labelsets:
         sys.stderr.write("\t%s as type for outputing %s.\n" \
-                         % (value, labelsets[DESCRIPTION]))
+                         % (value, labelsets[value][DESCRIPTION]))
 
 def main():
     """."""
@@ -274,7 +292,6 @@ def main():
 
     output_type = None
     output = None
-    use_single_out = False
     
     # could use the stdargs parser, but that is meh.
     try:
@@ -283,8 +300,6 @@ def main():
                 output_type = sys.argv[idx + 1]
             if "-out" == sys.argv[idx]:
                 output = sys.argv[idx + 1]
-            if "-globals" == sys.argv[idx]:
-                use_single_out = True
             if "-tl" == sys.argv[idx]: 
                 paths[TOPLEFT] = sys.argv[idx + 1]
             elif "-tr" == sys.argv[idx]:
@@ -317,10 +332,8 @@ def main():
         usage()
         sys.exit(-1)
 
-    logy = False
-
-    if output_type == NEWDISTINCT:
-        logy = True
+    logy = labels[LOGY]
+    use_single_out = labels[SINGLELINE]
 
     if len(paths) == 2:
         if use_single_out:
