@@ -42,6 +42,7 @@ def main():
     early_query = "select min(yyyymmddhhmmss) as early, max(yyyymmddhhmmss) as late from tweets;"
     earliest = 0
     latest = 0
+    count_query = "select count(*) from tweets where "
 
     with sqlite3.connect(database_file) as conn: 
         conn.row_factory = sqlite3.Row

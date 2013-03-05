@@ -21,6 +21,7 @@ NEWDISTINCT = "newdistinct"
 NEWPERCENTAGE = "newpercentage"
 DISTINCT = "distinct"
 INVENTROPY = "inventropy"
+DISTINCTPERHOUR = "distinctperhour"
 GNEWDISTINCT = "gnewdistinct"
 GDISTINCT = "gdistinct"
 GINVENTROPY = "ginventropy"
@@ -29,6 +30,7 @@ inputs = {NEWDISTINCT : "new distinct terms",
           NEWPERCENTAGE : "percentage of new distinct terms",
           DISTINCT : "how many distinct terms per interval",
           INVENTROPY : "the entropy score of each model subtracted from 1",
+          DISTINCTPERHOUR : "the number of distinct terms per hour",
           GNEWDISTINCT : "how many new distinct terms per interval, top level hierarch",
           GDISTINCT : "how many distinct terms per interval, top level hierarch",
           GINVENTROPY : "the global entropy score of each model subtracted from 1"}
@@ -248,6 +250,9 @@ def main():
         INVENTROPY : {TITLE : "1-Entropy per Interval",
                       XLABEL : "t",
                       YLABEL : "nats"},
+        DISTINCTPERHOUR : {TITLE : "Number of Distinct Terms per Hour",
+                           XLABEL : "hour",
+                           YLABEL : "distinct terms"},
         GNEWDISTINCT : {TITLE : "New Terms in Top-Level Hierarchical Model per Interval",
                         XLABEL : "t",
                         YLABEL : "new distinct terms"},
