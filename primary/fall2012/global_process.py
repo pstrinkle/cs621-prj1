@@ -71,7 +71,8 @@ def output_distinct_graphs(results, output, use_file_out = False):
     params += "set title '%s'\n" % title
     params += "set xlabel 't'\n"
     params += "set ylabel 'distinct terms'\n"
-    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red'\n" % (path, 'global', start, end)
+    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red'\n" \
+        % (path, 'global', start, end)
     params += "q\n"
 
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
@@ -119,7 +120,8 @@ def output_global_new_terms(results, output, use_file_out = False):
     params += "set title '%s'\n" % title
     params += "set xlabel 't'\n"
     params += "set ylabel 'new distinct terms'\n"
-    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red'\n" % (path, 'global', start, end)
+    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red'\n" \
+        % (path, 'global', start, end)
     params += "q\n"
 
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
@@ -155,7 +157,8 @@ def output_global_entropy(entropies, output, use_file_out = False):
     params += "set title '%s'\n" % title
     params += "set xlabel 't'\n"
     params += "set ylabel 'entropy (nats)'\n"
-    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red'\n" % (path, "global", start, end)
+    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red'\n" \
+        % (path, "global", start, end)
     params += "q\n"
 
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
@@ -195,7 +198,8 @@ def output_global_inverse_entropy(entropies, output, use_file_out = False):
     params += "set title '%s'\n" % title
     params += "set xlabel 't'\n"
     params += "set ylabel '(1 - entropy) (nats)'\n"
-    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red'\n" % (path, "global", start, end)
+    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red'\n" \
+        % (path, "global", start, end)
     params += "q\n"
 
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
@@ -217,7 +221,8 @@ def output_global_inverse_entropy_json(global_models, entropies, output, x):
         if val > 0.0:
             inv = 1.0 - val
             if inv >= x:
-                output_model[key] = vectorspace.top_terms(global_models[key].term_weights, 10)
+                output_model[key] = \
+                    vectorspace.top_terms(global_models[key].term_weights, 10)
 
     with open(output, 'w') as fout:
         fout.write(dumps(output_model, indent=4))
@@ -300,15 +305,11 @@ def main():
 
     print "number of slices: %d" % len(results[NOTE_BEGINS[0]])
 
-    term_list = boringmatrix.build_termlist(results) # length of this is used to normalize
-    sterm_list = boringmatrix.build_termlist2(results) # length of this is used to normalize
-
-    print "Full Dictionary: %d" % len(term_list)
-    print "Short Dictionary: %d" % len(sterm_list)
-
     # ----------------------------------------------------------------------
     # Prune out low term counts; re-compute.
     if use_short_terms:
+        sterm_list = boringmatrix.build_termlist2(results)
+
         for note in results:
             for start in results[note]:
                 results[note][start].drop_not_in(sterm_list)
@@ -330,19 +331,32 @@ def main():
         entropies[start] = boringmatrix.basic_entropy(global_views[start])
 
     if output_counts:
-        output_distinct_graphs(global_views, "%s_global_distinct" % output_name, use_file_out)
-        output_global_new_terms(global_views, "%s_global_newterms" % output_name, use_file_out)
+        output_distinct_graphs(global_views,
+                               "%s_global_distinct" % output_name,
+                               use_file_out)
+        output_global_new_terms(global_views,
+                                "%s_global_newterms" % output_name,
+                                use_file_out)
 
     if output_entropy:
-        output_global_entropy(entropies, "%s_global_entropy" % output_name, use_file_out)
-        output_global_inverse_entropy(entropies, "%s_inv_global_entropy" % output_name, use_file_out)
+        output_global_entropy(entropies,
+                              "%s_global_entropy" % output_name,
+                              use_file_out)
+        output_global_inverse_entropy(entropies,
+                                      "%s_inv_global_entropy" % output_name,
+                                      use_file_out)
 
     if output_matrix:
         gterm_list = build_gtermlist(global_views)
-        output_full_matrix(gterm_list, global_views, "%s_%s.csv" % (output_name, "global"))
+        output_full_matrix(gterm_list,
+                           global_views,
+                           "%s_%s.csv" % (output_name, "global"))
 
     if output_json:
-        output_global_inverse_entropy_json(global_views, entropies, "%s_global_top_models.json" % output_name, 0.05)
+        output_global_inverse_entropy_json(global_views, 
+                                           entropies,
+                                           "%s_global_top_models.json" % output_name,
+                                           0.05)
 
     # --------------------------------------------------------------------------
     # Done.

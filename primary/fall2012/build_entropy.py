@@ -53,8 +53,10 @@ def output_basic_entropy(entropies, output, use_file_out = False):
     params += "set title '%s'\n" % title
     params += "set xlabel 't'\n"
     params += "set ylabel 'entropy scores'\n"
-    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', " % (path, NOTE_BEGINS[0], start, end)
-    params += "'%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" % (path, NOTE_BEGINS[1], start, end)
+    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', " \
+        % (path, NOTE_BEGINS[0], start, end)
+    params += "'%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" \
+        % (path, NOTE_BEGINS[1], start, end)
     params += "q\n"
     
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
@@ -98,13 +100,16 @@ def output_inverse_entropy(entropies, output, use_file_out = False):
     with open(path, 'w') as fout:
         fout.write("\n".join(out))
 
-    params = "set terminal postscript\n"
+    params = "set terminal postscript eps color\n"
+#    params += "set arrow 10 from 0,0.045 to 100,0.045 nohead\n"
     params += "set output '%s.eps'\n" % output
     params += "set title '%s'\n" % title
     params += "set xlabel 't'\n"
     params += "set ylabel '(1 - entropy) scores'\n"
-    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', " % (path, NOTE_BEGINS[0], start, end)
-    params += "'%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" % (path, NOTE_BEGINS[1], start, end)
+    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', " \
+        % (path, NOTE_BEGINS[0], start, end)
+    params += "'%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" \
+        % (path, NOTE_BEGINS[1], start, end)
     params += "q\n"
     
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
@@ -181,8 +186,10 @@ def output_renyi_entropy(alpha, entropies, output, use_file_out = False):
     params += "set title '%s'\n" % title
     params += "set xlabel 't'\n"
     params += "set ylabel 'renyi scores - %f'\n" % alpha
-    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', " % (path, NOTE_BEGINS[0], start, end)
-    params += "'%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" % (path, NOTE_BEGINS[1], start, end)
+    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', " \
+        % (path, NOTE_BEGINS[0], start, end)
+    params += "'%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" \
+        % (path, NOTE_BEGINS[1], start, end)
     params += "q\n"
     
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
@@ -278,15 +285,11 @@ def main():
 
     print "number of slices: %d" % len(results[NOTE_BEGINS[0]])
 
-    term_list = boringmatrix.build_termlist(results) # length of this is used to normalize
-    sterm_list = boringmatrix.build_termlist2(results) # length of this is used to normalize
-
-    print "Full Dictionary: %d" % len(term_list)
-    print "Short Dictionary: %d" % len(sterm_list)
-
     # ----------------------------------------------------------------------
     # Prune out low term counts; re-compute.
     if use_short_terms:
+        sterm_list = boringmatrix.build_termlist2(results)
+
         for note in results:
             for start in results[note]:
                 results[note][start].drop_not_in(sterm_list)
@@ -299,24 +302,37 @@ def main():
     entropies = {NOTE_BEGINS[0] : {}, NOTE_BEGINS[1] : {}}
 
     for start in results[NOTE_BEGINS[0]]:
-        entropies[NOTE_BEGINS[0]][start] = boringmatrix.basic_entropy(results[NOTE_BEGINS[0]][start])
-        entropies[NOTE_BEGINS[1]][start] = boringmatrix.basic_entropy(results[NOTE_BEGINS[1]][start])
+        entropies[NOTE_BEGINS[0]][start] = \
+            boringmatrix.basic_entropy(results[NOTE_BEGINS[0]][start])
+        entropies[NOTE_BEGINS[1]][start] = \
+            boringmatrix.basic_entropy(results[NOTE_BEGINS[1]][start])
 
     if output_graphs:
-        output_basic_entropy(entropies, "%s_entropy" % output_name, use_file_out)
-        output_inverse_entropy(entropies, "%s_inv_entropy" % output_name, use_file_out)
-    
+        output_basic_entropy(entropies,
+                             "%s_entropy" % output_name,
+                             use_file_out)
+        output_inverse_entropy(entropies,
+                               "%s_inv_entropy" % output_name,
+                               use_file_out)
+
     if output_json:
-        output_top_model_entropy(results, entropies, "%s_top_models.json" % output_name, 0.05)
+        output_top_model_entropy(results, 
+                                 entropies,
+                                 "%s_top_models.json" % output_name,
+                                 0.045)
 
     if use_renyi:
         for alpha in (0.10, 0.25, 0.5, 0.75):
             renyi = {NOTE_BEGINS[0] : {}, NOTE_BEGINS[1] : {}}
 
             for start in results[NOTE_BEGINS[0]]:
-                renyi[NOTE_BEGINS[0]][start] = renyi_entropy(results[NOTE_BEGINS[0]][start], alpha)
-                renyi[NOTE_BEGINS[1]][start] = renyi_entropy(results[NOTE_BEGINS[1]][start], alpha)
-            output_basic_entropy(renyi, "%s_renyi-%f" % (output_name, alpha), use_file_out)
+                renyi[NOTE_BEGINS[0]][start] = \
+                    renyi_entropy(results[NOTE_BEGINS[0]][start], alpha)
+                renyi[NOTE_BEGINS[1]][start] = \
+                    renyi_entropy(results[NOTE_BEGINS[1]][start], alpha)
+            output_basic_entropy(renyi,
+                                 "%s_renyi-%f" % (output_name, alpha),
+                                 use_file_out)
 
     # --------------------------------------------------------------------------
     # Done.

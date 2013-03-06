@@ -107,8 +107,10 @@ def output_percentage_growth(results, output, use_file_out = False):
     params += "set title '%s'\n" % title
     params += "set xlabel 't'\n"
     params += "set ylabel 'percentage of terms in next interval not in previous'\n"
-    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', " % (path, NOTE_BEGINS[0], start, end)
-    params += "'%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" % (path, NOTE_BEGINS[1], start, end)
+    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', " \
+        % (path, NOTE_BEGINS[0], start, end)
+    params += "'%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" \
+        % (path, NOTE_BEGINS[1], start, end)
     params += "q\n"
 
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
@@ -164,8 +166,10 @@ def output_new_terms(results, output, use_file_out = False):
     params += "set log y\n"
     params += "set xlabel 't'\n"
     params += "set ylabel 'new distinct terms'\n"
-    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', " % (path, NOTE_BEGINS[0], start, end)
-    params += "'%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" % (path, NOTE_BEGINS[1], start, end)
+    params += "plot '%s' using 1:2 t '%s: %d - %d' lc rgb 'red', " \
+        % (path, NOTE_BEGINS[0], start, end)
+    params += "'%s' using 1:3 t '%s: %d - %d' lc rgb 'blue'\n" \
+        % (path, NOTE_BEGINS[1], start, end)
     params += "q\n"
 
     subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE).communicate(params)
@@ -236,29 +240,24 @@ def main():
 
     print "number of slices: %d" % len(results[NOTE_BEGINS[0]])
 
-    term_list = boringmatrix.build_termlist(results) # length of this is used to normalize
-    sterm_list = boringmatrix.build_termlist2(results) # length of this is used to normalize
-
-    print "Full Dictionary: %d" % len(term_list)
-    print "Short Dictionary: %d" % len(sterm_list)
-
     # ----------------------------------------------------------------------
     # Prune out low term counts; re-compute.
     if use_short_terms:
+        sterm_list = boringmatrix.build_termlist2(results)
+        
         for note in results:
             for start in results[note]:
                 results[note][start].drop_not_in(sterm_list)
                 results[note][start].compute()
-
-    #import timeit
-    #print timeit.timeit('output_new_terms(results, "%s_term_growth.eps" % output_name)', number=1)
 
     # output how many new terms you have at each interval.
     output_new_terms(results, "%s_term_growth" % output_name, use_file_out)
 
     # output the percentage of new terms at each interval, to show how 
     # worthless smoothing gets.
-    output_percentage_growth(results, "%s_percentage_new" % output_name, use_file_out)
+    output_percentage_growth(results,
+                             "%s_percentage_new" % output_name,
+                             use_file_out)
 
     # --------------------------------------------------------------------------
     # Done.

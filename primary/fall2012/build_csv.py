@@ -96,14 +96,6 @@ def main():
     if use_short_terms and full_term_matrix_out:
         raise Exception("Cannot use short and full at the same time buddy")
 
-    if full_term_matrix_out:
-        for note in NOTE_BEGINS:
-            boringmatrix.output_full_matrix(term_list, results[note], "%s_%s_full.csv" % (output_name, note))
-            
-    if use_short_terms:
-        for note in results:
-            boringmatrix.output_full_matrix(sterm_list, results[note], "%s_%s.csv" % (output_name, note))
-
     # ----------------------------------------------------------------------
     # Output a CSV with a model built from merging boston and i495 for each
     # t.  Using the short list, or whatever is set.
@@ -130,9 +122,25 @@ def main():
             merged[start] = x
 
         if use_short_terms:
-            boringmatrix.output_full_matrix(sterm_list, merged, "%s_%s.csv" % (output_name, "merged"))
+            boringmatrix.output_full_matrix(sterm_list,
+                                            merged,
+                                            "%s_merged.csv" % output_name)
         else:
-            boringmatrix.output_full_matrix(term_list, merged, "%s_%s.csv" % (output_name, "merged"))
+            boringmatrix.output_full_matrix(term_list,
+                                            merged,
+                                            "%s_merged.csv" % output_name)
+    elif full_term_matrix_out:
+        for note in NOTE_BEGINS:
+            output = "%s_%s_full.csv" % (output_name, note)
+            boringmatrix.output_full_matrix(term_list,
+                                            results[note],
+                                            output)
+    elif use_short_terms:
+        for note in results:
+            output = "%s_%s.csv" % (output_name, note)
+            boringmatrix.output_full_matrix(sterm_list,
+                                            results[note],
+                                            output)
 
     # --------------------------------------------------------------------------
     # Done.

@@ -94,7 +94,7 @@ def dual_output(labels, ylog, output, paths):
     ylog : boolean, should we log scale Y?
     output : the output path
     paths : dictionary of the paths."""
-    
+
     params = "set terminal postscript eps color\n"
     params += "set output '%s.eps'\n" % output
     if ylog:
