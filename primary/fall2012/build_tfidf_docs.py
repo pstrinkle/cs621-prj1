@@ -92,7 +92,7 @@ def main():
             for start in results[note]:
                 results[note][start].drop_not_in(sterm_list)
                 results[note][start].compute()
-    
+
     # ----------------------------------------------------------------------
     # Just build a dictionary of the documents.
     results_as_dict = {}
@@ -115,12 +115,17 @@ def main():
                     doc_freq[term] = 1
 
     invdoc_freq = vectorspace.calculate_invdf(len(results_as_dict), doc_freq)
-    doc_tfidf = vectorspace.calculate_tfidf(doc_length, results_as_dict, invdoc_freq)
+
+    doc_tfidf = \
+        vectorspace.calculate_tfidf(doc_length, results_as_dict, invdoc_freq)
 
     with open("%s_%s" % (output_name, "top_tfidf.json"), 'w') as fout:
-        fout.write(dumps(vectorspace.top_terms_overall(doc_tfidf, TOP_TERM_CNT)))
+        fout.write(dumps(vectorspace.top_terms_overall(doc_tfidf,
+                                                       TOP_TERM_CNT),
+                         indent=4))
 
-    top_terms_slist = vectorspace.top_terms_overall(results_as_dict, int(len(doc_freq)*.10))
+    top_terms_slist = \
+        vectorspace.top_terms_overall(results_as_dict, int(len(doc_freq)*.10))
 
     with open("%s_%s" % (output_name, "top_tf.json"), 'w') as fout:
         fout.write(dumps(top_terms_slist, indent=4))

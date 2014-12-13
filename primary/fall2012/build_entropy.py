@@ -116,7 +116,7 @@ def output_inverse_entropy(entropies, output, use_file_out = False):
     
     os.remove(path)
 
-def output_top_model_entropy(results, entropies, output, x):
+def output_top_model_entropy(results, entropies, output, x, both_required):
     """Go through the entropy values and output the top terms from the models, 
     when the entropy goes low beyond some threshold, or when 1 - H(x) >= x"""
     
@@ -141,13 +141,20 @@ def output_top_model_entropy(results, entropies, output, x):
         else:
             out2 = 0.0
 
-        if out1 >= x:
-            output_model["%d-%s" % (skey[idx], NOTE_BEGINS[0])] = \
-                vectorspace.top_terms(results[NOTE_BEGINS[0]][skey[idx]].term_weights, 10)
+        if both_required:
+            if out1 >= x and out2 >= x:
+                output_model["%d-%s" % (skey[idx], NOTE_BEGINS[0])] = \
+                    vectorspace.top_terms(results[NOTE_BEGINS[0]][skey[idx]].term_weights, 5)
+                output_model["%d-%s" % (skey[idx], NOTE_BEGINS[1])] = \
+                    vectorspace.top_terms(results[NOTE_BEGINS[1]][skey[idx]].term_weights, 5)
+        else:
+            if out1 >= x:
+                output_model["%d-%s" % (skey[idx], NOTE_BEGINS[0])] = \
+                    vectorspace.top_terms(results[NOTE_BEGINS[0]][skey[idx]].term_weights, 5)
 
-        if out2 >= x:
-            output_model["%d-%s" % (skey[idx], NOTE_BEGINS[1])] = \
-                vectorspace.top_terms(results[NOTE_BEGINS[1]][skey[idx]].term_weights, 10)
+            if out2 >= x:
+                output_model["%d-%s" % (skey[idx], NOTE_BEGINS[1])] = \
+                    vectorspace.top_terms(results[NOTE_BEGINS[1]][skey[idx]].term_weights, 5)
 
     with open(output, 'w') as fout:
         fout.write(dumps(output_model, indent=4))
@@ -215,7 +222,7 @@ def renyi_entropy(boring_a, alpha):
 def usage():
     """Print the massive usage information."""
 
-    print "usage: %s -in <model_data> -out <output_file> [-short] [-renyi] [-file] [-json] [-graphs]" % sys.argv[0]
+    print "usage: %s -in <model_data> -out <output_file> [-short] [-renyi] [-file] [-json [-both]] [-graphs]" % sys.argv[0]
     print "-short - terms that appear more than once in at least one slice are used for any other things you output."
     print "-file - output as a data file instead of running gnuplot."
 
@@ -232,6 +239,7 @@ def main():
     use_renyi = False
     output_json = False
     output_graphs = False
+    both_required = False
 
     # could use the stdargs parser, but that is meh.
     try:
@@ -250,6 +258,8 @@ def main():
                 output_json = True
             elif "-graphs" == sys.argv[idx]:
                 output_graphs = True
+            elif "-both" == sys.argv[idx]:
+                both_required = True
     except IndexError:
         usage()
         sys.exit(-2)
@@ -319,7 +329,8 @@ def main():
         output_top_model_entropy(results, 
                                  entropies,
                                  "%s_top_models.json" % output_name,
-                                 0.045)
+                                 0.045,
+                                 both_required)
 
     if use_renyi:
         for alpha in (0.10, 0.25, 0.5, 0.75):

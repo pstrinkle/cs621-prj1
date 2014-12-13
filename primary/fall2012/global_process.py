@@ -18,6 +18,7 @@ import boringmatrix
 sys.path.append("../modellib")
 import vectorspace
 
+TOP_TERM_CNT = 1000
 NOTE_BEGINS = ("i495", "boston")
 
 def output_full_matrix(terms, vectors, output):
@@ -211,9 +212,6 @@ def output_global_inverse_entropy_json(global_models, entropies, output, x):
     """
 
     skey = sorted(entropies.keys())
-    start = skey[0]
-    end = skey[-1]
-
     output_model = {}
 
     for key in skey:
@@ -222,7 +220,7 @@ def output_global_inverse_entropy_json(global_models, entropies, output, x):
             inv = 1.0 - val
             if inv >= x:
                 output_model[key] = \
-                    vectorspace.top_terms(global_models[key].term_weights, 10)
+                    vectorspace.top_terms(global_models[key].term_weights, 5)
 
     with open(output, 'w') as fout:
         fout.write(dumps(output_model, indent=4))
@@ -232,7 +230,7 @@ def output_global_inverse_entropy_json(global_models, entropies, output, x):
 def usage():
     """Print the massive usage information."""
 
-    print "usage: %s -in <model_data> -out <output_file> [-short] [-file] [-json] [-counts] [-entropy]" % sys.argv[0]
+    print "usage: %s -in <model_data> -out <output_file> [-file] [-json] [-counts] [-entropy] [-top] [-matrix]" % sys.argv[0]
     print "-short - terms that appear more than once in at least one slice are used for any other things you output."
     print "-file - output as a data file instead of running gnuplot."
 
@@ -244,12 +242,12 @@ def main():
         usage()
         sys.exit(-1)
 
-    use_short_terms = False
     use_file_out = False
     output_counts = False
     output_json = False
     output_matrix = False
     output_entropy = False
+    output_top = False
 
     # could use the stdargs parser, but that is meh.
     try:
@@ -258,8 +256,6 @@ def main():
                 model_file = sys.argv[idx + 1]
             elif "-out" == sys.argv[idx]:
                 output_name = sys.argv[idx + 1]
-            elif "-short" == sys.argv[idx]:
-                use_short_terms = True
             elif "-file" == sys.argv[idx]:
                 use_file_out = True
             elif "-json" == sys.argv[idx]:
@@ -270,6 +266,8 @@ def main():
                 output_counts = True
             elif "-entropy" == sys.argv[idx]:
                 output_entropy = True
+            elif "-top" == sys.argv[idx]:
+                output_top = True
     except IndexError:
         usage()
         sys.exit(-2)
@@ -295,25 +293,7 @@ def main():
     # Compute the term weights.
     boringmatrix.fix_boringmatrix_dicts(results)
 
-#        for start in results[NOTE_BEGINS[0]]:
-#            for note in NOTE_BEGINS:
-#                total = 0.0
-#                for term in results[note][start].term_weights:
-#                    total += results[note][start].term_weights[term]
-#                print total,
-# 1.0 is the total weight, yay.
-
     print "number of slices: %d" % len(results[NOTE_BEGINS[0]])
-
-    # ----------------------------------------------------------------------
-    # Prune out low term counts; re-compute.
-    if use_short_terms:
-        sterm_list = boringmatrix.build_termlist2(results)
-
-        for note in results:
-            for start in results[note]:
-                results[note][start].drop_not_in(sterm_list)
-                results[note][start].compute()
 
     # ----------------------------------------------------------------------
     # Compute the entropy value for the global hierarchical model given the
@@ -329,7 +309,7 @@ def main():
 
         global_views[start].compute()
         entropies[start] = boringmatrix.basic_entropy(global_views[start])
-
+    
     if output_counts:
         output_distinct_graphs(global_views,
                                "%s_global_distinct" % output_name,
@@ -350,13 +330,56 @@ def main():
         gterm_list = build_gtermlist(global_views)
         output_full_matrix(gterm_list,
                            global_views,
-                           "%s_%s.csv" % (output_name, "global"))
+                           "%s_global.csv" % output_name)
 
     if output_json:
+        output = "%s_global_top_models.json" % output_name
         output_global_inverse_entropy_json(global_views, 
                                            entropies,
-                                           "%s_global_top_models.json" % output_name,
-                                           0.05)
+                                           output,
+                                           0.045)
+
+    # -------------------------------------------------------------------------
+    # Just build a dictionary of the documents.
+    if output_top:
+        results_as_dict = {}
+        doc_length = {}
+        doc_freq = {}
+        top_terms_slist = None
+
+        for start in global_views:
+            doc_id = str(start)
+
+            results_as_dict[doc_id] = global_views[start].term_matrix.copy()
+            doc_length[doc_id] = global_views[start].total_count
+
+            for term in results_as_dict[doc_id]:
+                try:
+                    doc_freq[term] += 1
+                except KeyError:
+                    doc_freq[term] = 1
+
+        invdoc_freq = \
+            vectorspace.calculate_invdf(len(results_as_dict), doc_freq)
+
+        doc_tfidf = \
+            vectorspace.calculate_tfidf(doc_length,
+                                        results_as_dict,
+                                        invdoc_freq)
+
+        output = "%s_%s" % (output_name, "global_top_tfidf.json")
+        with open(output, 'w') as fout:
+            fout.write(dumps(vectorspace.top_terms_overall(doc_tfidf,
+                                                           TOP_TERM_CNT),
+                             indent=4))
+
+        top_terms_slist = \
+            vectorspace.top_terms_overall(results_as_dict,
+                                          int(len(doc_freq)*.10))
+
+        output = "%s_%s" % (output_name, "global_top_tf.json")
+        with open(output, 'w') as fout:
+            fout.write(dumps(top_terms_slist, indent=4))
 
     # --------------------------------------------------------------------------
     # Done.
